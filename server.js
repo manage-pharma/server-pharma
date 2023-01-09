@@ -7,6 +7,8 @@ import userRouter from "./Routes/UserRoutes.js";
 import { errorHandler, notFound } from "./Middleware/Errors.js";
 import orderRouter from "./Routes/orderRoutes.js";
 import categoryRouter from "./Routes/CategoryRoutes.js"
+import categoryDrugRouter from "./Routes/CategoryDrugRoutes.js"
+
 // CONFIG
 dotenv.config() 
 connectDatabase()
@@ -19,6 +21,7 @@ app.use("/api/products", productRoute)
 app.use("/api/users", userRouter);
 app.use("/api/orders", orderRouter)
 app.use("/api/category", categoryRouter)
+app.use("/api/category-drug", categoryDrugRouter)
 app.get("/api/config/paypal", (req, res) => {
     res.send(process.env.PAYPAL_CLIENT_ID);
   });

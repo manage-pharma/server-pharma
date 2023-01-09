@@ -1,11 +1,8 @@
 import mongoose from "mongoose";
-const categorySchema = mongoose.Schema({
+const categoryDrugSchema = mongoose.Schema({
     name:{
         type: String,
         require: true   
-    },
-    image:{
-        type: String,
     },
     description:{
         type: String,
@@ -25,5 +22,5 @@ const categorySchema = mongoose.Schema({
     timestamps: true
 }
 )
-const Category = mongoose.model("Category", categorySchema)
-export default Category
+const CategoryDrug = mongoose.model("CategoryDrug", categoryDrugSchema)
+export default CategoryDrug
