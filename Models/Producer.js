@@ -1,15 +1,8 @@
 import mongoose from "mongoose";
-const categorySchema = mongoose.Schema({
+const producerSchema = mongoose.Schema({
     name:{
         type: String,
         require: true   
-    },
-    image:{
-        type: String,
-    },
-    description:{
-        type: String,
-        require: true
     },
     isActive:{
         type: Boolean,
@@ -25,5 +18,5 @@ const categorySchema = mongoose.Schema({
     timestamps: true
 }
 )
-const Category = mongoose.model("Category", categorySchema)
-export default Category
+const Producer = mongoose.model("Producer", producerSchema)
+export default Producer
