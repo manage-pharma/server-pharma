@@ -35,6 +35,17 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// Single File Route Handler
+categoryRouter.post("/single", upload.single("image"), (req, res) => {
+  const file = req.file
+  if (!file) {
+    const error = new Error('Please upload a file')
+    error.httpStatusCode = 400
+    return next(error)
+  }
+  res.json(file)
+});
+
 //GET ALL CATEGORY
 categoryRouter.get("/",
   protect,
@@ -91,11 +102,13 @@ categoryRouter.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, description, isActive } = req.body;
+    const { name, description, image, isActive } = req.body;
+    console.log(isActive)
     const category = await Category.findById(req.params.id);
     if (category) {
       category.name = name || category.name;
       category.description = description || category.description;
+      category.image =  category.image === image ? category.image :`/upload/${image}`
       category.isActive =  isActive
       // product.image = `/upload/${image}` || product.image;
 
