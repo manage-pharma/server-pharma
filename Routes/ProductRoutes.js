@@ -69,7 +69,7 @@ productRoute.get(
   protect,
   admin,
   async (req, res) => {
-    const products = await Product.find().populate('category', '_id name' ).sort({ _id: -1 });
+    const products = await Product.find().populate('category', '_id name' ).populate('categoryDrug', '_id name' ).sort({ _id: -1 });
     res.json(products);
 });
 
@@ -119,16 +119,26 @@ productRoute.get("/:id/categories",
     protect,
     admin,
     asyncHandler(async(req, res)=>{
-      const product  = await Product.find().populate('category', '_id name' );
-      const productCategories = product.filter(item => item.category._id.toHexString() === req.params.id)
+      const product  = await Product.find().populate('category', '_id name' )
+      const productCategories = product.filter(item => item?.category?._id.toHexString() === req.params.id)
       res.json(productCategories)
+    })
+)
+
+productRoute.get("/:id/categories-drug",
+    protect,
+    admin,
+    asyncHandler(async(req, res)=>{
+      const product  = await Product.find().populate('categoryDrug', '_id name' )
+      const productCategoriesDrug = product.filter(item => item?.categoryDrug?._id.toHexString() === req.params.id)
+      res.json(productCategoriesDrug)
     })
 )
 
 //GET SINGLE PRODUCT
 productRoute.get("/:id",
     asyncHandler(async (req, res) => {
-        const product = await Product.findById(req.params.id).populate('category', '_id name' );
+        const product = await Product.findById(req.params.id).populate('category', '_id name' ).populate('categoryDrug', '_id name' );
         if (product){
             res.json(product);
             console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getDetailProduct 👉 Get: 200`)
@@ -201,7 +211,7 @@ productRoute.post(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, price, description, image, countInStock, category } = req.body;
+    const { name, price, description, image, countInStock, category, categoryDrug, unit, regisId, expDrug, statusDrug, capacity } = req.body;
     const productExist = await Product.findOne({ name });
     if (productExist) {
       res.status(400);
@@ -214,6 +224,12 @@ productRoute.post(
         image:`/upload/${image}`,
         countInStock,
         category,
+        categoryDrug,
+        unit,
+        capacity,
+        regisId,
+        expDrug,
+        statusDrug,
         user: req.body._id
       });
       if (product) {
@@ -233,16 +249,21 @@ productRoute.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, price, description, image, countInStock, category } = req.body;
+    const { name, price, description, image, countInStock, category, categoryDrug, unit, regisId, expDrug, statusDrug, capacity  } = req.body;
     const product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
       product.price = price || product.price;
       product.description = description || product.description;
-      product.image = `/upload/${image}` || product.image;
+      product.image =  product.image === image ? product.image :`/upload/${image}`
       product.countInStock = countInStock || product.countInStock;
       product.category = category || product.category
-
+      product.categoryDrug = categoryDrug || product.categoryDrug,
+      product.unit = unit || product.unit,
+      product.capacity = capacity || product.capacity,
+      product.regisId = regisId || product.regisId,
+      product.expDrug = expDrug,
+      product.statusDrug = statusDrug
       const updatedProduct = await product.save();
       res.json(updatedProduct);
     } else {

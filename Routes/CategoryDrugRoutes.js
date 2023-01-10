@@ -60,7 +60,7 @@ categoryDrugRouter.post(
     protect,
     admin,
     asyncHandler(async(req, res)=>{
-        const {name, description} = req.body
+        const {name, description, isActive} = req.body
         const categoryDrugExist = await CategoryDrug.findOne({name});
         if(categoryDrugExist){
             res.status(400);
@@ -70,6 +70,7 @@ categoryDrugRouter.post(
             const categoryDrug = new CategoryDrug({
                 name, 
                 description,
+                isActive,
                 user: req.user._id,
             })
             if(categoryDrug){

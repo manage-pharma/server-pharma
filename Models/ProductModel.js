@@ -44,6 +44,10 @@ const productSchema = mongoose.Schema({
         type: String,
         require: true
     },
+    capacity: {
+        type: String,
+        require: true
+    },
     regisId:{
         type: String,
         require: true
