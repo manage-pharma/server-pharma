@@ -1,0 +1,119 @@
+import express, { application } from 'express'
+import asyncHandler from 'express-async-handler'
+import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import Provider from './../Models/ProviderModel.js';
+const providerRoutes = express.Router();
+
+providerRoutes.get("/",
+    protect,
+    admin,
+    asyncHandler(async (req, res) => {
+        const pageSize = 9;
+        const currentPage = Number(req.query.pageNumber) || 1;
+        const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
+          name: {
+              $regex: req.query.keyword,
+              $options: "i"
+          },
+          
+      } : {}
+        const count = await Provider.countDocuments({...keyword});
+        const providers = await Provider.find({...keyword})
+        .limit(pageSize)
+        .skip(pageSize * (currentPage - 1))
+
+        const totalPage = [];
+        for(let i = 1; i <= Math.ceil(count / pageSize); i++){
+          totalPage.push(i)
+        }
+        res.json({ providers, currentPage, totalPage });
+    })
+)
+
+//GET ALL PROVIDER
+providerRoutes.get("/allprovider",
+  protect,
+  admin,
+  asyncHandler(async (req, res)=>{
+    const provider = await Provider.find({})
+    res.json(provider)
+  })
+);
+
+//CREATE CATEGORY
+providerRoutes.post(
+    "/",
+    protect,
+    admin,
+    asyncHandler(async(req, res)=>{
+        const {name, contactName, taxCode, phone, email, address} = req.body
+        const categoryExist = await Provider.findOne({name});
+        if(categoryExist){
+            res.status(400);
+            throw new Error("Provider name already exist");
+        }
+        else{
+            const provider = new Provider({
+                name, 
+                contactName, 
+                taxCode, 
+                phone, 
+                email, 
+                address
+            })
+            if(provider){
+                const createdProvider = await provider.save();
+                res.status(201).json(createdProvider);
+            }
+            else{
+                res.status(400);
+                throw new Error("Invalid provider data")
+            }
+        }
+    })
+)
+
+//UPDATE CATEGORY
+providerRoutes.put(
+  "/:id",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const { name, contactName, taxCode, phone, email, address } = req.body;
+    const provider = await Provider.findById(req.params.id);
+    if (provider) {
+      provider.name = name || provider.name;
+      provider.contactName = contactName || provider.contactName;
+      provider.taxCode = taxCode || provider.taxCode 
+      provider.phone =  phone || provider.phone 
+      provider.email =  email || provider.email 
+      provider.address =  address || provider.address 
+      // product.image = `/upload/${image}` || product.image;
+
+      const updatedProvider = await provider.save();
+      res.json(updatedProvider);
+    } else {
+      
+      res.status(404);
+      throw new Error("Provider not found");
+    }
+  })
+);
+export default providerRoutes;
+
+// DELETE CATEGORY
+providerRoutes.delete(
+  "/:id",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const provider = await Provider.findById(req.params.id);
+    if (provider) {
+      await provider.remove();
+      res.json({ message: "Provider deleted" });
+    } else {
+      res.status(404);
+      throw new Error("Provider not Found");
+    }
+  })
+);

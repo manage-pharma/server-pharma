@@ -100,7 +100,7 @@ productRoute.get("/all",
         })
         const sortValue = req.query.sort ? handleSortPrice() : {}
         const count = await Product.countDocuments({ ...keyword, ...sortValue});
-        const products = await Product.find({...keyword, ...sortValue})
+        const products = await Product.find({...keyword, ...sortValue}).populate('category', '_id name' ).populate('categoryDrug', '_id name' )
         .limit(pageSize)
         .skip(pageSize * (currentPage - 1))
         .sort({ _id: -1 });
