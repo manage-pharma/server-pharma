@@ -40,7 +40,21 @@ providerRoutes.get("/allprovider",
   })
 );
 
-//CREATE CATEGORY
+//GET SINGLE PROVIDER
+providerRoutes.get("/:id",
+    asyncHandler(async (req, res) => {
+        const provider = await Provider.findById(req.params.id)
+        if (provider){
+            res.json(provider);
+        }
+        else{
+            res.status(404)
+            throw new Error(`Provider not found`)
+        }
+    })
+)
+
+//CREATE PROVIDER
 providerRoutes.post(
     "/",
     protect,
@@ -73,7 +87,7 @@ providerRoutes.post(
     })
 )
 
-//UPDATE CATEGORY
+//UPDATE PROVIDER
 providerRoutes.put(
   "/:id",
   protect,
@@ -101,7 +115,7 @@ providerRoutes.put(
 );
 export default providerRoutes;
 
-// DELETE CATEGORY
+// DELETE PROVIDER
 providerRoutes.delete(
   "/:id",
   protect,
