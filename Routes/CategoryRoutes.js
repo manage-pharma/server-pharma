@@ -57,6 +57,7 @@ categoryRouter.get("/",
 );
 
 //GET ALL CATEGORY
+//AND GET FOR APP
 categoryRouter.get("/active",
   asyncHandler(async (req, res)=>{
       const category = await Category.find({isActive: true})

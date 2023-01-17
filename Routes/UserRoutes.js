@@ -292,4 +292,14 @@ userRouter.get(
     res.json(users);
   })
 );
+
+// get user data for app
+userRouter.get("/getAppUserData", protect, async (req, res) => {
+
+  const user = await User.findById(req.user);
+  console.log(user)
+  res.json({ ...user._doc, token: req.token });
+});
+
+
 export default userRouter

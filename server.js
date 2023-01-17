@@ -40,4 +40,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT
-app.listen(PORT, console.log(`✨ Server run in port ${PORT}`));
+app.listen(PORT,console.log(`✨ Server run in port ${PORT}`));
+// app.listen(PORT, '192.168.4.109',console.log(`✨ Server run in port ${PORT}`));
