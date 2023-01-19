@@ -18,6 +18,9 @@ importStockRoutes.get(
     ).populate(
       "provider",
       "name"
+    ).populate(
+      "importItems.product",
+      "name"
     ).sort({ _id: -1 })
     res.json(stockImported);
   })
@@ -68,7 +71,10 @@ importStockRoutes.get(
     ).populate(
       "provider",
       "name"
-    );
+    ).populate(
+      "importItems.product",
+      "name"
+    )
 
     if (order) {
       res.json(order);
@@ -81,7 +87,7 @@ importStockRoutes.get(
 
 // UPDATE STATUS
 importStockRoutes.put(
-  "/:id",
+  "/:id/status",
   protect,
   admin,
   asyncHandler(async (req, res) => {
@@ -140,4 +146,41 @@ importStockRoutes.put(
     }
   })
 );
+
+//UPDATE IMPORTSTOCK
+importStockRoutes.put(
+  "/:id",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    try {
+      const thisImport = await importStock.findById(req.params.id);
+      const {
+        provider,
+        importItems,
+        user,
+        status,
+        totalPrice,
+        importedAt
+      } = req.body;
+
+      if (thisImport) {
+        thisImport.provider = provider || thisImport.provider;
+        thisImport.importItems = importItems || thisImport.importItems;
+        thisImport.user = user || thisImport.user;
+        thisImport.status = status || thisImport.status
+        thisImport.totalPrice = totalPrice || thisImport.totalPrice;
+        thisImport.importedAt = importedAt || thisImport.importedAt;
+        const updatedProduct = await thisImport.save();
+        res.json(updatedProduct);
+      } else {
+        res.status(404);
+        throw new Error("Import stock not found");
+      }
+    } catch (error) {
+      res.status(400).json(error.message);
+    }
+  })
+);
+
 export default importStockRoutes;
