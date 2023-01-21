@@ -20,7 +20,6 @@ const importStockSchema = mongoose.Schema(
     importItems: [
       {
         _id: false,
-        unit: { type: String, required: true },
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
         product: {
