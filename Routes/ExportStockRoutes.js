@@ -2,41 +2,38 @@ import express from "express";
 import crypto from 'crypto';
 import asyncHandler from "express-async-handler";
 import { admin, protect } from "../Middleware/AuthMiddleware.js";
-import importStock from './../Models/ImportStock.js';
+import exportStock from '../Models/ExportStock.js';
 import Product from '../Models/ProductModel.js'
-const importStockRoutes = express.Router();
+const exportStockRoutes = express.Router();
 
-// ADMIN GET ALL IMPORT STOCK
-importStockRoutes.get("/",
+// ADMIN GET ALL EXPORT STOCK
+exportStockRoutes.get("/",
     protect,
     admin,
     asyncHandler(async (req, res) => {
         const pageSize = 9;
         const currentPage = Number(req.query.pageNumber) || 1;
         const keyword = req.query.keyword != ' ' ? {
-          importCode: {
-              $regex: req.query.keyword,
-              $options: "i"
-          },
+          $or: [
+            { exportCode: new RegExp(req.query.keyword,  'i') }, 
+            { customer: new RegExp(req.query.keyword,  'i') }
+          ]
         } : {}
         
         const from = req.query.from;
         const to = req.query.to;
         const D2D = from && to ? {
-          importedAt: {
+          exportedAt: {
               $gte: from,
               $lte: to
           },
         } : {}
-        const count = await importStock.countDocuments({...keyword, ...D2D});
-        const stockImported = await importStock.find({...keyword, ...D2D}).populate(
+        const count = await exportStock.countDocuments({...keyword, ...D2D});
+        const stockExported = await exportStock.find({...keyword, ...D2D}).populate(
           "user",
           "name"
         ).populate(
-          "provider",
-          "name"
-        ).populate(
-          "importItems.product",
+          "exportItems.product",
           "name"
         ).sort({ _id: -1 })
         .limit(pageSize)
@@ -46,12 +43,12 @@ importStockRoutes.get("/",
         for(let i = 1; i <= Math.ceil(count / pageSize); i++){
           totalPage.push(i)
         }
-        res.json({ stockImported, currentPage, totalPage });
+        res.json({ stockExported, currentPage, totalPage });
     })
 )
 
 // //SEARCH DATE
-// importStockRoutes.get("/date",
+// exportStockRoutes.get("/date",
 //     protect,
 //     admin,
 //     asyncHandler(async (req, res) => {
@@ -65,15 +62,15 @@ importStockRoutes.get("/",
 //               $lt: to
 //           },
 //         } : {}
-//         const count = await importStock.countDocuments({...D2D});
-//         const stockImported = await importStock.find({...D2D}).populate(
+//         const count = await exportStock.countDocuments({...D2D});
+//         const stockImported = await exportStock.find({...D2D}).populate(
 //           "user",
 //           "name"
 //         ).populate(
 //           "provider",
 //           "name"
 //         ).populate(
-//           "importItems.product",
+//           "exportItems.product",
 //           "name"
 //         ).sort({ _id: -1 })
 //         .limit(pageSize)
@@ -88,50 +85,56 @@ importStockRoutes.get("/",
 // )
 
 
-// importStockRoutes.get(
+// exportStockRoutes.get(
 //   "/",
 //   protect,
 //   admin,
 //   asyncHandler(async (req, res) => {
-//     const stockImported = await importStock.find({}).populate(
+//     const stockImported = await exportStock.find({}).populate(
 //       "user",
 //       "name"
 //     ).populate(
 //       "provider",
 //       "name"
 //     ).populate(
-//       "importItems.product",
+//       "exportItems.product",
 //       "name"
 //     ).sort({ _id: -1 })
 //     res.json(stockImported);
 //   })
 // );
 
-// CREATE IMPORT STOCK
-importStockRoutes.post(
+// CREATE EXPORT STOCK
+exportStockRoutes.post(
   "/",
   protect,
   asyncHandler(async (req, res) => {
     try {
       const {
-        provider,
-        importItems,
+        customer,
+        phone,
+        address,
+        note,
+        exportItems,
         user,
         totalPrice,
-        importedAt
+        exportedAt
       } = req.body;
   
-      const importsStock = new importStock({
-        importCode: crypto.randomUUID(),
+      const exportsStock = new exportStock({
+        exportCode: crypto.randomUUID(),
+        customer,
+        phone,
+        address,
+        note,
         user: user || req.user._id,
-        provider,
-        importItems,
+        exportItems,
         totalPrice,
-        importedAt
+        exportedAt
       });
   
-      const createdImportStock = await importsStock.save();
-      res.status(201).json(createdImportStock);
+      const createdExportStock = await exportsStock.save();
+      res.status(201).json(createdExportStock);
     } catch (error) {
         res.status(400).json(error.message);
       }
@@ -139,19 +142,16 @@ importStockRoutes.post(
   )
 )
 
-// GET IMPORT STOCK BY ID
-importStockRoutes.get(
+// GET EXPORT STOCK BY ID
+exportStockRoutes.get(
   "/:id",
   protect,
   asyncHandler(async (req, res) => {
-    const order = await importStock.findById(req.params.id).populate(
+    const order = await exportStock.findById(req.params.id).populate(
       "user",
       "name"
     ).populate(
-      "provider",
-      "name"
-    ).populate(
-      "importItems.product",
+      "exportItems.product",
       "name"
     )
 
@@ -165,21 +165,21 @@ importStockRoutes.get(
 );
 
 // UPDATE STATUS
-importStockRoutes.put(
+exportStockRoutes.put(
   "/:id/status",
   protect,
   admin,
   asyncHandler(async (req, res) => {
     try {
-      const thisImport = await importStock.findById(req.params.id);
+      const thisExport = await exportStock.findById(req.params.id);
       const productList = await Product.find({})
-      if (thisImport) {
-        for (let thisImportItem = 0; thisImportItem < thisImport.importItems.length; thisImportItem++) {
+      if (thisExport) {
+        for (let thisImportItem = 0; thisImportItem < thisExport.exportItems.length; thisImportItem++) {
           for (let product = 0; product < productList.length; product++) {
-            if(thisImport.importItems[thisImportItem].product.toHexString() === productList[product]._id.toHexString()){
+            if(thisExport.exportItems[thisImportItem].product.toHexString() === productList[product]._id.toHexString()){
               const thisProduct = await Product.findById(productList[product]._id.toHexString());
               if(thisProduct){
-                thisProduct.countInStock = thisProduct.countInStock  + thisImport.importItems[thisImportItem].qty
+                thisProduct.countInStock = thisProduct.countInStock - thisExport.exportItems[thisImportItem].qty
                 await thisProduct.save();
               }
               else{
@@ -194,13 +194,13 @@ importStockRoutes.put(
           }       
         }
 
-        thisImport.status = true;
-        const updatedImport = await thisImport.save();
-        res.json(updatedImport);
+        thisExport.status = true;
+        const updatedExport = await thisExport.save();
+        res.json(updatedExport);
       } 
       else {
         res.status(404);
-        throw new Error("Import stock not found");
+        throw new Error("Export stock not found");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -208,33 +208,42 @@ importStockRoutes.put(
   })
 );
 
-//UPDATE IMPORTSTOCK
-importStockRoutes.put(
+//UPDATE EXPORT STOCK
+exportStockRoutes.put(
   "/:id",
   protect,
   admin,
   asyncHandler(async (req, res) => {
     try {
-      const thisImport = await importStock.findById(req.params.id);
+      const thisExport = await exportStock.findById(req.params.id);
       const {
-        provider,
-        importItems,
+        customer,
+        phone,
+        address,
+        note,
+        exportItems,
         user,
         totalPrice,
-        importedAt
+        exportedAt
       } = req.body;
 
-      if (thisImport) {
-        thisImport.provider = provider || thisImport.provider;
-        thisImport.importItems = importItems || thisImport.importItems;
-        thisImport.user = user || thisImport.user;
-        thisImport.totalPrice = totalPrice || thisImport.totalPrice;
-        thisImport.importedAt = importedAt || thisImport.importedAt;
-        const updatedProduct = await thisImport.save();
-        res.json(updatedProduct);
+      if (thisExport) {
+        thisExport.customer = customer || thisExport.customer;
+        thisExport.phone = phone || thisExport.phone;
+        thisExport.address = address || thisExport.address;
+        thisExport.note = note || thisExport.note;
+
+        thisExport.exportItems = exportItems || thisExport.exportItems;
+        thisExport.user = user || thisExport.user;
+        thisExport.totalPrice = totalPrice || thisExport.totalPrice;
+        thisExport.exportedAt = exportedAt || thisExport.exportedAt;
+
+        const updatedStockExport = await thisExport.save();
+
+        res.json(updatedStockExport);
       } else {
         res.status(404);
-        throw new Error("Import stock not found");
+        throw new Error("Export stock not found");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -242,4 +251,4 @@ importStockRoutes.put(
   })
 );
 
-export default importStockRoutes;
+export default exportStockRoutes;

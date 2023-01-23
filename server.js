@@ -10,6 +10,7 @@ import categoryRouter from "./Routes/CategoryRoutes.js"
 import categoryDrugRouter from "./Routes/CategoryDrugRoutes.js"
 import providerRoutes from "./Routes/ProviderRoutes.js";
 import importStockRoutes from "./Routes/ImportStockRoutes.js"
+import exportStockRoutes from './Routes/ExportStockRoutes.js';
 // CONFIG
 dotenv.config() 
 connectDatabase()
@@ -25,6 +26,7 @@ app.use("/api/category", categoryRouter)
 app.use("/api/category-drug", categoryDrugRouter)
 app.use("/api/provider", providerRoutes)
 app.use("/api/import-stock", importStockRoutes)
+app.use("/api/export-stock", exportStockRoutes)
 app.get("/api/config/paypal", (req, res) => {
     res.send(process.env.PAYPAL_CLIENT_ID);
   });
