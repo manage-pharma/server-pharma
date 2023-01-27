@@ -97,7 +97,7 @@ userRouter.post(
     }
   })
 );
-
+// ACTIVE REGISTER 
 userRouter.post(
   "/active",
   asyncHandler( async(req, res)=>{
@@ -140,7 +140,6 @@ userRouter.post(
     }
   )
 )
-
 // REGISTER
 userRouter.post(
   "/",
@@ -166,7 +165,6 @@ userRouter.post(
     res.json('Thanks for your registration, please check your mail!')
   })
 );
-
 //FORGOT PASS
 userRouter.post(
   "/forgotpass",
@@ -187,7 +185,6 @@ userRouter.post(
       }
   })
 )
-
 // CONFIRM FORGOT
 userRouter.post(
   "/confirm/password",
@@ -207,7 +204,6 @@ userRouter.post(
     }
   )
 )
-
 //CHANGE PROFILE
 userRouter.post(
   "/changeprofile",
@@ -228,7 +224,6 @@ userRouter.post(
       }
   })
 )
-
 //PROFILE
 userRouter.get(
   "/profile",
@@ -250,7 +245,6 @@ userRouter.get(
     }
   })
 );
-
 // UPDATE PROFILE
 userRouter.put(
   "/profile",
@@ -281,25 +275,60 @@ userRouter.put(
     }
   })
 );
-
 // GET ALL USER ADMIN
 userRouter.get(
   "/",
   protect,
-  admin,
   asyncHandler(async (req, res) => {
     const users = await User.find({});
     res.json(users);
   })
 );
-
-// get user data for app
+// GET USER DATA FOR APP MOBILE
 userRouter.get("/getAppUserData", protect, async (req, res) => {
 
   const user = await User.findById(req.user);
   console.log(user)
   res.json({ ...user._doc, token: req.token });
 });
+
+//-----------------------------------------------------------------------------------------
+// CREATE ACCOUNT IN ADMIN
+userRouter.post(
+  "/add",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const { name, email, password, phone } = req.body;
+
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      res.status(400);
+      throw new Error("User already exists");
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone
+    });
+
+    if (user) { 
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        token: generateToken(user._id),
+      });
+    } else {
+      res.status(400);
+      throw new Error("Invalid User Data");
+    }
+  })
+);
 
 
 export default userRouter

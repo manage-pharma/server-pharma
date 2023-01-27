@@ -49,7 +49,6 @@ categoryRouter.post("/single", upload.single("image"), (req, res) => {
 //GET ALL CATEGORY
 categoryRouter.get("/",
   protect,
-  admin,
   asyncHandler(async (req, res)=>{
     const category = await Category.find({})
     res.json(category)

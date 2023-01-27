@@ -9,7 +9,6 @@ const exportStockRoutes = express.Router();
 // ADMIN GET ALL EXPORT STOCK
 exportStockRoutes.get("/",
     protect,
-    admin,
     asyncHandler(async (req, res) => {
         const pageSize = 9;
         const currentPage = Number(req.query.pageNumber) || 1;
@@ -178,20 +177,10 @@ exportStockRoutes.put(
           for (let product = 0; product < productList.length; product++) {
             if(thisExport.exportItems[thisImportItem].product.toHexString() === productList[product]._id.toHexString()){
               const thisProduct = await Product.findById(productList[product]._id.toHexString());
-              if(thisProduct){
-                thisProduct.countInStock = thisProduct.countInStock - thisExport.exportItems[thisImportItem].qty
-                await thisProduct.save();
-              }
-              else{
-                res.status(404);
-                throw new Error("Product Not Found");
-              }
+              thisProduct.countInStock = thisProduct.countInStock - thisExport.exportItems[thisImportItem].qty
+              await thisProduct.save();
             }
-            else{
-              res.status(404);
-              throw new Error("Product Not Found");
-            }            
-          }       
+          }
         }
 
         thisExport.status = true;
@@ -212,7 +201,6 @@ exportStockRoutes.put(
 exportStockRoutes.put(
   "/:id",
   protect,
-  admin,
   asyncHandler(async (req, res) => {
     try {
       const thisExport = await exportStock.findById(req.params.id);
