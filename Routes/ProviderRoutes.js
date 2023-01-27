@@ -6,7 +6,6 @@ const providerRoutes = express.Router();
 
 providerRoutes.get("/",
     protect,
-    admin,
     asyncHandler(async (req, res) => {
         const pageSize = 9;
         const currentPage = Number(req.query.pageNumber) || 1;
@@ -33,7 +32,6 @@ providerRoutes.get("/",
 //GET ALL PROVIDER
 providerRoutes.get("/allprovider",
   protect,
-  admin,
   asyncHandler(async (req, res)=>{
     const provider = await Provider.find({})
     res.json(provider)

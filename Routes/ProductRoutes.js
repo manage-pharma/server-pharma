@@ -1,6 +1,7 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 import Product from '../Models/ProductModel.js'
+import HistoryNotification from "./../Models/HistoryNotification.js";
 import moment from 'moment';
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
@@ -112,7 +113,6 @@ async function fetchCategoryWiseProduct(id) {
 productRoute.get(
   "/allproduct",
   protect,
-  admin,
   async (req, res) => {
     const products = await Product.find().populate('category', '_id name').populate('categoryDrug', '_id name').sort({ _id: -1 });
     res.json(products);
@@ -120,7 +120,6 @@ productRoute.get(
 
 productRoute.get("/all",
   protect,
-  admin,
   asyncHandler(async (req, res) => {
     const pageSize = 10;
     const currentPage = Number(req.query.pageNumber) || 1;
@@ -284,6 +283,7 @@ productRoute.post(
         }
         console.log(message)
         ConfigNotify(message)
+        await HistoryNotification.saveNotification(message)
         const createdProduct = await product.save();
         res.status(201).json(createdProduct);
       } else {

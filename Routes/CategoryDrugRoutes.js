@@ -38,7 +38,6 @@ const upload = multer({
 //GET ALL categoryDrug
 categoryDrugRouter.get("/",
   protect,
-  admin,
   asyncHandler(async (req, res)=>{
     const categoryDrug = await CategoryDrug.find({})
     res.json(categoryDrug)
