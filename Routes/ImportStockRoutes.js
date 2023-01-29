@@ -4,6 +4,8 @@ import asyncHandler from "express-async-handler";
 import { admin, protect } from "../Middleware/AuthMiddleware.js";
 import importStock from './../Models/ImportStock.js';
 import Product from '../Models/ProductModel.js'
+import mongoose from 'mongoose';
+
 const importStockRoutes = express.Router();
 
 // ADMIN GET ALL IMPORT STOCK
@@ -171,16 +173,18 @@ importStockRoutes.put(
   asyncHandler(async (req, res) => {
     try {
       const thisImport = await importStock.findById(req.params.id);
-      const productList = await Product.find({})
       if (thisImport) {
-        for (let thisImportItem = 0; thisImportItem < thisImport.importItems.length; thisImportItem++) {
-          for (let product = 0; product < productList.length; product++) {
-            if(thisImport.importItems[thisImportItem].product.toHexString() === productList[product]._id.toHexString()){
-              const thisProduct = await Product.findById(productList[product]._id.toHexString());
-              thisProduct.countInStock = thisProduct.countInStock  + thisImport.importItems[thisImportItem].qty
-              await thisProduct.save();
-            }
-          }       
+        for (let i = 0; i < thisImport.importItems.length; i++) {
+          const updateStock = await Product.findOneAndUpdate({
+            _id: thisImport.importItems[i].product.toHexString()
+          },{
+            $inc: {countInStock: +thisImport.importItems[i].qty}
+          },
+          null
+          );
+          if(!updateStock){
+            throw new Error("Product not found")
+          }     
         }
 
         thisImport.status = true;
@@ -192,7 +196,53 @@ importStockRoutes.put(
         throw new Error("Import stock not found");
       }
     } catch (error) {
-      res.status(400).json(error.message);
+      throw new Error(error.message)
+    }
+  })
+);
+
+// UPDATE STATUS HAVE TRANSACTION(DEMO)
+importStockRoutes.put(
+  "/:id/status/transaction",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const session = await mongoose.startSession()
+
+    try {
+      // start transaction transfer
+      session.startTransaction();
+      const thisImport = await importStock.findById(req.params.id);
+      if (thisImport) {
+        for (let i = 0; i < thisImport.importItems.length; i++) {
+          const updateStock = await Product.findOneAndUpdate({
+            _id: thisImport.importItems[i].product.toHexString()
+          },{
+            $inc: {countInStock: +thisImport.importItems[i].qty}
+          },{
+            session,
+            // new: true
+          }
+          );
+          if(!updateStock){
+            throw new Error("Product not found")
+          }
+        }
+        thisImport.status = true;
+        const updatedImport = await thisImport.save();
+        await session.commitTransaction();
+        session.endSession();
+        // end transaction transfer
+        res.json(updatedImport);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Export stock not found");
+      }
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new Error(error.message)
     }
   })
 );

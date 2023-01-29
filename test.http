@@ -1,0 +1,11 @@
+GET http://localhost:5000/api/products
+
+###
+POST http://localhost:5000/api/users/login  HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzYTE4OTAzOTRkMzIxOTBmNTk4MjU4NiIsImlhdCI6MTY3NDk4MTM4NiwiZXhwIjoxNjc3NTczMzg2fQ.WapPamUR_URZjC4cXRaAMbp2VXw0lnJpwDS5eYjT70s
+
+{
+    "email": "nguyenphucminh2601.lx@gmail.com",
+    "password": "123"
+}

@@ -4,6 +4,7 @@ import asyncHandler from "express-async-handler";
 import { admin, protect } from "../Middleware/AuthMiddleware.js";
 import exportStock from '../Models/ExportStock.js';
 import Product from '../Models/ProductModel.js'
+import mongoose from 'mongoose';
 const exportStockRoutes = express.Router();
 
 // ADMIN GET ALL EXPORT STOCK
@@ -46,7 +47,7 @@ exportStockRoutes.get("/",
     })
 )
 
-// //SEARCH DATE
+//SEARCH DATE
 // exportStockRoutes.get("/date",
 //     protect,
 //     admin,
@@ -171,18 +172,19 @@ exportStockRoutes.put(
   asyncHandler(async (req, res) => {
     try {
       const thisExport = await exportStock.findById(req.params.id);
-      const productList = await Product.find({})
       if (thisExport) {
-        for (let thisImportItem = 0; thisImportItem < thisExport.exportItems.length; thisImportItem++) {
-          for (let product = 0; product < productList.length; product++) {
-            if(thisExport.exportItems[thisImportItem].product.toHexString() === productList[product]._id.toHexString()){
-              const thisProduct = await Product.findById(productList[product]._id.toHexString());
-              thisProduct.countInStock = thisProduct.countInStock - thisExport.exportItems[thisImportItem].qty
-              await thisProduct.save();
-            }
+        for (let i = 0; i < thisExport.exportItems.length; i++) {
+          const updateStock = await Product.findOneAndUpdate({
+            _id: thisExport.exportItems[i].product.toHexString()
+          },{
+            $inc: {countInStock: -thisExport.exportItems[i].qty}
+          },
+          null
+          );
+          if(!updateStock){
+            throw new Error("Product not found")
           }
         }
-
         thisExport.status = true;
         const updatedExport = await thisExport.save();
         res.json(updatedExport);
@@ -192,7 +194,53 @@ exportStockRoutes.put(
         throw new Error("Export stock not found");
       }
     } catch (error) {
-      res.status(400).json(error.message);
+      throw new Error(error.message)
+    }
+  })
+);
+
+// UPDATE STATUS HAVE TRANSACTION(DEMO)
+exportStockRoutes.put(
+  "/:id/status/transaction",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const session = await mongoose.startSession()
+
+    try {
+      // start transaction transfer
+      session.startTransaction();
+      const thisExport = await exportStock.findById(req.params.id);
+      if (thisExport) {
+        for (let i = 0; i < thisExport.exportItems.length; i++) {
+          const updateStock = await Product.findOneAndUpdate({
+            _id: thisExport.exportItems[i].product.toHexString()
+          },{
+            $inc: {countInStock: -thisExport.exportItems[i].qty}
+          },{
+            session,
+            // new: true
+          }
+          );
+          if(!updateStock){
+            throw new Error("Product not found")
+          }
+        }
+        thisExport.status = true;
+        const updatedExport = await thisExport.save();
+        await session.commitTransaction();
+        session.endSession();
+        // end transaction transfer
+        res.json(updatedExport);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Export stock not found");
+      }
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new Error(error.message)
     }
   })
 );
