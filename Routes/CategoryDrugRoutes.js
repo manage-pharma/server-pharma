@@ -4,7 +4,7 @@ import moment from 'moment';
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
-import CategoryDrug from '../Models/categoryDrugModel.js';
+import CategoryDrug from '../Models/CategoryDrugModel.js';
 const categoryDrugRouter = express.Router();
 const day = moment(Date.now());
 
