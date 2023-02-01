@@ -46,7 +46,51 @@ exportStockRoutes.get("/",
         res.json({ stockExported, currentPage, totalPage });
     })
 )
+// analytics stock export for app
+exportStockRoutes.get(
+  "/analytics",
+  asyncHandler(async (req, res) => {
+    const from = req.query.from;
+    const to = req.query.to;
+    const D2D =
+      from && to
+        ? {
+            importedAt: {
+              $gte: new Date(from),
+              $lte: new Date(to),
+            },
+          }
+        : {};
+    const datas = await exportStock.aggregate([
+      {
+        $match: D2D,
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "exportItems.product",
+          foreignField: "_id",
+          as: "products",
+        },
+      },
 
+      { $unwind: "$products" },
+      { $unwind: "$exportItems" },
+      {
+        $group: {
+          _id: "$products._id",
+          name: { $first: "$products.name" },
+          image: { $first: "$products.image" },
+          qty: { $sum: "$exportItems.qty" },
+        },
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    res.json({ ...datas });
+  })
+);
 //SEARCH DATE
 // exportStockRoutes.get("/date",
 //     protect,
