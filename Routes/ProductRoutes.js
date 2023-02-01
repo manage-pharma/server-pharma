@@ -6,8 +6,8 @@ import moment from 'moment';
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
-import Category from '../Models/CategoryModel.js';
 import { ConfigNotify } from '../Services/push-notification.service.js';
+import CategoryDrug from '../Models/CategoryDrugModel.js';
 const productRoute = express.Router();
 const day = moment(Date.now());
 
@@ -83,7 +83,7 @@ productRoute.get("/search",
 // ANALYTICS QUANTITY IN STOCK PRODUCT
 productRoute.get("/analytics", async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await CategoryDrug.find();
     let earnings = {
 
     }
@@ -103,7 +103,7 @@ async function fetchCategoryWiseProduct(id) {
   const products = await Product.find({});
   let earnings = 0;
   for (let i = 0; i < products.length; i++) {
-    if (products[i].category.toHexString() === id.toHexString()) {
+    if (products[i].categoryDrug.toHexString() === id.toHexString()) {
       earnings += products[i].countInStock
     }
   }

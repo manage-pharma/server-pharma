@@ -50,6 +50,51 @@ importStockRoutes.get("/",
         res.json({ stockImported, currentPage, totalPage });
     })
 )
+// analytics stock import for app
+importStockRoutes.get(
+  "/analytics",
+  asyncHandler(async (req, res) => {
+    const from = req.query.from;
+    const to = req.query.to;
+    const D2D =
+      from && to
+        ? {
+            importedAt: {
+              $gte: new Date(from),
+              $lte: new Date(to),
+            },
+          }
+        : {};
+    const datas = await importStock.aggregate([
+      {
+        $match: D2D,
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "importItems.product",
+          foreignField: "_id",
+          as: "products",
+        },
+      },
+
+      { $unwind: "$products" },
+      { $unwind: "$importItems" },
+      {
+        $group: {
+          _id: "$products._id",
+          name: { $first: "$products.name" },
+          image: { $first: "$products.image" },
+          qty: { $sum: "$importItems.qty" },
+        },
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    res.json({ ...datas });
+  })
+);
 
 // //SEARCH DATE
 // importStockRoutes.get("/date",
