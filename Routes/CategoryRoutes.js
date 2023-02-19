@@ -50,7 +50,7 @@ categoryRouter.post("/single", upload.single("image"), (req, res) => {
 categoryRouter.get("/",
   protect,
   asyncHandler(async (req, res)=>{
-    const category = await Category.find({})
+    const category = await Category.find({}).sort({ _id: -1 })
     res.json(category)
   })
 );

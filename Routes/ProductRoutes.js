@@ -33,7 +33,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 1024 * 1024 * 5
+    fileSize: 2000000
   },
   fileFilter: fileFilter
 });
@@ -121,8 +121,8 @@ productRoute.get(
 productRoute.get("/all",
   protect,
   asyncHandler(async (req, res) => {
-    const pageSize = 10;
-    const currentPage = Number(req.query.pageNumber) || 1;
+    // const pageSize = 10;
+    // const currentPage = Number(req.query.pageNumber) || 1;
     const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
       name: {
         $regex: req.query.keyword,
@@ -143,17 +143,18 @@ productRoute.get("/all",
       }
     })
     const sortValue = req.query.sort ? handleSortPrice() : {}
-    const count = await Product.countDocuments({ ...keyword, ...sortValue });
+    // const count = await Product.countDocuments({ ...keyword, ...sortValue });
     const products = await Product.find({ ...keyword, ...sortValue }).populate('category', '_id name').populate('categoryDrug', '_id name')
-      .limit(pageSize)
-      .skip(pageSize * (currentPage - 1))
+      // .limit(pageSize)
+      // .skip(pageSize * (currentPage - 1))
       .sort({ _id: -1 });
-    const totalPage = [];
-    for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
-      totalPage.push(i)
-    }
-    console.log(sortValue)
-    res.json({ products, currentPage, totalPage });
+    // const totalPage = [];
+    // for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
+    //   totalPage.push(i)
+    // }
+    // res.json({ products, currentPage, totalPage });
+    res.json(products);
+
 
     console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getMultiProduct 👉 Get: 200`)
   })
