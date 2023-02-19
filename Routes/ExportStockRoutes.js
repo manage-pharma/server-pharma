@@ -11,8 +11,8 @@ const exportStockRoutes = express.Router();
 exportStockRoutes.get("/",
     protect,
     asyncHandler(async (req, res) => {
-        const pageSize = 9;
-        const currentPage = Number(req.query.pageNumber) || 1;
+        // const pageSize = 9;
+        // const currentPage = Number(req.query.pageNumber) || 1;
         const keyword = req.query.keyword != ' ' ? {
           $or: [
             { exportCode: new RegExp(req.query.keyword,  'i') }, 
@@ -28,7 +28,7 @@ exportStockRoutes.get("/",
               $lte: to
           },
         } : {}
-        const count = await exportStock.countDocuments({...keyword, ...D2D});
+        // const count = await exportStock.countDocuments({...keyword, ...D2D});
         const stockExported = await exportStock.find({...keyword, ...D2D}).populate(
           "user",
           "name"
@@ -36,14 +36,16 @@ exportStockRoutes.get("/",
           "exportItems.product",
           "name"
         ).sort({ _id: -1 })
-        .limit(pageSize)
-        .skip(pageSize * (currentPage - 1))
+        // .limit(pageSize)
+        // .skip(pageSize * (currentPage - 1))
 
-        const totalPage = [];
-        for(let i = 1; i <= Math.ceil(count / pageSize); i++){
-          totalPage.push(i)
-        }
-        res.json({ stockExported, currentPage, totalPage });
+        // const totalPage = [];
+        // for(let i = 1; i <= Math.ceil(count / pageSize); i++){
+        //   totalPage.push(i)
+        // }
+        // res.json({ stockExported, currentPage, totalPage });
+        res.json(stockExported);
+
     })
 )
 // analytics stock export for app

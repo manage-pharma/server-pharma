@@ -19,6 +19,10 @@ import mongoose from 'mongoose'
 //     }
 // })
 const productSchema = mongoose.Schema({
+    name:{
+        type: String,
+        require: true   
+    },
     category:{
         type: mongoose.Schema.Types.ObjectId,
         require: true,
@@ -27,10 +31,6 @@ const productSchema = mongoose.Schema({
     categoryDrug:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'CategoryDrug'
-    },
-    name:{
-        type: String,
-        require: true   
     },
     description:{
         type: String,

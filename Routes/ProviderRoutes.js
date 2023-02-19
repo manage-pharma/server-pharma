@@ -7,8 +7,8 @@ const providerRoutes = express.Router();
 providerRoutes.get("/",
     protect,
     asyncHandler(async (req, res) => {
-        const pageSize = 9;
-        const currentPage = Number(req.query.pageNumber) || 1;
+        // const pageSize = 9;
+        // const currentPage = Number(req.query.pageNumber) || 1;
         const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
           name: {
               $regex: req.query.keyword,
@@ -16,16 +16,18 @@ providerRoutes.get("/",
           },
           
       } : {}
-        const count = await Provider.countDocuments({...keyword});
-        const providers = await Provider.find({...keyword})
-        .limit(pageSize)
-        .skip(pageSize * (currentPage - 1))
+        // const count = await Provider.countDocuments({...keyword});
+        const providers = await Provider.find({...keyword}).sort({ _id: -1 })
+        // .limit(pageSize)
+        // .skip(pageSize * (currentPage - 1))
 
-        const totalPage = [];
-        for(let i = 1; i <= Math.ceil(count / pageSize); i++){
-          totalPage.push(i)
-        }
-        res.json({ providers, currentPage, totalPage });
+        // const totalPage = [];
+        // for(let i = 1; i <= Math.ceil(count / pageSize); i++){
+        //   totalPage.push(i)
+        // }
+        // res.json({ providers, currentPage, totalPage });
+        res.json(providers);
+
     })
 )
 

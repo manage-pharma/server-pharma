@@ -12,8 +12,8 @@ const importStockRoutes = express.Router();
 importStockRoutes.get("/",
     protect,
     asyncHandler(async (req, res) => {
-        const pageSize = 9;
-        const currentPage = Number(req.query.pageNumber) || 1;
+        // const pageSize = 9;
+        // const currentPage = Number(req.query.pageNumber) || 1;
         const keyword = req.query.keyword != ' ' ? {
           importCode: {
               $regex: req.query.keyword,
@@ -29,7 +29,7 @@ importStockRoutes.get("/",
               $lte: to
           },
         } : {}
-        const count = await importStock.countDocuments({...keyword, ...D2D});
+        // const count = await importStock.countDocuments({...keyword, ...D2D});
         const stockImported = await importStock.find({...keyword, ...D2D}).populate(
           "user",
           "name"
@@ -40,14 +40,16 @@ importStockRoutes.get("/",
           "importItems.product",
           "name"
         ).sort({ _id: -1 })
-        .limit(pageSize)
-        .skip(pageSize * (currentPage - 1))
+        // .limit(pageSize)
+        // .skip(pageSize * (currentPage - 1))
 
-        const totalPage = [];
-        for(let i = 1; i <= Math.ceil(count / pageSize); i++){
-          totalPage.push(i)
-        }
-        res.json({ stockImported, currentPage, totalPage });
+        // const totalPage = [];
+        // for(let i = 1; i <= Math.ceil(count / pageSize); i++){
+        //   totalPage.push(i)
+        // }
+        // res.json({ stockImported, currentPage, totalPage });
+        res.json(stockImported);
+
     })
 )
 // analytics stock import for app
