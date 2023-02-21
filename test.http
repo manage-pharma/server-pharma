@@ -1,4 +1,4 @@
-GET http://localhost:5000/api/products
+GET http://localhost:5000/api/import/unit
 
 ###
 POST http://localhost:5000/api/users/login  HTTP/1.1
@@ -9,3 +9,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzYTE4OTAzO
     "email": "nguyenphucminh2601.lx@gmail.com",
     "password": "123"
 }
+
+###
+POST http://localhost:5000/api/import/unit HTTP/1.1
+content-type: application/json
+
+{
+    "name": "PMINH"
+}
+

@@ -7,6 +7,7 @@ import asyncHandler from "express-async-handler";
 import { admin, protect } from "./Middleware/AuthMiddleware.js";
 import mongoose from 'mongoose'
 import Category from "./Models/CategoryModel.js";
+import fs from "fs"
 const ImportData = express.Router();
 
 ImportData.post(
@@ -42,6 +43,47 @@ ImportData.post(
     })
     const importProducts = await Product.insertMany(data);
     res.send({ importProducts });
+  })
+);
+
+ImportData.post(
+  "/unit",
+  asyncHandler(async (req, res) => {
+    try {
+      const name = req.body.name
+      const contents = fs.readFileSync('./data/unit.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.push(name);
+      fs.writeFileSync("./data/unit.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
+ImportData.get(
+  "/unit",
+  asyncHandler(async (req, res) => {
+    const contents = fs.readFileSync('./data/unit.json', 'utf8');
+    const data = JSON.parse(contents);
+    res.send(data);
+  })
+);
+
+ImportData.delete(
+  "/unit/:index",
+  asyncHandler(async (req, res) => {
+    try {
+      const index = req.params.index
+      const contents = fs.readFileSync('./data/unit.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.splice(index, 1);
+      fs.writeFileSync("./data/unit.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
   })
 );
 

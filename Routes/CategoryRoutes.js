@@ -103,7 +103,6 @@ categoryRouter.put(
   admin,
   asyncHandler(async (req, res) => {
     const { name, description, image, isActive } = req.body;
-    console.log(isActive)
     const category = await Category.findById(req.params.id);
     if (category) {
       category.name = name || category.name;
