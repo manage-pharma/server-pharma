@@ -14,7 +14,7 @@ importStockRoutes.get("/",
     asyncHandler(async (req, res) => {
         // const pageSize = 9;
         // const currentPage = Number(req.query.pageNumber) || 1;
-        const keyword = req.query.keyword != ' ' ? {
+        const keyword = req.query.keyword && req.query.keyword != ' ' ? {
           importCode: {
               $regex: req.query.keyword,
               $options: "i"
@@ -38,7 +38,7 @@ importStockRoutes.get("/",
           "name"
         ).populate(
           "importItems.product",
-          "name"
+          "name image"
         ).sort({ _id: -1 })
         // .limit(pageSize)
         // .skip(pageSize * (currentPage - 1))
@@ -200,7 +200,7 @@ importStockRoutes.get(
       "name"
     ).populate(
       "importItems.product",
-      "name"
+      "name image"
     )
 
     if (order) {

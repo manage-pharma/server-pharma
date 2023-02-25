@@ -13,7 +13,7 @@ exportStockRoutes.get("/",
     asyncHandler(async (req, res) => {
         // const pageSize = 9;
         // const currentPage = Number(req.query.pageNumber) || 1;
-        const keyword = req.query.keyword != ' ' ? {
+        const keyword = req.query.keyword && req.query.keyword != ' ' ? {
           $or: [
             { exportCode: new RegExp(req.query.keyword,  'i') }, 
             { customer: new RegExp(req.query.keyword,  'i') }
@@ -198,7 +198,7 @@ exportStockRoutes.get(
       "name"
     ).populate(
       "exportItems.product",
-      "name"
+      "name image"
     )
 
     if (order) {
