@@ -23,6 +23,10 @@ const productSchema = mongoose.Schema({
         type: String,
         require: true   
     },
+    regisId:{
+        type: String,
+        require: true
+    },
     category:{
         type: mongoose.Schema.Types.ObjectId,
         require: true,
@@ -32,23 +36,33 @@ const productSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'CategoryDrug'
     },
-    description:{
+    unit: { // đơn vị tính
         type: String,
         require: true
     },
-    image:{
-        type: String,
-        require: true,
-    },
-    unit: {
+    packing: { // quy cách đóng gói
         type: String,
         require: true
     },
-    capacity: {
+    APIs:[ //active pharmaceutical ingredient (hoạt chất dược)
+        {
+            _id: false,
+            API: { type: String, required: true },
+            content: { type: Number, required: true },
+        }
+    ],
+    branchName: { // tên biệt dược
+        type: String,
+    },
+    manufacturer:{ // nhà sản xuất
         type: String,
         require: true
     },
-    regisId:{
+    countryOfOrigin:{ // nước sản xuất
+        type: String,
+        require: true
+    },
+    instruction:{ // lời dặn
         type: String,
         require: true
     },
@@ -57,18 +71,22 @@ const productSchema = mongoose.Schema({
         require: true,
         default: 0
     },
-    countInStock:{
-        type: Number,
-        default: 0
-    },
-    expDrug:{
-        type: Date,
-        require: true
-    },
-    statusDrug:{
+    allowToSell:{ // cho phép bán 
         type: Boolean,
         default: true
-    }
+    },
+    prescription:{
+        type: Boolean, // thuốc kê đơn
+        default: true
+    },
+    description:{
+        type: String,
+        require: true
+    },
+    image:{
+        type: String,
+        require: true,
+    },
     // rating:{
     //     type: Number,
     //     require: true,
