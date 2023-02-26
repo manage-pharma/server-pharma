@@ -34,6 +34,7 @@ const productSchema = mongoose.Schema({
     },
     categoryDrug:{
         type: mongoose.Schema.Types.ObjectId,
+        require: true,
         ref: 'CategoryDrug'
     },
     unit: { // đơn vị tính
@@ -47,8 +48,8 @@ const productSchema = mongoose.Schema({
     APIs:[ //active pharmaceutical ingredient (hoạt chất dược)
         {
             _id: false,
-            API: { type: String, required: true },
-            content: { type: Number, required: true },
+            API: { type: String,},
+            content: { type: Number,},
         }
     ],
     branchName: { // tên biệt dược
@@ -56,11 +57,11 @@ const productSchema = mongoose.Schema({
     },
     manufacturer:{ // nhà sản xuất
         type: String,
-        require: true
+
     },
     countryOfOrigin:{ // nước sản xuất
         type: String,
-        require: true
+
     },
     instruction:{ // lời dặn
         type: String,
