@@ -159,7 +159,21 @@ productRoute.get("/all",
     console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getMultiProduct 👉 Get: 200`)
   })
 )
-
+// notification when add product
+productRoute.get("/notifications",
+  asyncHandler(async (req, res) => {
+    const notify = await HistoryNotification.find({});
+    if (notify) {
+      res.json(notify);
+      console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getHistoryNotification 👉 Get: 200`)
+    }
+    else {
+      console.error(`⛔  ${day.format('MMMM Do YYYY, h:mm:ss a')} Data notification not found`)
+      res.status(404)
+      throw new Error(`⛔ Data notifications not found`)
+    }
+  })
+)
 // GET FOR WEB AND APP
 productRoute.get("/:id/categories",
   asyncHandler(async (req, res) => {
