@@ -18,3 +18,36 @@ content-type: application/json
     "name": "PMINH"
 }
 
+###
+POST http://localhost:5000/api/products HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Panaldol",
+    "regisId": "3526102",
+    "category": "63bbc909211e0f53d6c92922",
+    "categoryDrug": "63bd7674cb7f243fd317affd",
+    "unit": "Hộp",
+
+    "packing": "1 Hộp = 10 Vỉ",
+    "APIs": [
+        {
+            "API": "axit",
+            "content": 12
+        },
+        {
+            "API": "canxi",
+            "content": 21
+        }
+    ],
+    "branchName": "thuốc giảm đau",
+    "manufacturer": "Công ty TNHH Panaldol",
+    "countryOfOrigin" : "American",
+    
+    "instruction": "Ăn xong cách 1 tiếng uống, ngày 3 lần",
+    "price": 20000,
+    "allowToSell": true,
+    "prescription": true,
+    "description":  "Thuốc giảm đau nhức",
+    "image": "/upload/2023-02-02T07-49-53.437Zreflect.jpg"
+}

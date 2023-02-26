@@ -87,4 +87,130 @@ ImportData.delete(
   })
 );
 
+
+ImportData.post(
+  "/countryOfOrigin",
+  asyncHandler(async (req, res) => {
+    try {
+      const name = req.body.name
+      const contents = fs.readFileSync('./data/countryOfOrigin.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.push(name);
+      fs.writeFileSync("./data/countryOfOrigin.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
+
+ImportData.get(
+  "/countryOfOrigin",
+  asyncHandler(async (req, res) => {
+    const contents = fs.readFileSync('./data/countryOfOrigin.json', 'utf8');
+    const data = JSON.parse(contents);
+    res.send(data);
+  })
+);
+
+ImportData.delete(
+  "/countryOfOrigin/:index",
+  asyncHandler(async (req, res) => {
+    try {
+      const index = req.params.index
+      const contents = fs.readFileSync('./data/countryOfOrigin.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.splice(index, 1);
+      fs.writeFileSync("./data/countryOfOrigin.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
+ImportData.post(
+  "/manufacturer",
+  asyncHandler(async (req, res) => {
+    try {
+      const name = req.body.name
+      const contents = fs.readFileSync('./data/manufacturer.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.push(name);
+      fs.writeFileSync("./data/manufacturer.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
+
+ImportData.get(
+  "/manufacturer",
+  asyncHandler(async (req, res) => {
+    const contents = fs.readFileSync('./data/manufacturer.json', 'utf8');
+    const data = JSON.parse(contents);
+    res.send(data);
+  })
+);
+
+ImportData.delete(
+  "/manufacturer/:index",
+  asyncHandler(async (req, res) => {
+    try {
+      const index = req.params.index
+      const contents = fs.readFileSync('./data/manufacturer.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.splice(index, 1);
+      fs.writeFileSync("./data/manufacturer.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
+ImportData.post(
+  "/API",
+  asyncHandler(async (req, res) => {
+    try {
+      const name = req.body.name
+      const contents = fs.readFileSync('./data/API.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.push(name);
+      fs.writeFileSync("./data/API.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
+ImportData.get(
+  "/API",
+  asyncHandler(async (req, res) => {
+    const contents = fs.readFileSync('./data/API.json', 'utf8');
+    const data = JSON.parse(contents);
+    res.send(data);
+  })
+);
+
+ImportData.delete(
+  "/API/:index",
+  asyncHandler(async (req, res) => {
+    try {
+      const index = req.params.index
+      const contents = fs.readFileSync('./data/API.json', 'utf8');
+      const data = JSON.parse(contents);
+      await data.splice(index, 1);
+      fs.writeFileSync("./data/API.json", JSON.stringify(data), 'utf-8');
+      res.send(data)
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  })
+);
+
 export default ImportData;
