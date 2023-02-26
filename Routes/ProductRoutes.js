@@ -269,25 +269,29 @@ productRoute.post(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, price, description, image, countInStock, category, categoryDrug, unit, regisId, expDrug, statusDrug, capacity } = req.body;
+    const { name, regisId, category, categoryDrug, unit, packing, APIS, branchName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image} = req.body;
     const productExist = await Product.findOne({ name, unit });
     if (productExist) {
       res.status(400);
       throw new Error("Product name already exist");
     } else {
       const product = new Product({
-        name,
-        price,
-        description,
+        name, 
+        regisId, 
+        category, 
+        categoryDrug, 
+        unit, 
+        packing, 
+        APIS, 
+        branchName, 
+        manufacturer, 
+        countryOfOrigin, 
+        instruction, 
+        price, 
+        allowToSell, 
+        prescription, 
+        description, 
         image: `/upload/${image}`,
-        countInStock,
-        category,
-        categoryDrug,
-        unit,
-        capacity,
-        regisId,
-        expDrug,
-        statusDrug,
         user: req.body._id
       });
       if (product) {
@@ -296,7 +300,6 @@ productRoute.post(
           contents: `Thuốc ${product.name} đã được thêm mới vào kho`,
           bigPicture: '192.168.4.109:5000' + product.image
         }
-        console.log(message)
         ConfigNotify(message)
         await HistoryNotification.saveNotification(message)
         const createdProduct = await product.save();
@@ -314,21 +317,27 @@ productRoute.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, price, description, image, countInStock, category, categoryDrug, unit, regisId, expDrug, statusDrug, capacity } = req.body;
+    const {name, regisId, category, categoryDrug, unit, packing, APIs, branchName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image } = req.body;
     const product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
-      product.price = price || product.price;
-      product.description = description || product.description;
-      product.image = product.image === image ? product.image : `/upload/${image}`
-      product.countInStock = countInStock || product.countInStock;
+      product.regisId = regisId || product.regisId;
       product.category = category || product.category
       product.categoryDrug = categoryDrug || product.categoryDrug,
-        product.unit = unit || product.unit,
-        product.capacity = capacity || product.capacity,
-        product.regisId = regisId || product.regisId,
-        product.expDrug = expDrug,
-        product.statusDrug = statusDrug
+      product.unit = unit || product.unit,
+      product.packing = packing || product.packing,
+      product.APIs = APIs || product.APIs,
+      product.branchName = branchName || product.branchName,
+      product.manufacturer = manufacturer || product.manufacturer,
+      product.capacity = capacity || product.capacity,
+      product.countryOfOrigin = countryOfOrigin || product.countryOfOrigin,
+      product.instruction = instruction || product.instruction,
+      product.price = price || product.price,
+      product.allowToSell = allowToSell || product.allowToSell,
+      product.prescription = prescription || product.prescription
+      product.description = description || product.description;
+      product.image = product.image === image ? product.image : `/upload/${image}`
+
       const updatedProduct = await product.save();
       res.json(updatedProduct);
     } else {
