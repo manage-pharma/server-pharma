@@ -20,6 +20,9 @@ const importStockSchema = mongoose.Schema(
     importItems: [
       {
         _id: false,
+        name: { type: String},
+        lotNumber: {type: String, required: true},
+        expDrug: {type: Date, required: true},
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
         product: {

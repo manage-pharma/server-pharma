@@ -18,17 +18,30 @@ const inventorySchema = mongoose.Schema({
         type: Date,
         require: true
     },
-    importCode:[ 
+    importStock:[ 
         {
-            type: mongoose.Schema.Types.ObjectId,
-            require: true,
-            ref: 'ImportStock'
+            _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                require: true,
+                ref: 'ImportStock'
+            },
+            importCode:{
+                type: String,
+                required: true,
+            }
         }
     ],
     exportCode:[ 
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'ExportStock'
+            _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                require: true,
+                ref: 'ExportStock'
+            },
+            exportCode:{
+                type: String,
+                required: true,
+            }
         }
     ],
 },{
