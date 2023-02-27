@@ -5,6 +5,7 @@ import { admin, protect } from "../Middleware/AuthMiddleware.js";
 import importStock from './../Models/ImportStock.js';
 import Product from '../Models/ProductModel.js'
 import mongoose from 'mongoose';
+import Inventory from "../Models/InventoryModels.js";
 
 const importStockRoutes = express.Router();
 
@@ -222,18 +223,40 @@ importStockRoutes.put(
       const thisImport = await importStock.findById(req.params.id);
       if (thisImport) {
         for (let i = 0; i < thisImport.importItems.length; i++) {
-          const updateStock = await Product.findOneAndUpdate({
-            _id: thisImport.importItems[i].product.toHexString()
+          const updatedInventory = await Inventory.findOneAndUpdate(
+          { $and: [
+            {idDrug: thisImport.importItems[i].product.toHexString()},
+            {lotNumber: thisImport.importItems[i].lotNumber},
+            {expDrug: thisImport.importItems[i].expDrug}
+          ]},
+          {
+            $inc: { count: thisImport.importItems[i].qty },
+            $push: {
+              importStock: {
+                _id: thisImport._id,
+                importCode: thisImport.importCode
+              }
+            }
           },{
-            $inc: {countInStock: +thisImport.importItems[i].qty}
-          },
-          null
-          );
-          if(!updateStock){
-            throw new Error("Product not found")
-          }     
+            new: false
+          }
+          )   
+          if(updatedInventory === null)
+          {
+            console.log(updatedInventory)
+            const newUser = {
+              idDrug: thisImport.importItems[i].product.toHexString(),
+              lotNumber: thisImport.importItems[i].lotNumber,
+              expDrug: thisImport.importItems[i].expDrug,
+              count: +thisImport.importItems[i].qty,
+              importStock: [{
+                _id: thisImport._id,
+                importCode: thisImport.importCode
+              }]
+            };
+            await Inventory.create(newUser);
+          }
         }
-
         thisImport.status = true;
         const updatedImport = await thisImport.save();
         res.json(updatedImport);
