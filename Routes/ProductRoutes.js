@@ -269,28 +269,28 @@ productRoute.post(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, regisId, category, categoryDrug, unit, packing, APIs, branchName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image} = req.body;
+    const { name, regisId, category, categoryDrug, unit, packing, APIs, brandName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image } = req.body;
     const productExist = await Product.findOne({ name, unit });
     if (productExist) {
       res.status(400);
       throw new Error("Product name already exist");
     } else {
       const product = new Product({
-        name, 
-        regisId, 
-        category, 
-        categoryDrug, 
-        unit, 
-        packing, 
-        APIs, 
-        branchName, 
-        manufacturer, 
-        countryOfOrigin, 
-        instruction, 
-        price, 
-        allowToSell, 
-        prescription, 
-        description, 
+        name,
+        regisId,
+        category,
+        categoryDrug,
+        unit,
+        packing,
+        APIs,
+        brandName,
+        manufacturer,
+        countryOfOrigin,
+        instruction,
+        price,
+        allowToSell,
+        prescription,
+        description,
         image: `/upload/${image}`,
         user: req.body._id
       });
@@ -317,29 +317,31 @@ productRoute.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const {name, regisId, category, categoryDrug, unit, packing, APIs, branchName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image } = req.body;
+    const { name, price, prescription, brandName, manufacturer, APIs, image, category, categoryDrug, countryOfOrigin, description, unit, regisId, packing, instruction, allowToSell } = req.body;
+    console.log({ body: req.body })
     const product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
       product.regisId = regisId || product.regisId;
       product.category = category || product.category
       product.categoryDrug = categoryDrug || product.categoryDrug,
-      product.unit = unit || product.unit,
-      product.packing = packing || product.packing,
-      product.APIs = APIs || product.APIs,
-      product.branchName = branchName || product.branchName,
-      product.manufacturer = manufacturer || product.manufacturer,
-      product.capacity = capacity || product.capacity,
-      product.countryOfOrigin = countryOfOrigin || product.countryOfOrigin,
-      product.instruction = instruction || product.instruction,
-      product.price = price || product.price,
-      product.allowToSell = allowToSell || product.allowToSell,
-      product.prescription = prescription || product.prescription
+        product.unit = unit || product.unit,
+        product.APIs = APIs || product.APIs,
+        product.packing = packing || product.packing,
+        product.APIs = APIs || product.APIs,
+        product.brandName = brandName || product.brandName,
+        product.manufacturer = manufacturer || product.manufacturer,
+        product.countryOfOrigin = countryOfOrigin || product.countryOfOrigin,
+        product.instruction = instruction || product.instruction,
+        product.price = price || product.price,
+        product.allowToSell = allowToSell,
+        product.prescription = prescription || product.prescription
       product.description = description || product.description;
       product.image = product.image === image ? product.image : `/upload/${image}`
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
+      console.log({ productUpdate: updatedProduct })
     } else {
       res.status(404);
       throw new Error("Product not found");
@@ -350,6 +352,7 @@ productRoute.put(
 // Single File Route Handler
 productRoute.post("/single", upload.single("image"), (req, res) => {
   const file = req.file
+  console.log(file)
   if (!file) {
     const error = new Error('Please upload a file')
     error.httpStatusCode = 400
