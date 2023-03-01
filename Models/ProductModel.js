@@ -19,20 +19,20 @@ import mongoose from 'mongoose'
 //     }
 // })
 const productSchema = mongoose.Schema({
-    name:{
-        type: String,
-        require: true   
-    },
-    regisId:{
+    name: {
         type: String,
         require: true
     },
-    category:{
+    regisId: {
+        type: String,
+        require: true
+    },
+    category: {
         type: mongoose.Schema.Types.ObjectId,
         require: true,
         ref: 'Category'
     },
-    categoryDrug:{
+    categoryDrug: {
         type: mongoose.Schema.Types.ObjectId,
         require: true,
         ref: 'CategoryDrug'
@@ -45,46 +45,46 @@ const productSchema = mongoose.Schema({
         type: String,
         require: true
     },
-    APIs:[ //active pharmaceutical ingredient (hoạt chất dược)
+    APIs: [ //active pharmaceutical ingredient (hoạt chất dược)
         {
             _id: false,
-            API: { type: String,},
-            content: { type: Number,},
+            API: { type: String, },
+            content: { type: Number, },
         }
     ],
-    branchName: { // tên biệt dược
+    brandName: { // tên biệt dược
         type: String,
     },
-    manufacturer:{ // nhà sản xuất
-        type: String,
-
-    },
-    countryOfOrigin:{ // nước sản xuất
+    manufacturer: { // nhà sản xuất
         type: String,
 
     },
-    instruction:{ // lời dặn
+    countryOfOrigin: { // nước sản xuất
+        type: String,
+
+    },
+    instruction: { // lời dặn
         type: String,
         require: true
     },
-    price:{
+    price: {
         type: Number,
         require: true,
         default: 0
     },
-    allowToSell:{ // cho phép bán 
+    allowToSell: { // cho phép bán 
         type: Boolean,
         default: true
     },
-    prescription:{
+    prescription: {
         type: Boolean, // thuốc kê đơn
         default: true
     },
-    description:{
+    description: {
         type: String,
         require: true
     },
-    image:{
+    image: {
         type: String,
         require: true,
     },
@@ -100,7 +100,7 @@ const productSchema = mongoose.Schema({
     // },
     // reviews: [reviewSchema]
 
-},{
+}, {
     timestamps: true
 }
 )
