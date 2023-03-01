@@ -22,7 +22,7 @@ inventoryRoutes.get("/",
             let: { productId: "$_id" },
             pipeline: [
               { $match: { $expr: { $eq: ["$_id", "$$productId"] } } },
-              { $project: { name: 1, image: 1, unit: 1, category: 1, categoryDrug: 1 } },
+              { $project: { name: 1, unit: 1, category: 1, categoryDrug: 1 } },
               {
                 $lookup: {
                   from: "categories",
@@ -48,7 +48,8 @@ inventoryRoutes.get("/",
           $project: {
             _id: 0,
             idDrug: "$_id",
-            name: "$product.name" ,
+            name: "$product.name",
+            unit: "$product.unit",
             category: "$product.category.name",
             categoryDrug: "$product.categoryDrug.name",
             total_count: 1,
