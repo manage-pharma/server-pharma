@@ -30,8 +30,14 @@ const exportStockSchema = mongoose.Schema(
       {
         _id: false,
         name: { type: String},
-        lotNumber: {type: String, required: true},
-        expDrug: {type: Date, required: true},
+        lotField: [
+          {
+            count: {type: Number, require: true},
+            idDrug: {type: String, require: true},
+            lotNumber: {type: String, require: true},
+            expDrug: {type: Date, required: true},
+          }
+        ],      
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
         product: {
@@ -40,11 +46,6 @@ const exportStockSchema = mongoose.Schema(
           ref: "Product",
         },
       }],
-    totalPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
     status:{
       type: Boolean,
       default: false
