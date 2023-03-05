@@ -170,7 +170,11 @@ exportStockRoutes.post(
         totalPrice,
         exportedAt,
       } = req.body;
-
+      const filteredExportItems = exportItems.map((item) => {
+        const { lotField } = item;
+        const filteredLotField = lotField.filter((lot) => lot.count > 0);
+        return { ...item, lotField: filteredLotField };
+      });
       const exportsStock = new exportStock({
         exportCode: crypto.randomUUID(),
         customer,
@@ -178,7 +182,7 @@ exportStockRoutes.post(
         address,
         note,
         user: user || req.user._id,
-        exportItems,
+        exportItems: filteredExportItems,
         totalPrice,
         exportedAt,
       });
@@ -334,14 +338,18 @@ exportStockRoutes.put(
         totalPrice,
         exportedAt,
       } = req.body;
-
+      const filteredExportItems = exportItems.map((item) => {
+        const { lotField } = item;
+        const filteredLotField = lotField.filter((lot) => lot.count > 0);
+        return { ...item, lotField: filteredLotField };
+      });
       if (thisExport) {
         thisExport.customer = customer || thisExport.customer;
         thisExport.phone = phone || thisExport.phone;
         thisExport.address = address || thisExport.address;
         thisExport.note = note || thisExport.note;
 
-        thisExport.exportItems = exportItems || thisExport.exportItems;
+        thisExport.exportItems = filteredExportItems || thisExport.exportItems;
         thisExport.user = user || thisExport.user;
         thisExport.totalPrice = totalPrice || thisExport.totalPrice;
         thisExport.exportedAt = exportedAt || thisExport.exportedAt;
