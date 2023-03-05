@@ -5,7 +5,7 @@
 /uploads
 /.pnp
 .pnp.js
-data/*.json
+*.json
 # testing
 /coverage
 
