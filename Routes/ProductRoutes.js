@@ -1,29 +1,29 @@
-import express from 'express'
-import asyncHandler from 'express-async-handler'
-import Product from '../Models/ProductModel.js'
+import express from "express";
+import asyncHandler from "express-async-handler";
+import Product from "../Models/ProductModel.js";
 import HistoryNotification from "./../Models/HistoryNotification.js";
-import moment from 'moment';
+import moment from "moment";
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
-import multer from "multer"
-import cors from "cors"
-import { ConfigNotify } from '../Services/push-notification.service.js';
-import CategoryDrug from '../Models/CategoryDrugModel.js';
+import multer from "multer";
+import cors from "cors";
+import { ConfigNotify } from "../Services/push-notification.service.js";
+import CategoryDrug from "../Models/CategoryDrugModel.js";
 const productRoute = express.Router();
 const day = moment(Date.now());
 
-productRoute.use(cors())
+productRoute.use(cors());
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads/');
+    cb(null, "./uploads/");
   },
   filename: function (req, file, cb) {
-    cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
-  }
+    cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
+  },
 });
 
 const fileFilter = (req, file, cb) => {
   // reject a file
-  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
     cb(null, true);
   } else {
     cb(null, false);
@@ -33,65 +33,71 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 2000000
+    fileSize: 2000000,
   },
-  fileFilter: fileFilter
+  fileFilter: fileFilter,
 });
 
 //GET ALL PRODUCT
-productRoute.get("/",
+productRoute.get(
+  "/",
   asyncHandler(async (req, res) => {
     const pageSize = 9;
     const currentPage = Number(req.query.pageNumber) || 1;
-    const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-      name: {
-        $regex: req.query.keyword,
-        $options: "i"
-      },
-
-    } : {}
+    const keyword =
+      req.query.keyword && req.query.keyword !== " "
+        ? {
+            name: {
+              $regex: req.query.keyword,
+              $options: "i",
+            },
+          }
+        : {};
     const count = await Product.countDocuments({ ...keyword });
     const products = await Product.find({ ...keyword })
       .limit(pageSize)
-      .skip(pageSize * (currentPage - 1))
+      .skip(pageSize * (currentPage - 1));
 
     const totalPage = [];
     for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
-      totalPage.push(i)
+      totalPage.push(i);
     }
     res.json({ products, currentPage, totalPage });
 
-    console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getMultiProduct 👉 Get: 200`)
+    console.log(
+      `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiProduct 👉 Get: 200`
+    );
   })
-)
+);
 // SEARCH PRODUCT FOR APP
-productRoute.get("/search",
+productRoute.get(
+  "/search",
   asyncHandler(async (req, res) => {
-
-
-    const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-      name: {
-        $regex: req.query.keyword,
-        $options: "i"
-      },
-
-    } : {}
-    const products = await Product.find({ ...keyword }).populate('category', '_id').populate('categoryDrug', '_id')
+    const keyword =
+      req.query.keyword && req.query.keyword !== " "
+        ? {
+            name: {
+              $regex: req.query.keyword,
+              $options: "i",
+            },
+          }
+        : {};
+    const products = await Product.find({ ...keyword })
+      .populate("category", "_id")
+      .populate("categoryDrug", "_id");
     res.json(products);
   })
-)
+);
 // ANALYTICS QUANTITY IN STOCK PRODUCT
 productRoute.get("/analytics", async (req, res) => {
   try {
     const categories = await CategoryDrug.find();
-    let earnings = {
-
-    }
+    let earnings = {};
 
     for (let i = 0; i < categories.length; i++) {
       let valueEarnings = await fetchCategoryWiseProduct(categories[i]._id);
-      let nameCat = categories[i].name
-      earnings[nameCat] = valueEarnings
+      let nameCat = categories[i].name;
+      earnings[nameCat] = valueEarnings;
     }
     res.json(earnings);
   } catch (e) {
@@ -104,47 +110,54 @@ async function fetchCategoryWiseProduct(id) {
   let earnings = 0;
   for (let i = 0; i < products.length; i++) {
     if (products[i].categoryDrug.toHexString() === id.toHexString()) {
-      earnings += products[i].countInStock
+      earnings += products[i].countInStock;
     }
   }
   return earnings;
 }
 // ADMIN GET ALL PRODUCT WITHOUT SEARCH AND PAGINATION
-productRoute.get(
-  "/allproduct",
-  protect,
-  async (req, res) => {
-    const products = await Product.find().populate('category', '_id name').populate('categoryDrug', '_id name').sort({ _id: -1 });
-    res.json(products);
-  });
+productRoute.get("/allproduct", protect, async (req, res) => {
+  const products = await Product.find()
+    .populate("category", "_id name")
+    .populate("categoryDrug", "_id name")
+    .sort({ _id: -1 });
+  res.json(products);
+});
 
-productRoute.get("/all",
+productRoute.get(
+  "/all",
   protect,
   asyncHandler(async (req, res) => {
     // const pageSize = 10;
     // const currentPage = Number(req.query.pageNumber) || 1;
-    const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-      name: {
-        $regex: req.query.keyword,
-        $options: "i"
-      },
-    } : {}
-    const handleSortPrice = (() => {
+    const keyword =
+      req.query.keyword && req.query.keyword !== " "
+        ? {
+            name: {
+              $regex: req.query.keyword,
+              $options: "i",
+            },
+          }
+        : {};
+    const handleSortPrice = () => {
       switch (req.query.sort) {
         case "cheap":
           return {
-            price: { $lte: 100 }
-          }
+            price: { $lte: 100 },
+          };
         case "expensive":
           return {
-            price: { $gte: 100 }
-          }
-        default: return {}
+            price: { $gte: 100 },
+          };
+        default:
+          return {};
       }
-    })
-    const sortValue = req.query.sort ? handleSortPrice() : {}
+    };
+    const sortValue = req.query.sort ? handleSortPrice() : {};
     // const count = await Product.countDocuments({ ...keyword, ...sortValue });
-    const products = await Product.find({ ...keyword, ...sortValue }).populate('category', '_id name').populate('categoryDrug', '_id name')
+    const products = await Product.find({ ...keyword, ...sortValue })
+      .populate("category", "_id name")
+      .populate("categoryDrug", "_id name")
       // .limit(pageSize)
       // .skip(pageSize * (currentPage - 1))
       .sort({ _id: -1 });
@@ -155,59 +168,84 @@ productRoute.get("/all",
     // res.json({ products, currentPage, totalPage });
     res.json(products);
 
-
-    console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getMultiProduct 👉 Get: 200`)
+    console.log(
+      `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiProduct 👉 Get: 200`
+    );
   })
-)
+);
 // notification when add product
-productRoute.get("/notifications",
+productRoute.get(
+  "/notifications",
   asyncHandler(async (req, res) => {
     const notify = await HistoryNotification.find({});
     if (notify) {
       res.json(notify);
-      console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getHistoryNotification 👉 Get: 200`)
-    }
-    else {
-      console.error(`⛔  ${day.format('MMMM Do YYYY, h:mm:ss a')} Data notification not found`)
-      res.status(404)
-      throw new Error(`⛔ Data notifications not found`)
+      console.log(
+        `✏️  ${day.format(
+          "MMMM Do YYYY, h:mm:ss a"
+        )} getHistoryNotification 👉 Get: 200`
+      );
+    } else {
+      console.error(
+        `⛔  ${day.format(
+          "MMMM Do YYYY, h:mm:ss a"
+        )} Data notification not found`
+      );
+      res.status(404);
+      throw new Error(`⛔ Data notifications not found`);
     }
   })
-)
+);
 // GET FOR WEB AND APP
-productRoute.get("/:id/categories",
+productRoute.get(
+  "/:id/categories",
   asyncHandler(async (req, res) => {
-    const product = await Product.find().populate('category', '_id name').populate('categoryDrug', '_id name')
-    const productCategories = product.filter(item => item?.category?._id.toHexString() === req.params.id)
-    res.json(productCategories)
+    const product = await Product.find()
+      .populate("category", "_id name")
+      .populate("categoryDrug", "_id name");
+    const productCategories = product.filter(
+      (item) => item?.category?._id.toHexString() === req.params.id
+    );
+    res.json(productCategories);
   })
-)
+);
 
-productRoute.get("/:id/categories-drug",
+productRoute.get(
+  "/:id/categories-drug",
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const product = await Product.find().populate('categoryDrug', '_id name')
-    const productCategoriesDrug = product.filter(item => item?.categoryDrug?._id.toHexString() === req.params.id)
-    res.json(productCategoriesDrug)
+    const product = await Product.find().populate("categoryDrug", "_id name");
+    const productCategoriesDrug = product.filter(
+      (item) => item?.categoryDrug?._id.toHexString() === req.params.id
+    );
+    res.json(productCategoriesDrug);
   })
-)
+);
 
 //GET SINGLE PRODUCT
-productRoute.get("/:id",
+productRoute.get(
+  "/:id",
   asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id).populate('category', '_id name').populate('categoryDrug', '_id name');
+    const product = await Product.findById(req.params.id)
+      .populate("category", "_id name")
+      .populate("categoryDrug", "_id name");
     if (product) {
       res.json(product);
-      console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} getDetailProduct 👉 Get: 200`)
-    }
-    else {
-      console.error(`⛔  ${day.format('MMMM Do YYYY, h:mm:ss a')} Product not found`)
-      res.status(404)
-      throw new Error(`⛔ Product not found`)
+      console.log(
+        `✏️  ${day.format(
+          "MMMM Do YYYY, h:mm:ss a"
+        )} getDetailProduct 👉 Get: 200`
+      );
+    } else {
+      console.error(
+        `⛔  ${day.format("MMMM Do YYYY, h:mm:ss a")} Product not found`
+      );
+      res.status(404);
+      throw new Error(`⛔ Product not found`);
     }
   })
-)
+);
 
 // PRODUCT REVIEW
 productRoute.post(
@@ -234,7 +272,9 @@ productRoute.post(
 
       product.reviews.push(review);
       product.numberReviews = product.reviews.length;
-      product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+      product.rating =
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        product.reviews.length;
 
       await product.save();
       res.status(201).json({ message: "Reviewed Added" });
@@ -244,7 +284,6 @@ productRoute.post(
     }
   })
 );
-
 
 // DELETE PRODUCT
 productRoute.delete(
@@ -292,16 +331,16 @@ productRoute.post(
         prescription,
         description,
         image: `/upload/${image}`,
-        user: req.body._id
+        user: req.body._id,
       });
       if (product) {
         const message = {
           headings: "Phòng Khám đa khoa Mỹ Thạnh",
           contents: `Thuốc ${product.name} đã được thêm mới vào kho`,
-          bigPicture: '192.168.4.109:5000' + product.image
-        }
-        ConfigNotify(message)
-        await HistoryNotification.saveNotification(message)
+          bigPicture: "192.168.4.109:5000" + product.image,
+        };
+        ConfigNotify(message);
+        await HistoryNotification.saveNotification(message);
         const createdProduct = await product.save();
         res.status(201).json(createdProduct);
       } else {
@@ -337,7 +376,8 @@ productRoute.put(
         product.allowToSell = allowToSell,
         product.prescription = prescription || product.prescription
       product.description = description || product.description;
-      product.image = product.image === image ? product.image : `/upload/${image}`
+      product.image =
+        product.image === image ? product.image : `/upload/${image}`;
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
@@ -354,15 +394,15 @@ productRoute.post("/single", upload.single("image"), (req, res) => {
   const file = req.file
   console.log(file)
   if (!file) {
-    const error = new Error('Please upload a file')
-    error.httpStatusCode = 400
-    return next(error)
+    const error = new Error("Please upload a file");
+    error.httpStatusCode = 400;
+    return next(error);
   }
-  res.json(file)
+  res.json(file);
 });
 
 // Multiple Files Route Handler
 productRoute.post("/multiple", upload.array("images", 3), (req, res) => {
-  return res.status(200).send(req.file)
+  return res.status(200).send(req.file);
 });
-export default productRoute
+export default productRoute;

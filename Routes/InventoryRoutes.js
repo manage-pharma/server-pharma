@@ -70,59 +70,185 @@ inventoryRoutes.get("/",
   })
 );
 
-inventoryRoutes.get("/:id",
+
+inventoryRoutes.get("/tag",
     asyncHandler(async (req, res) => {
-        const ObjectId = mongoose.Types.ObjectId;
-        const datas = await Inventory.aggregate([
-            {
-                $match: {
-                    _id: ObjectId(req.params.id)
-                },
-            },
-            {
-                $lookup: {
-                  from: "importstocks",
-                  localField: "importStock._id",
-                  foreignField: "_id",
-                  as: "importstocks",
-                },
-            },
-            { $unwind: "$importstocks" },
-            // Trả về trường "importedAt" của document đó
-            { $project: { 
-                _id: 0,
-                importedAt: "$importstocks.importedAt" 
-            }}
+      const ObjectId = mongoose.Types.ObjectId;
+      const from = req.query.from;
+      const to = req.query.to;
 
-          ]);
-          res.json({ ...datas })
+      const resultsImport = await Inventory.aggregate([
+        { 
+          $match: {
+            idDrug: ObjectId(req.query.keyword),
+          },
+        },
+        {
+          $lookup: {
+            from: "importstocks",
+            localField: "importStock._id",
+            foreignField: "_id",
+            as: "importstocks",
+          },
+        },
+        {
+          $unwind: "$importstocks",
+        },
+        {
+          $project: {
+            _id: 0,
+            lotNumber: 1,
+            // expDrug: 1,
+            // count: 1,    
+            importStock: "$importstocks._id",
+            importedAt: "$importstocks.importedAt",
+            importedItem: {
+              $filter: {
+                input: "$importstocks.importItems",
+                as: "importItem",
+                cond: { $eq: ["$$importItem.lotNumber", "$lotNumber"] }
+              }
+            }
+          },
+        },
+        {
+          $match: {
+            importedAt: {
+              $gte: new Date(from),
+              $lte: new Date(to),
+            },
+          },
+        },
+      ]);
+      const resultsExport = await Inventory.aggregate([
+        {
+          $match: {
+            idDrug: ObjectId(req.query.keyword),
+          },
+        },
+        {
+          $lookup: {
+            from: "exportstocks",
+            localField: "exportStock._id",
+            foreignField: "_id",
+            as: "exportstocks",
+          },
+        },
+        {
+          $unwind: "$exportstocks",
+        },
+        {
+          $project: {
+            _id: 0,
+            lotNumber: 1,
+            // expDrug: 1,
+            // count: 1,    
+            exportStock: "$exportstocks._id",
+            exportedAt: "$exportstocks.exportedAt",
+            exportedItem: {
+              $filter: {
+                input: {
+                  $map: {
+                    input: "$exportstocks.exportItems",
+                    as: "exportItem",
+                    in: {
+                      $cond: [
+                        { $eq: [ "$$exportItem.product", ObjectId(req.query.keyword) ] },
+                        {
+                          $mergeObjects: [
+                            "$$exportItem",
+                            {
+                              lotField: {
+                                $arrayElemAt: [
+                                  {
+                                    $filter: {
+                                      input: "$$exportItem.lotField",
+                                      as: "lot",
+                                      cond: {
+                                        $eq: [ "$$lot.lotNumber", "$lotNumber" ]
+                                      }
+                                    }
+                                  },
+                                  0
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        null
+                      ]
+                    }
+                  }
+                },
+                as: "exportItem",
+                cond: { $ne: [ "$$exportItem", null ] }
+              }
+            }
+          },
+        },
+        {
+          $match: {
+            exportedAt: {
+              $gte: new Date(from),
+              $lte: new Date(to),
+            },
+          },
+        },
+      ]);
+    
+      const importTotals = resultsImport.reduce((acc, cur) => {
+        const lotNumber = cur.lotNumber;
+        const importedQty = cur.importedItem.reduce((total, item) => total + item.qty, 0);
+        if (!acc[lotNumber]) {
+          acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+        }
+        acc[lotNumber].importedItemTotal += importedQty;
+        return acc;
+      }, {});
+
+      const exportTotals = resultsExport.reduce((acc, cur) => {
+        const lotNumber = cur.lotNumber;
+        const exportedQty = cur.exportedItem.reduce((total, item) => total + item.lotField.count, 0);
+        if (!acc[lotNumber]) {
+          acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+        }
+        acc[lotNumber].exportedItemTotal += exportedQty;
+        return acc;
+      }, {});
+
+      const totals = {};
+      Object.keys(importTotals).forEach((lotNumber) => {
+        totals[lotNumber] = {
+          importedItemTotal: importTotals[lotNumber].importedItemTotal,
+          exportedItemTotal: exportTotals[lotNumber]?.exportedItemTotal || 0,
+        };
+      });
+
+      res.json({totals});
     })
-)
-
+);
 export default inventoryRoutes
 
-// inventoryRoutes.get("/",
-//     asyncHandler(async (req, res) => {
-//         const pageSize = 9;
-//         const currentPage = Number(req.query.pageNumber) || 1;
-//     const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-//           name: {
-//               $regex: req.query.keyword,
-//               $options: "i"
-//           },
-          
-//       } : {}
-//         const count = await Inventory.countDocuments({...keyword});
-//         const inventories = await Inventory.find({...keyword}).sort({ _id: -1 })
-//         .limit(pageSize)
-//         .skip(pageSize * (currentPage - 1))
+// const resultsExportByLotNumber = resultsExport.reduce((acc, inventory) => {
+//   if (!acc[inventory.lotNumber]) {
+//     acc[inventory.lotNumber] = [];
+//   }
+//   const newExportedItem = inventory.exportedItem.map(item => {
+//     const newItem = { ...item };
+//     delete newItem.qty;
+//     delete newItem.price;
+//     delete newItem.product;
+//     return newItem;
+//   });
+//   const updatedInventory = { ...inventory, exportedItem: newExportedItem };
+//   acc[inventory.lotNumber].push(updatedInventory);
+//   return acc;
+// }, {});
 
-//         const totalPage = [];
-//         for(let i = 1; i <= Math.ceil(count / pageSize); i++){
-//           totalPage.push(i)
-//         }
-//         res.json({ providers, currentPage, totalPage });
-//         res.json(inventories);
-
-//     })
-// )
+// const resultsImportByLotNumber = resultsImport.reduce((acc, inventory) => {
+//   if (!acc[inventory.lotNumber]) {
+//     acc[inventory.lotNumber] = [];
+//   }
+//   acc[inventory.lotNumber].push(inventory);
+//   return acc;
+// }, {});

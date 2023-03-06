@@ -31,7 +31,7 @@ const inventorySchema = mongoose.Schema({
             }
         }
     ],
-    exportCode:[ 
+    exportStock:[ 
         {
             _id: {
                 type: mongoose.Schema.Types.ObjectId,
