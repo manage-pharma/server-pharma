@@ -18,7 +18,7 @@ import mongoose from 'mongoose'
 //         ref: 'User'
 //     }
 // })
-const productSchema = mongoose.Schema({
+const productSchema=mongoose.Schema({
     name: {
         type: String,
         require: true
@@ -48,8 +48,8 @@ const productSchema = mongoose.Schema({
     APIs: [ //active pharmaceutical ingredient (hoạt chất dược)
         {
             _id: false,
-            API: { type: String, },
-            content: { type: Number, },
+            API: {type: String,},
+            content: {type: Number,},
         }
     ],
     brandName: { // tên biệt dược
@@ -85,7 +85,7 @@ const productSchema = mongoose.Schema({
         require: true
     },
     image: {
-        type: String,
+        type: Array,
         require: true,
     },
     // rating:{
@@ -100,9 +100,9 @@ const productSchema = mongoose.Schema({
     // },
     // reviews: [reviewSchema]
 
-}, {
+},{
     timestamps: true
 }
 )
-const Product = mongoose.model("Product", productSchema)
+const Product=mongoose.model("Product",productSchema)
 export default Product
