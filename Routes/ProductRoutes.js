@@ -177,7 +177,7 @@ productRoute.get(
 productRoute.get(
   "/notifications",
   asyncHandler(async (req, res) => {
-    const notify = await HistoryNotification.find({});
+    const notify = await HistoryNotification.find({}).sort({createdAt: -1});
     if (notify) {
       res.json(notify);
       console.log(
