@@ -13,6 +13,7 @@ import importStockRoutes from "./Routes/ImportStockRoutes.js"
 import exportStockRoutes from './Routes/ExportStockRoutes.js';
 import inventoryRoutes from "./Routes/InventoryRoutes.js";
 import reviewRoutes from "./Routes/ReviewRoutes.js";
+import drugStoreRoutes from "./Routes/DrugStoreRoutes.js";
 
 // CONFIG
 dotenv.config()
@@ -32,6 +33,7 @@ app.use("/api/import-stock",importStockRoutes)
 app.use("/api/export-stock",exportStockRoutes)
 app.use("/api/inventory",inventoryRoutes)
 app.use("/api/review",reviewRoutes)
+app.use("/api/drugstore",drugStoreRoutes)
 app.get("/api/config/paypal",(req,res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
