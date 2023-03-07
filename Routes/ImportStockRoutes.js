@@ -36,7 +36,7 @@ importStockRoutes.get("/",
           "name"
         ).populate(
           "provider",
-          "name"
+          "name address phone",
         ).populate(
           "importItems.product",
           "name image"
