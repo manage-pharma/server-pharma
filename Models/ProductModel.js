@@ -1,23 +1,23 @@
 import mongoose from 'mongoose'
-// const reviewSchema = mongoose.Schema({
-//     name:{
-//         type: String,
-//         require: true   
-//     },
-//     rating:{
-//         type: Number,
-//         require: true,
-//     },
-//     comment:{
-//         type: String,
-//         require: true   
-//     },
-//     user:{
-//         type: mongoose.Schema.Types.ObjectId,
-//         require: true,
-//         ref: 'User'
-//     }
-// })
+const reviewSchema=mongoose.Schema({
+    name: {
+        type: String,
+        require: true
+    },
+    rating: {
+        type: Number,
+        require: true,
+    },
+    comment: {
+        type: String,
+        require: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        require: true,
+        ref: 'User'
+    }
+})
 const productSchema=mongoose.Schema({
     name: {
         type: String,
@@ -88,17 +88,17 @@ const productSchema=mongoose.Schema({
         type: Array,
         require: true,
     },
-    // rating:{
-    //     type: Number,
-    //     require: true,
-    //     default: 0
-    // },
-    // numberReviews:{
-    //     type: Number,
-    //     require: true,
-    //     default: 0
-    // },
-    // reviews: [reviewSchema]
+    rating: {
+        type: Number,
+        require: true,
+        default: 0
+    },
+    numberReviews: {
+        type: Number,
+        require: true,
+        default: 0
+    },
+    reviews: [reviewSchema]
 
 },{
     timestamps: true

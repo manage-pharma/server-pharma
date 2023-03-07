@@ -77,155 +77,183 @@ inventoryRoutes.get("/tag",
       const ObjectId = mongoose.Types.ObjectId;
       const from = req.query.from;
       const to = req.query.to;
+      const now = new Date().toISOString();
 
-      const resultsImport = await Inventory.aggregate([
-        { 
-          $match: {
-            idDrug: ObjectId(req.query.keyword),
-          },
-        },
-        {
-          $lookup: {
-            from: "importstocks",
-            localField: "importStock._id",
-            foreignField: "_id",
-            as: "importstocks",
-          },
-        },
-        {
-          $unwind: "$importstocks",
-        },
-        {
-          $project: {
-            _id: 0,
-            lotNumber: 1,
-            // expDrug: 1,
-            // count: 1,    
-            importStock: "$importstocks._id",
-            importedAt: "$importstocks.importedAt",
-            importedItem: {
-              $filter: {
-                input: "$importstocks.importItems",
-                as: "importItem",
-                cond: { $eq: ["$$importItem.lotNumber", "$lotNumber"] }
-              }
-            }
-          },
-        },
-        {
-          $match: {
-            importedAt: {
-              $gte: new Date(from),
-              $lte: new Date(to),
+      const tagInventoryFactory =  async (fromParam, toParam) => {
+        const resultsImport = await Inventory.aggregate([
+          { 
+            $match: {
+              idDrug: ObjectId(req.query.keyword),
             },
           },
-        },
-      ]);
-      const resultsExport = await Inventory.aggregate([
-        {
-          $match: {
-            idDrug: ObjectId(req.query.keyword),
+          {
+            $lookup: {
+              from: "importstocks",
+              localField: "importStock._id",
+              foreignField: "_id",
+              as: "importstocks",
+            },
           },
-        },
-        {
-          $lookup: {
-            from: "exportstocks",
-            localField: "exportStock._id",
-            foreignField: "_id",
-            as: "exportstocks",
+          {
+            $unwind: "$importstocks",
           },
-        },
-        {
-          $unwind: "$exportstocks",
-        },
-        {
-          $project: {
-            _id: 0,
-            lotNumber: 1,
-            // expDrug: 1,
-            // count: 1,    
-            exportStock: "$exportstocks._id",
-            exportedAt: "$exportstocks.exportedAt",
-            exportedItem: {
-              $filter: {
-                input: {
-                  $map: {
-                    input: "$exportstocks.exportItems",
-                    as: "exportItem",
-                    in: {
-                      $cond: [
-                        { $eq: [ "$$exportItem.product", ObjectId(req.query.keyword) ] },
-                        {
-                          $mergeObjects: [
-                            "$$exportItem",
-                            {
-                              lotField: {
-                                $arrayElemAt: [
-                                  {
-                                    $filter: {
-                                      input: "$$exportItem.lotField",
-                                      as: "lot",
-                                      cond: {
-                                        $eq: [ "$$lot.lotNumber", "$lotNumber" ]
+          {
+            $project: {
+              _id: 0,
+              lotNumber: 1,
+              // expDrug: 1,
+              // count: 1,    
+              importStock: "$importstocks._id",
+              importedAt: "$importstocks.importedAt",
+              importedItem: {
+                $filter: {
+                  input: "$importstocks.importItems",
+                  as: "importItem",
+                  cond: { $eq: ["$$importItem.lotNumber", "$lotNumber"] }
+                }
+              }
+            },
+          },
+          {
+            $match: {
+              importedAt: {
+                $gte: new Date(fromParam),
+                $lte: new Date(toParam),
+              },
+            },
+          },
+        ]);
+        const resultsExport = await Inventory.aggregate([
+          {
+            $match: {
+              idDrug: ObjectId(req.query.keyword),
+            },
+          },
+          {
+            $lookup: {
+              from: "exportstocks",
+              localField: "exportStock._id",
+              foreignField: "_id",
+              as: "exportstocks",
+            },
+          },
+          {
+            $unwind: "$exportstocks",
+          },
+          {
+            $project: {
+              _id: 0,
+              lotNumber: 1,
+              // expDrug: 1,
+              // count: 1,    
+              exportStock: "$exportstocks._id",
+              exportedAt: "$exportstocks.exportedAt",
+              exportedItem: {
+                $filter: {
+                  input: {
+                    $map: {
+                      input: "$exportstocks.exportItems",
+                      as: "exportItem",
+                      in: {
+                        $cond: [
+                          { $eq: [ "$$exportItem.product", ObjectId(req.query.keyword) ] },
+                          {
+                            $mergeObjects: [
+                              "$$exportItem",
+                              {
+                                lotField: {
+                                  $arrayElemAt: [
+                                    {
+                                      $filter: {
+                                        input: "$$exportItem.lotField",
+                                        as: "lot",
+                                        cond: {
+                                          $eq: [ "$$lot.lotNumber", "$lotNumber" ]
+                                        }
                                       }
-                                    }
-                                  },
-                                  0
-                                ]
+                                    },
+                                    0
+                                  ]
+                                }
                               }
-                            }
-                          ]
-                        },
-                        null
-                      ]
+                            ]
+                          },
+                          null
+                        ]
+                      }
                     }
-                  }
-                },
-                as: "exportItem",
-                cond: { $ne: [ "$$exportItem", null ] }
+                  },
+                  as: "exportItem",
+                  cond: { $ne: [ "$$exportItem", null ] }
+                }
               }
-            }
-          },
-        },
-        {
-          $match: {
-            exportedAt: {
-              $gte: new Date(from),
-              $lte: new Date(to),
             },
           },
-        },
-      ]);
-    
-      const importTotals = resultsImport.reduce((acc, cur) => {
-        const lotNumber = cur.lotNumber;
-        const importedQty = cur.importedItem.reduce((total, item) => total + item.qty, 0);
-        if (!acc[lotNumber]) {
-          acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+          {
+            $match: {
+              exportedAt: {
+                $gte: new Date(fromParam),
+                $lte: new Date(toParam),
+              },
+            },
+          },
+        ]);
+      
+        const importTotals = resultsImport.reduce((acc, cur) => {
+          const lotNumber = cur.lotNumber;
+          const importedQty = cur.importedItem.reduce((total, item) => total + item.qty, 0);
+          if (!acc[lotNumber]) {
+            acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+          }
+          acc[lotNumber].importedItemTotal += importedQty;
+          return acc;
+        }, {});
+  
+        const exportTotals = resultsExport.reduce((acc, cur) => {
+          const lotNumber = cur.lotNumber;
+          const exportedQty = cur.exportedItem.reduce((total, item) => total + item.lotField.count, 0);
+          if (!acc[lotNumber]) {
+            acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+          }
+          acc[lotNumber].exportedItemTotal += exportedQty;
+          return acc;
+        }, {});
+  
+        const totals = {};
+        Object.keys(importTotals).forEach((lotNumber) => {
+          totals[lotNumber] = {
+            importedItemTotal: importTotals[lotNumber].importedItemTotal,
+            exportedItemTotal: exportTotals[lotNumber]?.exportedItemTotal || 0,
+          };
+        });
+
+        return totals;
+      }
+
+      const from_to = await tagInventoryFactory(from, to);
+      const from_now = await tagInventoryFactory(from, now);
+
+      const output = [];
+      for (const lotNumber_FromTo of Object.keys(from_to)) {
+        const lotNumberFromDB = await Inventory.findOne({lotNumber: lotNumber_FromTo});
+        for (const lotNumber_FromNow of Object.keys(from_now)) {
+          if(lotNumber_FromTo === lotNumber_FromNow && lotNumber_FromTo === lotNumberFromDB.lotNumber){
+            const TDK = (lotNumberFromDB.count + from_now[lotNumber_FromNow].exportedItemTotal) - from_now[lotNumber_FromNow].importedItemTotal 
+            const TCK = (TDK + from_to[lotNumber_FromTo].importedItemTotal) - from_to[lotNumber_FromTo].exportedItemTotal
+            
+            output.push({
+              lotNumber: lotNumber_FromTo,
+              TDK: TDK,
+              N: from_to[lotNumber_FromTo].importedItemTotal,
+              X: from_to[lotNumber_FromTo].exportedItemTotal,
+              TCK: TCK
+            })
+          }
         }
-        acc[lotNumber].importedItemTotal += importedQty;
-        return acc;
-      }, {});
-
-      const exportTotals = resultsExport.reduce((acc, cur) => {
-        const lotNumber = cur.lotNumber;
-        const exportedQty = cur.exportedItem.reduce((total, item) => total + item.lotField.count, 0);
-        if (!acc[lotNumber]) {
-          acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
-        }
-        acc[lotNumber].exportedItemTotal += exportedQty;
-        return acc;
-      }, {});
-
-      const totals = {};
-      Object.keys(importTotals).forEach((lotNumber) => {
-        totals[lotNumber] = {
-          importedItemTotal: importTotals[lotNumber].importedItemTotal,
-          exportedItemTotal: exportTotals[lotNumber]?.exportedItemTotal || 0,
-        };
-      });
-
-      res.json({totals});
+      }
+      
+      res.json(output);  
+       
     })
 );
 export default inventoryRoutes
