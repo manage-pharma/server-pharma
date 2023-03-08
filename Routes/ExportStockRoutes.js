@@ -175,8 +175,9 @@ exportStockRoutes.post(
         const filteredLotField = lotField.filter((lot) => lot.count > 0);
         return { ...item, lotField: filteredLotField };
       });
+      const randomUuid = crypto.randomBytes(16).toString('hex');
       const exportsStock = new exportStock({
-        exportCode: crypto.randomUUID(),
+        exportCode: `${process.env.PREFIX_CODE_XK}-${randomUuid.slice(0, 8)}`,
         customer,
         phone,
         address,
