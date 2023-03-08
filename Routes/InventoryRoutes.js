@@ -1,7 +1,6 @@
 import express, { application } from 'express'
 import asyncHandler from 'express-async-handler'
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
-import importStock from '../Models/ImportStock.js';
+import { protect} from "../Middleware/AuthMiddleware.js";
 import Inventory from '../Models/InventoryModels.js';
 const inventoryRoutes = express.Router();
 import mongoose from 'mongoose';
@@ -71,6 +70,22 @@ inventoryRoutes.get("/",
   })
 );
 
+// get to check inventory
+inventoryRoutes.get("/check",
+  asyncHandler(async (req, res)=>{
+    const keyword=
+      req.query.keyword && req.query.keyword!== " "
+        ? {
+          name: {
+            $regex: req.query.keyword,
+            $options: "i",
+          },
+        }
+        :{};
+    const categoryDrug = await Inventory.find({...keyword}, {idDrug: 1, lotNumber: 1, count: 1, expDrug: 1}).populate("idDrug", "name")
+    res.json(categoryDrug)
+  })
+);
 
 inventoryRoutes.get("/tag",
     asyncHandler(async (req, res) => {
