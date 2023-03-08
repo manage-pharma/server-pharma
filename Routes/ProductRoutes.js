@@ -308,7 +308,7 @@ productRoute.post(
   protect,
   admin,
   asyncHandler(async (req,res) => {
-    const {name,regisId,category,categoryDrug,unit,packing,APIs,brandName,manufacturer,countryOfOrigin,instruction,price,allowToSell,prescription,description,image}=req.body;
+    const {name, regisId, category, categoryDrug, unit, packing, APIs, brandName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image}=req.body;
     console.log({brandName: brandName})
     const productExist=await Product.findOne({name,unit});
     if(productExist) {
