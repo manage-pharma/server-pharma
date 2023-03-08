@@ -169,9 +169,10 @@ importStockRoutes.post(
         totalPrice,
         importedAt
       } = req.body;
-  
+
+      const randomUuid = crypto.randomBytes(16).toString('hex');
       const importsStock = new importStock({
-        importCode: crypto.randomUUID(),
+        importCode: `${process.env.PREFIX_CODE_NK}-${randomUuid.slice(0, 8)}`,
         user: user || req.user._id,
         provider,
         importItems,
