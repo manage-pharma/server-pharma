@@ -14,6 +14,11 @@ const providerSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
+    invoiceSymbol: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     phone: {
       type: String,      
       required: true,

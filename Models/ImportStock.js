@@ -25,6 +25,8 @@ const importStockSchema = mongoose.Schema(
         expDrug: {type: Date, required: true},
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
+        VAT: {type: Number, default: 0},
+        discount: {type: Number, default: 0},
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
@@ -34,15 +36,26 @@ const importStockSchema = mongoose.Schema(
     note: {
       type: String
     },
+    
     totalPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
+    
+    invoiceNumber: {
+      type: String,
+    },
+    
+    invoiceSymbol: {
+      type: String,
+    },
+
     status:{
       type: Boolean,
       default: false
     },
+
     importedAt: {
       type: Date,
       default: Date.now()
