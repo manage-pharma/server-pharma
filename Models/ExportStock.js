@@ -21,6 +21,9 @@ const exportStockSchema = mongoose.Schema(
     note: {
       type: String,
     },
+    reason: {
+      type: String,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
