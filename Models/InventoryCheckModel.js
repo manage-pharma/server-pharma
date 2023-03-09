@@ -28,7 +28,7 @@ const inventoryCheckSchema = mongoose.Schema(
         lotNumber: { type: String, required: true },
         expDrug: { type: Date, required: true },
         count: { type: Number, required: true },
-        realQty: { type: Number, required: true },
+        realQty: { type: Number, required: false },
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,

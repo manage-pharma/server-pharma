@@ -165,6 +165,7 @@ exportStockRoutes.post(
         phone,
         address,
         note,
+        reason,
         exportItems,
         user,
         totalPrice,
@@ -182,6 +183,7 @@ exportStockRoutes.post(
         phone,
         address,
         note,
+        reason,
         user: user || req.user._id,
         exportItems: filteredExportItems,
         totalPrice,
@@ -334,6 +336,7 @@ exportStockRoutes.put(
         phone,
         address,
         note,
+        reason,
         exportItems,
         user,
         totalPrice,
@@ -349,7 +352,7 @@ exportStockRoutes.put(
         thisExport.phone = phone || thisExport.phone;
         thisExport.address = address || thisExport.address;
         thisExport.note = note || thisExport.note;
-
+        thisExport.reason = reason || thisExport.reason;
         thisExport.exportItems = filteredExportItems || thisExport.exportItems;
         thisExport.user = user || thisExport.user;
         thisExport.totalPrice = totalPrice || thisExport.totalPrice;
