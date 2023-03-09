@@ -167,6 +167,8 @@ importStockRoutes.post(
         importItems,
         user,
         totalPrice,
+        invoiceNumber,
+        invoiceSymbol,
         importedAt
       } = req.body;
 
@@ -177,6 +179,8 @@ importStockRoutes.post(
         provider,
         importItems,
         totalPrice,
+        invoiceNumber,
+        invoiceSymbol,
         importedAt
       });
   
@@ -330,6 +334,8 @@ importStockRoutes.put(
         importItems,
         user,
         totalPrice,
+        invoiceNumber,
+        invoiceSymbol,
         importedAt
       } = req.body;
 
@@ -338,6 +344,8 @@ importStockRoutes.put(
         thisImport.importItems = importItems || thisImport.importItems;
         thisImport.user = user || thisImport.user;
         thisImport.totalPrice = totalPrice || thisImport.totalPrice;
+        thisImport.invoiceNumber = invoiceNumber || thisImport.invoiceNumber;
+        thisImport.invoiceSymbol = invoiceSymbol || thisImport.invoiceSymbol;
         thisImport.importedAt = importedAt || thisImport.importedAt;
         const updatedProduct = await thisImport.save();
         res.json(updatedProduct);

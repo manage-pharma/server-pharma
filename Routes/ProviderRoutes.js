@@ -71,6 +71,7 @@ providerRoutes.post(
                 name, 
                 contactName, 
                 taxCode, 
+                invoiceSymbol,
                 phone, 
                 email, 
                 address
@@ -93,12 +94,13 @@ providerRoutes.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const { name, contactName, taxCode, phone, email, address } = req.body;
+    const { name, contactName, taxCode, invoiceSymbol, phone, email, address } = req.body;
     const provider = await Provider.findById(req.params.id);
     if (provider) {
       provider.name = name || provider.name;
       provider.contactName = contactName || provider.contactName;
       provider.taxCode = taxCode || provider.taxCode 
+      provider.invoiceSymbol = invoiceSymbol || provider.invoiceSymbol 
       provider.phone =  phone || provider.phone 
       provider.email =  email || provider.email 
       provider.address =  address || provider.address 
