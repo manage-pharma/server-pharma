@@ -14,6 +14,7 @@ import exportStockRoutes from './Routes/ExportStockRoutes.js';
 import inventoryRoutes from "./Routes/InventoryRoutes.js";
 import reviewRoutes from "./Routes/ReviewRoutes.js";
 import drugStoreRoutes from "./Routes/DrugStoreRoutes.js";
+import inventoryCheckRoutes from "./Routes/InventoryCheckRoutes.js";
 
 // CONFIG
 dotenv.config()
@@ -32,6 +33,7 @@ app.use("/api/provider",providerRoutes)
 app.use("/api/import-stock",importStockRoutes)
 app.use("/api/export-stock",exportStockRoutes)
 app.use("/api/inventory",inventoryRoutes)
+app.use("/api/inventory-check",inventoryCheckRoutes)
 app.use("/api/review",reviewRoutes)
 app.use("/api/drugstore",drugStoreRoutes)
 app.get("/api/config/paypal",(req,res) => {
