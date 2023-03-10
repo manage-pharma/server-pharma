@@ -43,6 +43,18 @@ const importStockSchema = mongoose.Schema(
       default: 0.0,
     },
     
+    totalVAT: {
+      type: Number,
+      required: true,
+      default: 0.0,
+    },
+
+    totalDiscount: {
+      type: Number,
+      required: true,
+      default: 0.0,
+    },
+
     invoiceNumber: {
       type: String,
     },
@@ -55,7 +67,11 @@ const importStockSchema = mongoose.Schema(
       type: Boolean,
       default: false
     },
-
+    isDeleted:{
+      type: Boolean,
+      required: true,
+      default: false
+    },
     importedAt: {
       type: Date,
       default: Date.now()

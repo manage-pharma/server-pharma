@@ -15,15 +15,12 @@ exportStockRoutes.get(
   asyncHandler(async (req, res) => {
     // const pageSize = 9;
     // const currentPage = Number(req.query.pageNumber) || 1;
-    const keyword =
-      req.query.keyword && req.query.keyword != " "
-        ? {
-            $or: [
-              { exportCode: new RegExp(req.query.keyword, "i") },
-              { customer: new RegExp(req.query.keyword, "i") },
-            ],
-          }
-        : {};
+    const keyword = req.query.keyword && req.query.keyword != ' ' ? {
+      exportCode: {
+          $regex: req.query.keyword,
+          $options: "i"
+      },
+    } : {}
 
     const from = req.query.from;
     const to = req.query.to;
@@ -38,7 +35,7 @@ exportStockRoutes.get(
         : {};
     // const count = await exportStock.countDocuments({...keyword, ...D2D});
     const stockExported = await exportStock
-      .find({ ...keyword, ...D2D })
+      .find({ ...keyword, ...D2D, isDeleted: {$eq: false} })
       .populate("user", "name")
       .populate("exportItems.product", "name")
       .sort({ _id: -1 });
@@ -161,9 +158,6 @@ exportStockRoutes.post(
   asyncHandler(async (req, res) => {
     try {
       const {
-        customer,
-        phone,
-        address,
         note,
         reason,
         exportItems,
@@ -179,9 +173,6 @@ exportStockRoutes.post(
       const randomUuid = crypto.randomBytes(16).toString('hex');
       const exportsStock = new exportStock({
         exportCode: `${process.env.PREFIX_CODE_XK}-${randomUuid.slice(0, 8)}`,
-        customer,
-        phone,
-        address,
         note,
         reason,
         user: user || req.user._id,
@@ -332,9 +323,6 @@ exportStockRoutes.put(
     try {
       const thisExport = await exportStock.findById(req.params.id);
       const {
-        customer,
-        phone,
-        address,
         note,
         reason,
         exportItems,
@@ -348,9 +336,6 @@ exportStockRoutes.put(
         return { ...item, lotField: filteredLotField };
       });
       if (thisExport) {
-        thisExport.customer = customer || thisExport.customer;
-        thisExport.phone = phone || thisExport.phone;
-        thisExport.address = address || thisExport.address;
         thisExport.note = note || thisExport.note;
         thisExport.reason = reason || thisExport.reason;
         thisExport.exportItems = filteredExportItems || thisExport.exportItems;
@@ -371,4 +356,26 @@ exportStockRoutes.put(
   })
 );
 
+//CANCEL EXPORT STOCK
+exportStockRoutes.put(
+  "/:id/cancel",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    try {
+      const thisExport = await exportStock.findById(req.params.id);
+      if (thisExport) {
+        thisExport.isDeleted = true;
+        const updatedExport = await thisExport.save();
+        res.json(updatedExport);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Export stock not found");
+      }
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  })
+);
 export default exportStockRoutes;
