@@ -28,10 +28,10 @@ importStockRoutes.get("/",
           importedAt: {
               $gte: from,
               $lte: to
-          },
+          }
         } : {}
         // const count = await importStock.countDocuments({...keyword, ...D2D});
-        const stockImported = await importStock.find({...keyword, ...D2D}).populate(
+        const stockImported = await importStock.find({...keyword, ...D2D, isDeleted: {$eq: false}}).populate(
           "user",
           "name"
         ).populate(
@@ -167,6 +167,8 @@ importStockRoutes.post(
         importItems,
         user,
         totalPrice,
+        totalVAT,
+        totalDiscount,
         invoiceNumber,
         invoiceSymbol,
         importedAt
@@ -179,6 +181,8 @@ importStockRoutes.post(
         provider,
         importItems,
         totalPrice,
+        totalVAT,
+        totalDiscount,
         invoiceNumber,
         invoiceSymbol,
         importedAt
@@ -334,6 +338,8 @@ importStockRoutes.put(
         importItems,
         user,
         totalPrice,
+        totalVAT,
+        totalDiscount,
         invoiceNumber,
         invoiceSymbol,
         importedAt
@@ -344,6 +350,8 @@ importStockRoutes.put(
         thisImport.importItems = importItems || thisImport.importItems;
         thisImport.user = user || thisImport.user;
         thisImport.totalPrice = totalPrice || thisImport.totalPrice;
+        thisImport.totalVAT = totalVAT || thisImport.totalVAT;
+        thisImport.totalDiscount = totalDiscount || thisImport.totalDiscount;
         thisImport.invoiceNumber = invoiceNumber || thisImport.invoiceNumber;
         thisImport.invoiceSymbol = invoiceSymbol || thisImport.invoiceSymbol;
         thisImport.importedAt = importedAt || thisImport.importedAt;
@@ -359,4 +367,27 @@ importStockRoutes.put(
   })
 );
 
+
+//CANCEL IMPORT STOCK
+importStockRoutes.put(
+  "/:id/cancel",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    try {
+      const thisImport = await importStock.findById(req.params.id);
+      if (thisImport) {
+        thisImport.isDeleted = true;
+        const updatedImport = await thisImport.save();
+        res.json(updatedImport);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Import stock not found");
+      }
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  })
+);
 export default importStockRoutes;

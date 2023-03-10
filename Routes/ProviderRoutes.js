@@ -60,7 +60,7 @@ providerRoutes.post(
     protect,
     admin,
     asyncHandler(async(req, res)=>{
-        const {name, contactName, taxCode, phone, email, address} = req.body
+        const {name, contactName, taxCode, invoiceSymbol, phone, email, address} = req.body
         const categoryExist = await Provider.findOne({name});
         if(categoryExist){
             res.status(400);

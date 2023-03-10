@@ -6,18 +6,6 @@ const exportStockSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
-    customer: {
-      type: String,
-      require: true
-    },
-    phone: {
-      type: String,
-      require: true
-    },
-    address: {
-      type: String,
-      require: true
-    },
     note: {
       type: String,
     },
@@ -50,6 +38,10 @@ const exportStockSchema = mongoose.Schema(
         },
       }],
     status:{
+      type: Boolean,
+      default: false
+    },
+    isDeleted:{
       type: Boolean,
       default: false
     },
