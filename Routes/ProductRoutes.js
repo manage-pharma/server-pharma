@@ -392,7 +392,7 @@ productRoute.put(
 );
 
 // Single File Route Handler
-productRoute.post("/single",upload.single("image"),(req,res) => {
+productRoute.post("/single",upload.single("image"),(req,res, next) => {
   const file=req.file
   console.log(file)
   if(!file) {
