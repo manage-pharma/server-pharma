@@ -308,7 +308,7 @@ productRoute.post(
   protect,
   admin,
   asyncHandler(async (req,res) => {
-    const {name, regisId, category, categoryDrug, unit, packing, APIs, brandName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image}=req.body;
+    const {name, regisId, category, categoryDrug, unit, expDrug, packing, APIs, brandName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image}=req.body;
     console.log({brandName: brandName})
     const productExist=await Product.findOne({name,unit});
     if(productExist) {
@@ -321,6 +321,7 @@ productRoute.post(
         category,
         categoryDrug,
         unit,
+        expDrug,
         packing,
         APIs,
         brandName,
@@ -357,7 +358,7 @@ productRoute.put(
   protect,
   admin,
   asyncHandler(async (req,res) => {
-    const {name,price,prescription,brandName,manufacturer,APIs,image,category,categoryDrug,countryOfOrigin,description,unit,regisId,packing,instruction,allowToSell}=req.body;
+    const {name,price,prescription,brandName,manufacturer,APIs,image,category,categoryDrug,countryOfOrigin,description,unit,regisId,packing, expDrug, instruction,allowToSell}=req.body;
     console.log({body: req.body})
     const product=await Product.findById(req.params.id);
     if(product) {
@@ -366,6 +367,7 @@ productRoute.put(
       product.category=category||product.category
       product.categoryDrug=categoryDrug||product.categoryDrug,
         product.unit=unit||product.unit,
+        product.expDrug = expDrug || product.expDrug,
         product.APIs=APIs||product.APIs,
         product.packing=packing||product.packing,
         product.APIs=APIs||product.APIs,
