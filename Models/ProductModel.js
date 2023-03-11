@@ -37,6 +37,10 @@ const productSchema=mongoose.Schema({
         require: true,
         ref: 'CategoryDrug'
     },
+    expDrug: { 
+        type: Number,
+        require: true
+    },
     unit: { // đơn vị tính
         type: String,
         require: true
