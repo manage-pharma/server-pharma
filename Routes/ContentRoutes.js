@@ -1,8 +1,7 @@
-import express, { application } from 'express'
+import express from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
-import multer from "multer"
 import cors from "cors"
 import Content from './../Models/ContentModel.js';
 const contentRouter = express.Router();
@@ -17,11 +16,11 @@ contentRouter.use(cors())
 
 
 //GET ALL CATEGORY
-contentRouter.get("/:id",
-  //protect,
+contentRouter.get("/",
+  protect,
   asyncHandler(async (req, res)=>{
-    const content = await Content.findById(req.params.id).sort({ _id: -1 })
-    res.json(content)
+    const content = await Content.find({})
+    res.json(...content)
   })
 );
 
@@ -29,12 +28,12 @@ contentRouter.get("/:id",
 
 //UPDATE CATEGORY
 contentRouter.put(
-  "/:id",
- //protect,
-  //admin,
+  "/",
+ protect,
+  admin,
   asyncHandler(async (req, res) => {
     const { logo,phone,banners,companyName,companyAddress,links,contacts,zaloUrl,fbUrl,qrCode} = req.body;
-    const content = await Content.findById(req.params.id);
+    const content = await Content.findOne({}).exec();
     if (content) {
       content.logo = logo ? "/upload/" + logo : content.logo;
       content.phone = phone || content.phone;
