@@ -41,6 +41,11 @@ const inventoryCheckSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isDeleted:{
+      type: Boolean,
+      required: true,
+      default: false
+    },
   },
   {
     timestamp: true,

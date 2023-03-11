@@ -38,7 +38,7 @@ inventoryCheckRoutes.get(
           }
         : {};
     const stockImported = await inventoryCheck
-      .find({ ...keyword, ...D2D })
+      .find({ ...keyword, ...D2D, isDeleted: {$eq: false} })
       .populate("user", "name")
       .sort({ _id: -1 });
     res.json(stockImported);
@@ -72,9 +72,9 @@ inventoryCheckRoutes.post(
   asyncHandler(async (req, res) => {
     try {
       const { user, note, checkedAt, checkItems } = req.body;
-
+      const randomUuid = crypto.randomBytes(16).toString('hex');
       const inCheck = new inventoryCheck({
-        checkCode: crypto.randomUUID(),
+        checkCode: `${process.env.PREFIX_CODE_CBB}-${randomUuid.slice(0, 8)}`,
         user: user || req.user._id,
         note,
         checkItems,
@@ -232,6 +232,28 @@ inventoryCheckRoutes.put(
       }
     } catch (error) {
       res.status(400).json(error.message);
+    }
+  })
+);
+
+inventoryCheckRoutes.put(
+  "/:id/cancel",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    try {
+      const thisExport = await inventoryCheck.findById(req.params.id);
+      if (thisExport) {
+        thisExport.isDeleted = true;
+        const updatedExport = await thisExport.save();
+        res.json(updatedExport);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Inventory check not found");
+      }
+    } catch (error) {
+      throw new Error(error.message)
     }
   })
 );

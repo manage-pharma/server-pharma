@@ -59,12 +59,21 @@ exportStockRoutes.get(
     const D2D =
       from && to
         ? {
-            importedAt: {
-              $gte: new Date(from),
-              $lte: new Date(to),
+          $and: [
+            {
+              importedAt: {
+                $gte: new Date(from),
+                $lte: new Date(to),
+              },
             },
-          }
-        : {};
+            {
+              status: true
+            }
+          ]
+        }
+        : {
+          status: true
+        };
     const datas = await exportStock.aggregate([
       {
         $match: D2D,
