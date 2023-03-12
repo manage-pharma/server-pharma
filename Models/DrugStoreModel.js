@@ -32,11 +32,16 @@ const drugStoreSchema=mongoose.Schema(
             default: false,
         },
 
-        countInStock: {
-            type: Number,
-            required: true,
-            default: 0,
-        },
+        stock: [
+            {
+                _id: false,
+                lotNumber: {type: String, require: true},
+                expDrug: {type: Date, require: true},
+                count: {type: Number, require: true},
+                priority: {type: Number, require: true, default: 0}
+            }
+        ],
+
         reviews: [reviewSchema],
 
         discount: {
