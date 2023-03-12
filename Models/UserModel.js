@@ -20,6 +20,10 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    pCoin: {
+      type: Number,
+      required: true,
+    },
     isAdmin: {
       type: Boolean,
       required: true,

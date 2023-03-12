@@ -238,7 +238,9 @@ userRouter.get(
         email: user.email,
         phone: user.phone,
         isAdmin: user.isAdmin,
+        pCoin: user.pCoin,
         createdAt: user.createdAt,
+        
       });
     } else {
       res.status(404);
