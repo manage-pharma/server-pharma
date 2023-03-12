@@ -6,6 +6,7 @@ import exportStock from "../Models/ExportStock.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import mongoose from "mongoose";
+import DrugStore from "../Models/DrugStoreModel.js";
 const exportStockRoutes = express.Router();
 
 // ADMIN GET ALL EXPORT STOCK
@@ -214,15 +215,14 @@ exportStockRoutes.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const session = await mongoose.startSession();
     try {
-      session.startTransaction();
       const thisExport = await exportStock.findById(req.params.id);
       if (thisExport) {
         let listExport = thisExport.exportItems;
         for (let i = 0; i < listExport.length; i++) {
           let listLotField = listExport[i].lotField;
           for (let j = 0; j < listLotField.length; j++) {
+            // ! Inventory
             const inventoryToUpdate = await Inventory.findOne({
               $and: [
                 { idDrug: listLotField[j].idDrug },
@@ -232,8 +232,6 @@ exportStockRoutes.put(
             });
 
             if (inventoryToUpdate.count - listLotField[j].count < 0) {
-              await session.abortTransaction();
-              session.endSession();
               return res
                 .status(400)
                 .json({ message: "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!" });
@@ -245,23 +243,210 @@ exportStockRoutes.put(
               exportCode: thisExport.exportCode,
             });
             await inventoryToUpdate.save();
-            console.log(inventoryToUpdate.count);
+
+            //!  DrugStore
+            const drugStoreId= await DrugStore.findOne({
+              product: listExport[i].product,
+            });
+            const newStock = {
+              lotNumber: listLotField[j].lotNumber,
+              expDrug: listLotField[j].expDrug,
+              count: listLotField[j].count,
+            };
+            
+            if (drugStoreId) {
+              const drugStoreToUpdate = await DrugStore.findOne({
+                "stock.lotNumber": listLotField[j].lotNumber,
+                'stock.expDrug': listLotField[j].expDrug
+              });
+
+              if (drugStoreToUpdate) {
+                await DrugStore.updateOne({
+                  "stock.lotNumber": listLotField[j].lotNumber,
+                  "stock.expDrug": listLotField[j].expDrug
+                }, 
+                {
+                  $inc: 
+                  {
+                    "stock.$.count": listLotField[j].count
+                  }
+                });
+              } 
+              else if (drugStoreToUpdate === null) {
+                await DrugStore.updateOne(
+                  {
+                    product: listExport[i].product,
+                  }, 
+                  {
+                    $push: {
+                      stock: newStock
+                    }
+                  }
+                );
+              }
+            } else if (drugStoreId === null) {
+              await DrugStore.create({
+                product: listExport[i].product,
+                stock: [newStock]
+              });
+            }
           }
         }
         thisExport.status = true;
         const updatedImport = await thisExport.save();
-        await session.commitTransaction();
-        session.endSession();
         res.json(updatedImport);
       } else {
         res.status(404);
-        await session.abortTransaction();
-        session.endSession();
         throw new Error("Import stock not found");
       }
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
+      throw new Error(error.message);
+    }
+  })
+);
+
+// UPDATE STATUS USE BULKWRITE
+exportStockRoutes.put(
+  "/status/demo",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    try {
+      const thisExport = await exportStock.findById(req.params.id);
+      if (thisExport) {
+        const updateInventoryOperations = [];
+        const updateDrugStoreOperations = [];
+        let listExport = thisExport.exportItems;
+        for (let i = 0; i < listExport.length; i++) {
+          let listLotField = listExport[i].lotField;
+          for (let j = 0; j < listLotField.length; j++) {
+
+            // Update Inventory
+            const inventoryToUpdate = await Inventory.findOne({
+              $and: [
+                { idDrug: listLotField[j].idDrug },
+                { lotNumber: listLotField[j].lotNumber },
+                { expDrug: listLotField[j].expDrug },
+              ],
+            });
+
+            if (inventoryToUpdate.count - listLotField[j].count < 0) {
+              return res
+                .status(400)
+                .json({ message: "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!" });
+            }
+            else{
+              const inventoryOperation = { 
+                updateOne: {
+                  filter: {           
+                    idDrug: listLotField[j].idDrug,
+                    lotNumber: listLotField[j].lotNumber,
+                    expDrug: listLotField[j].expDrug
+                  },
+                  update: {
+                    $inc : {
+                      count: -listLotField[j].count
+                    },
+                    $push: {
+                      exportStock: {
+                        _id: thisExport._id,
+                        exportCode: thisExport.exportCode
+                      }
+                    }
+                  }
+                }
+              }
+              updateInventoryOperations.push(inventoryOperation);
+            }  
+            const drugStoreOperationsMap = new Map();
+            // Update DrugStore
+            const drugStoreToUpdate = await DrugStore.findOne({
+              product: listLotField[j].idDrug,
+            });
+            if(drugStoreToUpdate || drugStoreOperationsMap.has(listExport[i].product.toHexString())){
+              const drugStoreToUpdate2 = await DrugStore.findOne({
+                product: listLotField[j].idDrug,
+                "stock.lotNumber": listLotField[j].lotNumber,
+                'stock.expDrug' : listLotField[j].expDrug
+              });
+              if(drugStoreToUpdate2){
+                const drugStoreOperation = {
+                  updateOne: {
+                    filter: {
+                      product: listLotField[j].idDrug,
+                      'stock.lotNumber': listLotField[j].lotNumber,
+                      'stock.expDrug' : listLotField[j].expDrug
+                    },
+                    update: {
+                      $inc: {
+                        'stock.$.count': listLotField[j].count
+                      }
+                    }
+                  }
+                };
+                updateDrugStoreOperations.push(drugStoreOperation);
+              }
+              else{
+                const newStock = {
+                  lotNumber: listLotField[j].lotNumber,
+                  expDrug: listLotField[j].expDrug,
+                  count: listLotField[j].count,
+                  priority: 0
+                };
+                const drugStoreOperation = {
+                  updateOne: {
+                    filter: {
+                      product: listLotField[j].idDrug,
+                      'stock.lotNumber': listLotField[j].lotNumber,
+                      'stock.expDrug' : listLotField[j].expDrug
+                    },
+                    update: {
+                      $push: { stock: newStock }
+                    }
+                  }
+                };
+                updateDrugStoreOperations.push(drugStoreOperation);
+              }
+
+            }
+            else if(drugStoreToUpdate === null){
+              const newStock = {
+                lotNumber: listLotField[j].lotNumber,
+                expDrug: listLotField[j].expDrug,
+                count: listLotField[j].count,
+                priority: 0
+              };
+              const drugStoreOperation = {
+                insertOne: {
+                  document: {
+                    product: listExport[i].product,
+                    stock: [
+                      newStock
+                    ],
+                  }
+                }
+              };
+              drugStoreOperationsMap.set( listExport[i].product.toHexString(),  listExport[i].product.toHexString());
+              updateDrugStoreOperations.push(drugStoreOperation);
+            }
+          }
+        }
+
+        // Execute bulkWrite
+        await Promise.all([
+          DrugStore.bulkWrite(updateDrugStoreOperations),
+          Inventory.bulkWrite(updateInventoryOperations),
+        ]);
+
+        // Update export status
+        thisExport.status = true;
+        await thisExport.save();
+        res.json(thisExport);
+      } else {
+        res.status(404);
+        throw new Error("Export stock not found");
+      }
+    } catch (error) {
       throw new Error(error.message);
     }
   })
