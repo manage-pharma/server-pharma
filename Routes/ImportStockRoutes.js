@@ -6,6 +6,7 @@ import importStock from './../Models/ImportStock.js';
 import Product from '../Models/ProductModel.js'
 import mongoose from 'mongoose';
 import Inventory from "../Models/InventoryModels.js";
+import { logger } from "../utils/logger.js";
 
 const importStockRoutes = express.Router();
 
@@ -198,6 +199,7 @@ importStockRoutes.post(
       });
   
       const createdImportStock = await importsStock.save();
+      logger.info('ImportStock created', { createdImportStock })
       res.status(201).json(createdImportStock);
     } catch (error) {
         res.status(400).json(error.message);
@@ -277,6 +279,7 @@ importStockRoutes.put(
         }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
+        logger.info('ImportStock updated status', { updatedImport })
         res.json(updatedImport);
       } 
       else {
@@ -365,6 +368,7 @@ importStockRoutes.put(
         thisImport.invoiceSymbol = invoiceSymbol || thisImport.invoiceSymbol;
         thisImport.importedAt = importedAt || thisImport.importedAt;
         const updatedProduct = await thisImport.save();
+        logger.info('ImportStock updated', { updatedProduct })
         res.json(updatedProduct);
       } else {
         res.status(404);
@@ -388,6 +392,7 @@ importStockRoutes.put(
       if (thisImport) {
         thisImport.isDeleted = true;
         const updatedImport = await thisImport.save();
+        logger.info('ImportStock deleted', { updatedImport })
         res.json(updatedImport);
       } 
       else {

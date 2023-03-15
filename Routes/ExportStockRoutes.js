@@ -7,6 +7,7 @@ import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import mongoose from "mongoose";
 import DrugStore from "../Models/DrugStoreModel.js";
+import { logger } from "../utils/logger.js";
 const exportStockRoutes = express.Router();
 
 // ADMIN GET ALL EXPORT STOCK
@@ -192,6 +193,7 @@ exportStockRoutes.post(
       });
 
       const createdExportStock = await exportsStock.save();
+      logger.info('ExportStock created', { createdExportStock })
       res.status(201).json(createdExportStock);
     } catch (error) {
       res.status(400).json(error.message);
@@ -303,6 +305,7 @@ exportStockRoutes.put(
         }
         thisExport.status = true;
         const updatedImport = await thisExport.save();
+        logger.info('ExportStock updated status', { updatedImport })
         res.json(updatedImport);
       } else {
         res.status(404);
@@ -538,7 +541,7 @@ exportStockRoutes.put(
         thisExport.exportedAt = exportedAt || thisExport.exportedAt;
 
         const updatedStockExport = await thisExport.save();
-
+        logger.info('ExportStock updated', { updatedStockExport })
         res.json(updatedStockExport);
       } else {
         res.status(404);
@@ -561,6 +564,7 @@ exportStockRoutes.put(
       if (thisExport) {
         thisExport.isDeleted = true;
         const updatedExport = await thisExport.save();
+        logger.info('ExportStock cancel', { updatedExport })
         res.json(updatedExport);
       } 
       else {

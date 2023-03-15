@@ -294,6 +294,7 @@ productRoute.delete(
     const product=await Product.findById(req.params.id);
     if(product) {
       await product.remove();
+      logger.info('Product deleted', { product })
       res.json({message: "Product deleted"});
     } else {
       res.status(404);
@@ -344,6 +345,7 @@ productRoute.post(
         ConfigNotify(message);
         await HistoryNotification.saveNotification(message);
         const createdProduct=await product.save();
+        logger.info('Product created', { createdProduct })
         res.status(201).json(createdProduct);
       } else {
         res.status(400);
@@ -382,6 +384,7 @@ productRoute.put(
       product.image=image.map(item => item.includes("/upload/")? item:'/upload/'+item)
 
       const updatedProduct=await product.save();
+      logger.info('Product updated', { updatedProduct })
       res.json(updatedProduct);
       console.log({productUpdate: updatedProduct})
     } else {
