@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import inventoryCheck from "../Models/InventoryCheckModel.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
+import { logger } from "../utils/logger.js";
 
 const inventoryCheckRoutes = express.Router();
 
@@ -82,6 +83,7 @@ inventoryCheckRoutes.post(
       });
 
       const createdInventoryChek = await inCheck.save();
+      logger.info('Inventory check created', { createdInventoryChek })
       res.status(201).json(createdInventoryChek);
     } catch (error) {
       res.status(400).json(error.message);
@@ -152,6 +154,7 @@ inventoryCheckRoutes.put(
         // }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
+        logger.info('Inventory check updated status', { updatedImport });
         res.json(updatedImport);
       }
       else {
@@ -225,6 +228,7 @@ inventoryCheckRoutes.put(
         thisImport.user = user || thisImport.user;
         thisImport.checkedAt = checkedAt || thisImport.checkedAt;
         const updatedProduct = await thisImport.save();
+        logger.info('Inventory check updated', { updatedProduct })
         res.json(updatedProduct);
       } else {
         res.status(404);

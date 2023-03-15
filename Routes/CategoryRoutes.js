@@ -5,6 +5,7 @@ import { protect, admin } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
 import Category from './../Models/CategoryModel.js';
+import { logger } from '../utils/logger.js';
 const categoryRouter = express.Router();
 const day = moment(Date.now());
 
@@ -86,6 +87,7 @@ categoryRouter.post(
             })
             if(category){
                 const createdCategory = await category.save();
+                logger.info('Category Created', { createdCategory })
                 res.status(201).json(createdCategory);
             }
             else{
@@ -112,6 +114,7 @@ categoryRouter.put(
       // product.image = `/upload/${image}` || product.image;
 
       const updatedCategory = await category.save();
+      logger.info('Category updated', { updatedCategory })
       res.json(updatedCategory);
     } else {
       
@@ -131,6 +134,7 @@ categoryRouter.delete(
     const category = await Category.findById(req.params.id);
     if (category) {
       await category.remove();
+      logger.info('Category deleted', { category })
       res.json({ message: "Category deleted" });
     } else {
       res.status(404);
