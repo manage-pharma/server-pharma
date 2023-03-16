@@ -63,7 +63,7 @@ exportStockRoutes.get(
         ? {
           $and: [
             {
-              importedAt: {
+              exportedAt: {
                 $gte: new Date(from),
                 $lte: new Date(to),
               },

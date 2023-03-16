@@ -9,6 +9,7 @@ import cors from "cors";
 import {ConfigNotify} from "../Services/push-notification.service.js";
 import CategoryDrug from "../Models/CategoryDrugModel.js";
 import { logger } from '../utils/logger.js'
+import Inventory from "../Models/InventoryModels.js";
 
 const productRoute=express.Router();
 const day=moment(Date.now());
@@ -112,7 +113,8 @@ async function fetchCategoryWiseProduct(id) {
   let earnings=0;
   for(let i=0;i<products.length;i++) {
     if(products[i].categoryDrug.toHexString()===id.toHexString()) {
-      earnings+=products[i].countInStock;
+      const inven =await Inventory.find({idDrug: products[i]._id.toHexString()});
+      earnings+=(inven.reduce((acc, curr) => acc  + curr.count, 0) || 0);
     }
   }
   return earnings;
