@@ -65,6 +65,10 @@ ImportData.post(
 ImportData.get(
   "/unit",
   asyncHandler(async (req, res) => {
+    if (!fs.existsSync('./data/unit.json')) {
+      const data = [];
+      fs.appendFileSync(`./data/unit.json`, JSON.stringify(data))
+    }
     const contents = fs.readFileSync('./data/unit.json', 'utf8');
     const data = JSON.parse(contents);
     res.send(data);
@@ -108,6 +112,10 @@ ImportData.post(
 ImportData.get(
   "/countryOfOrigin",
   asyncHandler(async (req, res) => {
+    if (!fs.existsSync('./data/countryOfOrigin.json')) {
+      const data = [];
+      fs.appendFileSync(`./data/countryOfOrigin.json`, JSON.stringify(data))
+    }
     const contents = fs.readFileSync('./data/countryOfOrigin.json', 'utf8');
     const data = JSON.parse(contents);
     res.send(data);
@@ -150,6 +158,10 @@ ImportData.post(
 ImportData.get(
   "/manufacturer",
   asyncHandler(async (req, res) => {
+    if (!fs.existsSync('./data/manufacturer.json')) {
+      const data = [];
+      fs.appendFileSync(`./data/manufacturer.json`, JSON.stringify(data))
+    }
     const contents = fs.readFileSync('./data/manufacturer.json', 'utf8');
     const data = JSON.parse(contents);
     res.send(data);
@@ -191,6 +203,10 @@ ImportData.post(
 ImportData.get(
   "/API",
   asyncHandler(async (req, res) => {
+    if (!fs.existsSync('./data/API.json')) {
+      const data = [];
+      fs.appendFileSync(`./data/API.json`, JSON.stringify(data))
+    }
     const contents = fs.readFileSync('./data/API.json', 'utf8');
     const data = JSON.parse(contents);
     res.send(data);
