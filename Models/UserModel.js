@@ -23,6 +23,7 @@ const userSchema = mongoose.Schema(
     pCoin: {
       type: Number,
       required: true,
+      default: 0
     },
     isAdmin: {
       type: Boolean,
