@@ -16,6 +16,7 @@ import reviewRoutes from "./Routes/ReviewRoutes.js";
 import drugStoreRoutes from "./Routes/DrugStoreRoutes.js";
 import inventoryCheckRoutes from "./Routes/InventoryCheckRoutes.js";
 import contentRouter from "./Routes/ContentRoutes.js";
+import fs from "fs"
 // import {sendNotificationsExpDrug, sendNotificationsInventory} from './Services/push-notification.service.js'
 
 // CONFIG
@@ -43,6 +44,11 @@ app.get("/api/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
 app.use("/upload", express.static("uploads"));
+
+if (!fs.existsSync('./uploads')) {
+  fs.mkdirSync('./uploads');
+}
+
 //HOME
 app.get("/", (req, res) => {
   res.send("🚀  API is running....");

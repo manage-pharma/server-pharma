@@ -8,6 +8,9 @@ import multer from "multer";
 import cors from "cors";
 import {ConfigNotify} from "../Services/push-notification.service.js";
 import CategoryDrug from "../Models/CategoryDrugModel.js";
+import { logger } from '../utils/logger.js'
+import Inventory from "../Models/InventoryModels.js";
+
 const productRoute=express.Router();
 const day=moment(Date.now());
 
@@ -110,7 +113,8 @@ async function fetchCategoryWiseProduct(id) {
   let earnings=0;
   for(let i=0;i<products.length;i++) {
     if(products[i].categoryDrug.toHexString()===id.toHexString()) {
-      earnings+=products[i].countInStock;
+      const inven =await Inventory.find({idDrug: products[i]._id.toHexString()});
+      earnings+=(inven.reduce((acc, curr) => acc  + curr.count, 0) || 0);
     }
   }
   return earnings;
@@ -294,6 +298,7 @@ productRoute.delete(
     const product=await Product.findById(req.params.id);
     if(product) {
       await product.remove();
+      logger.info('Product deleted', { product })
       res.json({message: "Product deleted"});
     } else {
       res.status(404);
@@ -344,6 +349,7 @@ productRoute.post(
         ConfigNotify(message);
         await HistoryNotification.saveNotification(message);
         const createdProduct=await product.save();
+        logger.info('Product created', { createdProduct })
         res.status(201).json(createdProduct);
       } else {
         res.status(400);
@@ -382,6 +388,7 @@ productRoute.put(
       product.image=image.map(item => item.includes("/upload/")? item:'/upload/'+item)
 
       const updatedProduct=await product.save();
+      logger.info('Product updated', { updatedProduct })
       res.json(updatedProduct);
       console.log({productUpdate: updatedProduct})
     } else {

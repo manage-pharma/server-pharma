@@ -7,6 +7,7 @@ import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import mongoose from "mongoose";
 import DrugStore from "../Models/DrugStoreModel.js";
+import { logger } from "../utils/logger.js";
 const exportStockRoutes = express.Router();
 
 // ADMIN GET ALL EXPORT STOCK
@@ -62,7 +63,7 @@ exportStockRoutes.get(
         ? {
           $and: [
             {
-              importedAt: {
+              exportedAt: {
                 $gte: new Date(from),
                 $lte: new Date(to),
               },
@@ -192,6 +193,7 @@ exportStockRoutes.post(
       });
 
       const createdExportStock = await exportsStock.save();
+      logger.info('ExportStock created', { createdExportStock })
       res.status(201).json(createdExportStock);
     } catch (error) {
       res.status(400).json(error.message);
@@ -224,8 +226,10 @@ exportStockRoutes.put(
   protect,
   admin,
   asyncHandler(async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
-      const thisExport = await exportStock.findById(req.params.id);
+      const thisExport = await exportStock.findById(req.params.id).session(session);
       if (thisExport) {
         let listExport = thisExport.exportItems;
         for (let i = 0; i < listExport.length; i++) {
@@ -238,9 +242,11 @@ exportStockRoutes.put(
                 { lotNumber: listLotField[j].lotNumber },
                 { expDrug: listLotField[j].expDrug },
               ],
-            });
+            }).session(session);
 
             if (inventoryToUpdate.count - listLotField[j].count < 0) {
+              await session.abortTransaction();
+              session.endSession();
               return res
                 .status(400)
                 .json({ message: "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!" });
@@ -256,7 +262,7 @@ exportStockRoutes.put(
             //!  DrugStore
             const drugStoreId= await DrugStore.findOne({
               product: listExport[i].product,
-            });
+            }).session(session);
             const newStock = {
               lotNumber: listLotField[j].lotNumber,
               expDrug: listLotField[j].expDrug,
@@ -267,7 +273,7 @@ exportStockRoutes.put(
               const drugStoreToUpdate = await DrugStore.findOne({
                 "stock.lotNumber": listLotField[j].lotNumber,
                 'stock.expDrug': listLotField[j].expDrug
-              });
+              }).session(session);
 
               if (drugStoreToUpdate) {
                 await DrugStore.updateOne({
@@ -279,7 +285,7 @@ exportStockRoutes.put(
                   {
                     "stock.$.count": listLotField[j].count
                   }
-                });
+                }).session(session);
               } 
               else if (drugStoreToUpdate === null) {
                 await DrugStore.updateOne(
@@ -291,28 +297,37 @@ exportStockRoutes.put(
                       stock: newStock
                     }
                   }
-                );
+                ).session(session);
               }
             } else if (drugStoreId === null) {
-              await DrugStore.create({
+              const newDrugStore = new DrugStore({
                 product: listExport[i].product,
                 stock: [newStock]
               });
+              await newDrugStore.save({ session });
             }
           }
         }
         thisExport.status = true;
-        const updatedImport = await thisExport.save();
+        const updatedImport = await thisExport.save({ session });
+        await session.commitTransaction();
+        session.endSession();
+        logger.info('ExportStock updated status', { updatedImport })
         res.json(updatedImport);
       } else {
+        await session.abortTransaction();
+        session.endSession();
         res.status(404);
         throw new Error("Import stock not found");
       }
     } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
       throw new Error(error.message);
     }
   })
 );
+
 
 // UPDATE STATUS USE BULKWRITE
 exportStockRoutes.put(
@@ -538,7 +553,7 @@ exportStockRoutes.put(
         thisExport.exportedAt = exportedAt || thisExport.exportedAt;
 
         const updatedStockExport = await thisExport.save();
-
+        logger.info('ExportStock updated', { updatedStockExport })
         res.json(updatedStockExport);
       } else {
         res.status(404);
@@ -561,6 +576,7 @@ exportStockRoutes.put(
       if (thisExport) {
         thisExport.isDeleted = true;
         const updatedExport = await thisExport.save();
+        logger.info('ExportStock cancel', { updatedExport })
         res.json(updatedExport);
       } 
       else {

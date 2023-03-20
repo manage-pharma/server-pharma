@@ -3,9 +3,10 @@
 # dependencies
 /node_modules
 /uploads
+/utils/logs
+/data/*.json
 /.pnp
 .pnp.js
-*.json
 # testing
 /coverage
 

@@ -7,7 +7,7 @@ import cors from "cors"
 import CategoryDrug from '../Models/CategoryDrugModel.js';
 const categoryDrugRouter = express.Router();
 const day = moment(Date.now());
-
+import { logger } from '../utils/logger.js'
 categoryDrugRouter.use(cors())
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -74,6 +74,7 @@ categoryDrugRouter.post(
             })
             if(categoryDrug){
                 const createdcategoryDrug = await categoryDrug.save();
+                logger.info('Category Drug Created', { createdcategoryDrug })
                 res.status(201).json(createdcategoryDrug);
             }
             else{
@@ -99,6 +100,7 @@ categoryDrugRouter.put(
       // product.image = `/upload/${image}` || product.image;
 
       const updatedcategoryDrug = await categoryDrug.save();
+      logger.info('Category Drug updated', { updatedcategoryDrug })
       res.json(updatedcategoryDrug);
     } else {
       
@@ -118,6 +120,7 @@ categoryDrugRouter.delete(
     const categoryDrug = await CategoryDrug.findById(req.params.id);
     if (categoryDrug) {
       await categoryDrug.remove();
+      logger.info('Category Drug deleted', { categoryDrug })
       res.json({ message: "Category Drug deleted" });
     } else {
       res.status(404);
