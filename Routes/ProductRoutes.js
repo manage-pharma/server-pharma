@@ -126,7 +126,7 @@ productRoute.get("/allproduct",protect,async (req,res) => {
 
 productRoute.get(
   "/all",
-  protect,
+  //protect,
   asyncHandler(async (req,res) => {
     // const pageSize = 10;
     // const currentPage = Number(req.query.pageNumber) || 1;
@@ -212,8 +212,8 @@ productRoute.get(
 
 productRoute.get(
   "/:id/categories-drug",
-  protect,
-  admin,
+  //protect,
+  //admin,
   asyncHandler(async (req,res) => {
     const product=await Product.find().populate("categoryDrug","_id name");
     const productCategoriesDrug=product.filter(
