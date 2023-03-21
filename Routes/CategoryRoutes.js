@@ -40,7 +40,7 @@ const upload = multer({
 categoryRouter.post("/single", upload.single("image"), (req, res) => {
   const file = req.file
   if (!file) {
-    const error = new Error('Please upload a file')
+    const error = new Error('Vui lòng tải file lên')
     error.httpStatusCode = 400
     return next(error)
   }
@@ -76,7 +76,7 @@ categoryRouter.post(
         const categoryExist = await Category.findOne({name});
         if(categoryExist){
             res.status(400);
-            throw new Error("Category name already exist");
+            throw new Error("Tên danh mục sản phẩm đã tồn tại");
         }
         else{
             const category = new Category({
@@ -87,12 +87,12 @@ categoryRouter.post(
             })
             if(category){
                 const createdCategory = await category.save();
-                logger.info('Category Created', { createdCategory })
+                logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Category 👉 Post: 200`, { user: req.user.name, createdCategory })
                 res.status(201).json(createdCategory);
             }
             else{
                 res.status(400);
-                throw new Error("Invalid category data")
+                throw new Error("Thông tin danh mục sản phẩm không hợp lệ")
             }
         }
     })
@@ -114,12 +114,12 @@ categoryRouter.put(
       // product.image = `/upload/${image}` || product.image;
 
       const updatedCategory = await category.save();
-      logger.info('Category updated', { updatedCategory })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Category 👉 Post: 200`, { user: req.user.name, updatedCategory })
       res.json(updatedCategory);
     } else {
       
       res.status(404);
-      throw new Error("Product not found");
+      throw new Error("Không tìm thấy sản phẩm");
     }
   })
 );
@@ -134,11 +134,11 @@ categoryRouter.delete(
     const category = await Category.findById(req.params.id);
     if (category) {
       await category.remove();
-      logger.info('Category deleted', { category })
-      res.json({ message: "Category deleted" });
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Deleted Category 👉 Post: 200`, { user: req.user.name, category })
+      res.json({ message: "Đã xóa danh mục sản phẩm" });
     } else {
       res.status(404);
-      throw new Error("Category not Found");
+      throw new Error("Không tìm thấy danh mục sản phẩm");
     }
   })
 );

@@ -7,6 +7,8 @@ import Product from '../Models/ProductModel.js'
 import mongoose from 'mongoose';
 import Inventory from "../Models/InventoryModels.js";
 import { logger } from "../utils/logger.js";
+import moment from 'moment';
+const day = moment(Date.now());
 
 const importStockRoutes = express.Router();
 
@@ -199,7 +201,7 @@ importStockRoutes.post(
       });
   
       const createdImportStock = await importsStock.save();
-      logger.info('ImportStock created', { createdImportStock })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Import Stock 👉 Post: 200`, { user: req.user.name, createdImportStock })
       res.status(201).json(createdImportStock);
     } catch (error) {
         res.status(400).json(error.message);
@@ -228,7 +230,7 @@ importStockRoutes.get(
       res.json(order);
     } else {
       res.status(404);
-      throw new Error("Order Not Found");
+      throw new Error("Không tìm thấy đơn nhập kho");
     }
   })
 );
@@ -279,12 +281,12 @@ importStockRoutes.put(
         }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
-        logger.info('ImportStock updated status', { updatedImport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Updated Status 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       } 
       else {
         res.status(404);
-        throw new Error("Import stock not found");
+        throw new Error("Không tìm thấy đơn nhập kho");
       }
     } catch (error) {
       throw new Error(error.message)
@@ -316,7 +318,7 @@ importStockRoutes.put(
           }
           );
           if(!updateStock){
-            throw new Error("Product not found")
+            throw new Error("Không tìm thấy sản phẩm")
           }
         }
         thisImport.status = true;
@@ -328,7 +330,7 @@ importStockRoutes.put(
       } 
       else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn nhập");
       }
     } catch (error) {
       await session.abortTransaction();
@@ -368,11 +370,11 @@ importStockRoutes.put(
         thisImport.invoiceSymbol = invoiceSymbol || thisImport.invoiceSymbol;
         thisImport.importedAt = importedAt || thisImport.importedAt;
         const updatedProduct = await thisImport.save();
-        logger.info('ImportStock updated', { updatedProduct })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
         res.json(updatedProduct);
       } else {
         res.status(404);
-        throw new Error("Import stock not found");
+        throw new Error("Không tìm thấy đơn nhập");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -392,12 +394,12 @@ importStockRoutes.put(
       if (thisImport) {
         thisImport.isDeleted = true;
         const updatedImport = await thisImport.save();
-        logger.info('ImportStock deleted', { updatedImport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Cancel 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       } 
       else {
         res.status(404);
-        throw new Error("Import stock not found");
+        throw new Error("Không tìm thấy đơn nhập");
       }
     } catch (error) {
       throw new Error(error.message)

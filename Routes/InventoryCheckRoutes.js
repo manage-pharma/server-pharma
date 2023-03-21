@@ -7,6 +7,8 @@ import inventoryCheck from "../Models/InventoryCheckModel.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import { logger } from "../utils/logger.js";
+import moment from 'moment';
+const day = moment(Date.now());
 
 const inventoryCheckRoutes = express.Router();
 
@@ -83,7 +85,7 @@ inventoryCheckRoutes.post(
       });
 
       const createdInventoryChek = await inCheck.save();
-      logger.info('Inventory check created', { createdInventoryChek })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check created 👉 Post: 200`, { user: req.user.name, createdInventoryChek })
       res.status(201).json(createdInventoryChek);
     } catch (error) {
       res.status(400).json(error.message);
@@ -103,7 +105,7 @@ inventoryCheckRoutes.get(
       res.json(order);
     } else {
       res.status(404);
-      throw new Error("Inventory Check Not Found");
+      throw new Error("Không tìm thấy đơn kiểm kê");
     }
   })
 );
@@ -154,12 +156,12 @@ inventoryCheckRoutes.put(
         // }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
-        logger.info('Inventory check updated status', { updatedImport });
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check updated status 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       }
       else {
         res.status(404);
-        throw new Error("Inventory Check not found");
+        throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
       throw new Error(error.message)
@@ -228,11 +230,11 @@ inventoryCheckRoutes.put(
         thisImport.user = user || thisImport.user;
         thisImport.checkedAt = checkedAt || thisImport.checkedAt;
         const updatedProduct = await thisImport.save();
-        logger.info('Inventory check updated', { updatedProduct })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
         res.json(updatedProduct);
       } else {
         res.status(404);
-        throw new Error("Inventory check not found");
+        throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -254,7 +256,7 @@ inventoryCheckRoutes.put(
       } 
       else {
         res.status(404);
-        throw new Error("Inventory check not found");
+        throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
       throw new Error(error.message)

@@ -8,6 +8,9 @@ import Inventory from "../Models/InventoryModels.js";
 import mongoose from "mongoose";
 import DrugStore from "../Models/DrugStoreModel.js";
 import { logger } from "../utils/logger.js";
+import moment from 'moment';
+const day = moment(Date.now());
+
 const exportStockRoutes = express.Router();
 
 // ADMIN GET ALL EXPORT STOCK
@@ -193,7 +196,7 @@ exportStockRoutes.post(
       });
 
       const createdExportStock = await exportsStock.save();
-      logger.info('ExportStock created', { createdExportStock })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Export Stock 👉 Post: 200`, { user: req.user.name, createdExportStock })
       res.status(201).json(createdExportStock);
     } catch (error) {
       res.status(400).json(error.message);
@@ -215,7 +218,7 @@ exportStockRoutes.get(
       res.json(order);
     } else {
       res.status(404);
-      throw new Error("Order Not Found");
+      throw new Error("Không tìm thấy đơn hàng");
     }
   })
 );
@@ -312,7 +315,7 @@ exportStockRoutes.put(
         const updatedImport = await thisExport.save({ session });
         await session.commitTransaction();
         session.endSession();
-        logger.info('ExportStock updated status', { updatedImport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Status Stock Export 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       } else {
         await session.abortTransaction();
@@ -468,7 +471,7 @@ exportStockRoutes.put(
         res.json(thisExport);
       } else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       throw new Error(error.message);
@@ -503,7 +506,7 @@ exportStockRoutes.put(
             }
           );
           if (!updateStock) {
-            throw new Error("Product not found");
+            throw new Error("Không tìm thấy sản phẩm");
           }
         }
         thisExport.status = true;
@@ -514,7 +517,7 @@ exportStockRoutes.put(
         res.json(updatedExport);
       } else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       await session.abortTransaction();
@@ -553,11 +556,11 @@ exportStockRoutes.put(
         thisExport.exportedAt = exportedAt || thisExport.exportedAt;
 
         const updatedStockExport = await thisExport.save();
-        logger.info('ExportStock updated', { updatedStockExport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Stock Export 👉 Post: 200`, { user: req.user.name, updatedStockExport })
         res.json(updatedStockExport);
       } else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -576,12 +579,12 @@ exportStockRoutes.put(
       if (thisExport) {
         thisExport.isDeleted = true;
         const updatedExport = await thisExport.save();
-        logger.info('ExportStock cancel', { updatedExport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Canceled Export 👉 Post: 200`, { user: req.user.name, updatedExport })
         res.json(updatedExport);
       } 
       else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       throw new Error(error.message)

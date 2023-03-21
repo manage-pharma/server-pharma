@@ -3,6 +3,8 @@ import asyncHandler from 'express-async-handler'
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
 import Provider from './../Models/ProviderModel.js';
 const providerRoutes = express.Router();
+import moment from 'moment';
+const day = moment(Date.now());
 
 providerRoutes.get("/",
     protect,
@@ -10,10 +12,20 @@ providerRoutes.get("/",
         // const pageSize = 9;
         // const currentPage = Number(req.query.pageNumber) || 1;
         const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-          name: {
-              $regex: req.query.keyword,
-              $options: "i"
-          },
+          $or:[
+            {
+              name: {
+                $regex: req.query.keyword,
+                $options: "i"
+              }
+            },
+            {
+              phone: {
+                $regex: req.query.keyword,
+                $options: "i"
+              }
+            }
+          ]
           
       } : {}
         // const count = await Provider.countDocuments({...keyword});
@@ -49,7 +61,7 @@ providerRoutes.get("/:id",
         }
         else{
             res.status(404)
-            throw new Error(`Provider not found`)
+            throw new Error(`Không tìm thấy nhà cung cấp`)
         }
     })
 )
@@ -64,7 +76,7 @@ providerRoutes.post(
         const categoryExist = await Provider.findOne({name});
         if(categoryExist){
             res.status(400);
-            throw new Error("Provider name already exist");
+            throw new Error("Tên nhà cung cấp đã tồn tại");
         }
         else{
             const provider = new Provider({
@@ -82,7 +94,7 @@ providerRoutes.post(
             }
             else{
                 res.status(400);
-                throw new Error("Invalid provider data")
+                throw new Error("Thông tin nhà cung cấp không hợp lệ")
             }
         }
     })
@@ -111,7 +123,7 @@ providerRoutes.put(
     } else {
       
       res.status(404);
-      throw new Error("Provider not found");
+      throw new Error("Không tìm thấy nhà cung cấp");
     }
   })
 );
@@ -126,10 +138,10 @@ providerRoutes.delete(
     const provider = await Provider.findById(req.params.id);
     if (provider) {
       await provider.remove();
-      res.json({ message: "Provider deleted" });
+      res.json({ message: "Đã xóa nhà cung cấp" });
     } else {
       res.status(404);
-      throw new Error("Provider not Found");
+      throw new Error("Không tìm thấy nhà cung cấp");
     }
   })
 );

@@ -42,7 +42,7 @@ reviewRouter.post(
         const reviewExist=await Review.findOne({name});
         if(reviewExist) {
             res.status(400);
-            throw new Error("User already comment");
+            throw new Error("Bạn đã bình luận sản phẩm này");
         }
         else {
             const review=new Review({
@@ -58,7 +58,7 @@ reviewRouter.post(
             }
             else {
                 res.status(400);
-                throw new Error("Invalid review data")
+                throw new Error("Thông tin bình luận không hợp lệ")
             }
         }
     })
@@ -81,7 +81,7 @@ reviewRouter.put(
         } else {
 
             res.status(404);
-            throw new Error("Review not found");
+            throw new Error("Không tìm thấy bình luận");
         }
     })
 );
@@ -95,10 +95,10 @@ reviewRouter.delete(
         const review=await Review.findById(req.params.id);
         if(review) {
             await review.remove();
-            res.json({message: "Review deleted"});
+            res.json({message: "Bình luận đã xóa"});
         } else {
             res.status(404);
-            throw new Error("Review not Found");
+            throw new Error("Không tìm thấy bình luận");
         }
     })
 );

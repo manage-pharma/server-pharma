@@ -36,7 +36,6 @@ userRouter.post(
         email: user.email,
         phone: user.phone,
         isAdmin: user.isAdmin,
-        pCoin:pCoin,
         token: generateToken(user._id),
         createdAt: user.createdAt,
         methodLogin: 'Account'
@@ -44,7 +43,7 @@ userRouter.post(
       console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} postLogin 👉 Get: 200`)
     } else {
       res.status(401);
-      throw new Error("User not found");
+      throw new Error("Không tìm thấy người dùng");
     }
   })
 );
@@ -245,7 +244,7 @@ userRouter.get(
       });
     } else {
       res.status(404);
-      throw new Error("User not found");
+      throw new Error("Không tìm thấy người dùng");
     }
   })
 );
@@ -275,7 +274,7 @@ userRouter.put(
       });
     } else {
       res.status(404);
-      throw new Error("User not found");
+      throw new Error("Không tìm thấy người dùng");
     }
   })
 );
@@ -284,7 +283,24 @@ userRouter.get(
   "/",
   protect,
   asyncHandler(async (req, res) => {
-    const users = await User.find({}).sort({ _id: -1 })
+    const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
+      $or:[
+        {
+          name: {
+            $regex: req.query.keyword,
+            $options: "i"
+          }
+        },
+        {
+          phone: {
+            $regex: req.query.keyword,
+            $options: "i"
+          }
+        }
+      ]
+      
+  } : {}
+    const users = await User.find({...keyword}).sort({ _id: -1 })
     res.json(users);
   })
 );
@@ -308,7 +324,7 @@ userRouter.post(
 
     if (userExists) {
       res.status(400);
-      throw new Error("User already exists");
+      throw new Error("Tài khoản đã tồn tại");
     }
 
     const user = await User.create({
@@ -328,7 +344,7 @@ userRouter.post(
       });
     } else {
       res.status(400);
-      throw new Error("Invalid User Data");
+      throw new Error("Thông tin người dùng không hợp lệ");
     }
   })
 );
@@ -344,7 +360,7 @@ userRouter.get(
       }
       else{
         res.status(404)
-        throw new Error(`User not found`)
+        throw new Error(`Không tìm thấy người dùng`)
       }
   })
 )
@@ -375,7 +391,7 @@ userRouter.put(
       });
     } else {
       res.status(404);
-      throw new Error("User not found");
+      throw new Error("Không tìm thấy người dùng");
     }
   })
 );

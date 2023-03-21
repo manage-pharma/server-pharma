@@ -61,15 +61,6 @@ drugStoreRouter.get(
     asyncHandler(async (req,res) => {
         // const pageSize = 3;
         // const currentPage = Number(req.query.pageNumber) || 1;
-        const keyword=
-            req.query.keyword&&req.query.keyword!==" "
-                ? {
-                    name: {
-                        $regex: req.query.keyword,
-                        $options: "i",
-                    },
-                }
-                :{};
         const handleSortPrice=() => {
             switch(req.query.sort) {
                 case "cheap":
@@ -86,7 +77,7 @@ drugStoreRouter.get(
         };
         const sortValue=req.query.sort? handleSortPrice():{};
         //const count = await DrugStore.countDocuments({ ...keyword, ...sortValue });
-        const drugstores=await DrugStore.find({...keyword,...sortValue})
+        const drugstores=await DrugStore.find({...sortValue})
             .populate("product")
             //.populate("category","_id name")
             //.populate("categoryDrug","_id name")
@@ -97,7 +88,11 @@ drugStoreRouter.get(
         // for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
         //   totalPage.push(i)
         // }
-         res.json(drugstores);
+        const keyword = req.query.keyword ? req.query.keyword : ''
+          const filteredResult = drugstores.filter(item => {
+            return item.product.name.includes(keyword);
+          });
+        res.json(filteredResult);
         //res.json(drugstore);
 
         console.log(

@@ -63,7 +63,7 @@ categoryDrugRouter.post(
         const categoryDrugExist = await CategoryDrug.findOne({name});
         if(categoryDrugExist){
             res.status(400);
-            throw new Error("Category Drug name already exist");
+            throw new Error("Tên nhóm thuốc đã tồn tại");
         }
         else{
             const categoryDrug = new CategoryDrug({
@@ -74,12 +74,12 @@ categoryDrugRouter.post(
             })
             if(categoryDrug){
                 const createdcategoryDrug = await categoryDrug.save();
-                logger.info('Category Drug Created', { createdcategoryDrug })
+                logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Category Drug 👉 Post: 200`, { user: req.user.name, createdcategoryDrug })
                 res.status(201).json(createdcategoryDrug);
             }
             else{
                 res.status(400);
-                throw new Error("Invalid Category Drug data")
+                throw new Error("Thông tin danh mục thuốc không hợp lệ")
             }
         }
     })
@@ -100,12 +100,12 @@ categoryDrugRouter.put(
       // product.image = `/upload/${image}` || product.image;
 
       const updatedcategoryDrug = await categoryDrug.save();
-      logger.info('Category Drug updated', { updatedcategoryDrug })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Category Drug 👉 Post: 200`, { user: req.user.name, updatedcategoryDrug })
       res.json(updatedcategoryDrug);
     } else {
       
       res.status(404);
-      throw new Error("Product not found");
+      throw new Error("Không tìm thấy sản phẩm");
     }
   })
 );
@@ -120,11 +120,11 @@ categoryDrugRouter.delete(
     const categoryDrug = await CategoryDrug.findById(req.params.id);
     if (categoryDrug) {
       await categoryDrug.remove();
-      logger.info('Category Drug deleted', { categoryDrug })
-      res.json({ message: "Category Drug deleted" });
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Deleted Category Drug 👉 Post: 200`, { user: req.user.name, categoryDrug })
+      res.json({ message: "Đã xóa danh mục thuốc" });
     } else {
       res.status(404);
-      throw new Error("Category Drug not Found");
+      throw new Error("Không tìm thấy danh mục thuốc");
     }
   })
 );
