@@ -8,6 +8,9 @@ import Inventory from "../Models/InventoryModels.js";
 import mongoose from "mongoose";
 import DrugStore from "../Models/DrugStoreModel.js";
 import { logger } from "../utils/logger.js";
+import moment from 'moment';
+const day = moment(Date.now());
+
 const exportStockRoutes = express.Router();
 
 // ADMIN GET ALL EXPORT STOCK
@@ -215,7 +218,7 @@ exportStockRoutes.get(
       res.json(order);
     } else {
       res.status(404);
-      throw new Error("Order Not Found");
+      throw new Error("Không tìm thấy đơn hàng");
     }
   })
 );
@@ -468,7 +471,7 @@ exportStockRoutes.put(
         res.json(thisExport);
       } else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       throw new Error(error.message);
@@ -503,7 +506,7 @@ exportStockRoutes.put(
             }
           );
           if (!updateStock) {
-            throw new Error("Product not found");
+            throw new Error("Không tìm thấy sản phẩm");
           }
         }
         thisExport.status = true;
@@ -514,7 +517,7 @@ exportStockRoutes.put(
         res.json(updatedExport);
       } else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       await session.abortTransaction();
@@ -557,7 +560,7 @@ exportStockRoutes.put(
         res.json(updatedStockExport);
       } else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -581,7 +584,7 @@ exportStockRoutes.put(
       } 
       else {
         res.status(404);
-        throw new Error("Export stock not found");
+        throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
       throw new Error(error.message)

@@ -4,6 +4,8 @@ import { protect} from "../Middleware/AuthMiddleware.js";
 import Inventory from '../Models/InventoryModels.js';
 const inventoryRoutes = express.Router();
 import mongoose from 'mongoose';
+import moment from 'moment';
+const day = moment(Date.now());
 
 inventoryRoutes.get("/",
   asyncHandler(async (req, res)=>{

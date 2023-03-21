@@ -193,10 +193,10 @@ productRoute.get(
       console.error(
         `⛔  ${day.format(
           "MMMM Do YYYY, h:mm:ss a"
-        )} Data notification not found`
+        )} Không tìm thấy dữ liệu thông báo`
       );
       res.status(404);
-      throw new Error(`⛔ Data notifications not found`);
+      throw new Error(`⛔ Không tìm thấy dữ liệu thông báo`);
     }
   })
 );
@@ -246,7 +246,7 @@ productRoute.get(
         `⛔  ${day.format("MMMM Do YYYY, h:mm:ss a")} Product not found`
       );
       res.status(404);
-      throw new Error(`⛔ Product not found`);
+      throw new Error(`⛔ Không tìm thấy sản phẩm`);
     }
   })
 );
@@ -265,7 +265,7 @@ productRoute.post(
       );
       if(alreadyReviewed) {
         res.status(400);
-        throw new Error("Product already reviewed");
+        throw new Error("Bạn đã bình luận sản phẩm này");
       }
       const review={
         name: req.user.name,
@@ -281,10 +281,10 @@ productRoute.post(
         product.reviews.length;
 
       await product.save();
-      res.status(201).json({message: "Reviewed Added"});
+      res.status(201).json({message: "Bình luận đã thêm"});
     } else {
       res.status(404);
-      throw new Error("Product not Found");
+      throw new Error("Không tìm thấy sản phẩm");
     }
   })
 );
@@ -299,10 +299,10 @@ productRoute.delete(
     if(product) {
       await product.remove();
       logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Product deleted 👉 Post: 200`, { user: req.user.name, product })
-      res.json({message: "Product deleted"});
+      res.json({message: "Đã xóa sản phẩm"});
     } else {
       res.status(404);
-      throw new Error("Product not Found");
+      throw new Error("Không tìm thấy sản phẩm");
     }
   })
 );
@@ -318,7 +318,7 @@ productRoute.post(
     const productExist=await Product.findOne({name,unit});
     if(productExist) {
       res.status(400);
-      throw new Error("Product name already exist");
+      throw new Error("Tên sản phẩm đã tồn tại");
     } else {
       const product=new Product({
         name,
@@ -353,7 +353,7 @@ productRoute.post(
         res.status(201).json(createdProduct);
       } else {
         res.status(400);
-        throw new Error("Invalid product data");
+        throw new Error("Thông tin sản phẩm không hợp lệ");
       }
     }
   })
@@ -393,7 +393,7 @@ productRoute.put(
       console.log({productUpdate: updatedProduct})
     } else {
       res.status(404);
-      throw new Error("Product not found");
+      throw new Error("Không tìm thấy sản phẩm");
     }
   })
 );
@@ -403,7 +403,7 @@ productRoute.post("/single",upload.single("image"),(req,res, next) => {
   const file=req.file
   console.log(file)
   if(!file) {
-    const error=new Error("Please upload a file");
+    const error=new Error("Vui lòng tải ảnh lên");
     error.httpStatusCode=400;
     return next(error);
   }

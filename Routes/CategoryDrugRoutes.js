@@ -63,7 +63,7 @@ categoryDrugRouter.post(
         const categoryDrugExist = await CategoryDrug.findOne({name});
         if(categoryDrugExist){
             res.status(400);
-            throw new Error("Category Drug name already exist");
+            throw new Error("Tên nhóm thuốc đã tồn tại");
         }
         else{
             const categoryDrug = new CategoryDrug({
@@ -79,7 +79,7 @@ categoryDrugRouter.post(
             }
             else{
                 res.status(400);
-                throw new Error("Invalid Category Drug data")
+                throw new Error("Thông tin danh mục thuốc không hợp lệ")
             }
         }
     })
@@ -105,7 +105,7 @@ categoryDrugRouter.put(
     } else {
       
       res.status(404);
-      throw new Error("Product not found");
+      throw new Error("Không tìm thấy sản phẩm");
     }
   })
 );
@@ -121,10 +121,10 @@ categoryDrugRouter.delete(
     if (categoryDrug) {
       await categoryDrug.remove();
       logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Deleted Category Drug 👉 Post: 200`, { user: req.user.name, categoryDrug })
-      res.json({ message: "Category Drug deleted" });
+      res.json({ message: "Đã xóa danh mục thuốc" });
     } else {
       res.status(404);
-      throw new Error("Category Drug not Found");
+      throw new Error("Không tìm thấy danh mục thuốc");
     }
   })
 );

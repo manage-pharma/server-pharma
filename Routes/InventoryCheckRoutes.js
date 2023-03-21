@@ -7,6 +7,8 @@ import inventoryCheck from "../Models/InventoryCheckModel.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import { logger } from "../utils/logger.js";
+import moment from 'moment';
+const day = moment(Date.now());
 
 const inventoryCheckRoutes = express.Router();
 
@@ -103,7 +105,7 @@ inventoryCheckRoutes.get(
       res.json(order);
     } else {
       res.status(404);
-      throw new Error("Inventory Check Not Found");
+      throw new Error("Không tìm thấy đơn kiểm kê");
     }
   })
 );
@@ -159,7 +161,7 @@ inventoryCheckRoutes.put(
       }
       else {
         res.status(404);
-        throw new Error("Inventory Check not found");
+        throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
       throw new Error(error.message)
@@ -232,7 +234,7 @@ inventoryCheckRoutes.put(
         res.json(updatedProduct);
       } else {
         res.status(404);
-        throw new Error("Inventory check not found");
+        throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -254,7 +256,7 @@ inventoryCheckRoutes.put(
       } 
       else {
         res.status(404);
-        throw new Error("Inventory check not found");
+        throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
       throw new Error(error.message)
