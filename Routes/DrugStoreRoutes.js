@@ -119,15 +119,62 @@ drugStoreRouter.get("/alldrugstore",
 // GET FOR WEB AND APP
 drugStoreRouter.get(
     "/:id/categories",
+    //asyncHandler(async (req,res) => {
+    //    const drugstore=await DrugStore.find()
+    //        .populate("category","_id name")
+    //        .populate("categoryDrug","_id name");
+    //    const drugstoreCategories=drugstore.filter(
+    //        (item) => item?.category?._id.toHexString()===req.params.id
+    //    );
+    //    res.json(drugstoreCategories);
+    //})
     asyncHandler(async (req,res) => {
-        const drugstore=await DrugStore.find()
-            .populate("category","_id name")
-            .populate("categoryDrug","_id name");
-        const drugstoreCategories=drugstore.filter(
-            (item) => item?.category?._id.toHexString()===req.params.id
-        );
-        res.json(drugstoreCategories);
+        const ObjectId = mongoose.Types.ObjectId;
+        const drugstore = await DrugStore.aggregate([
+            {
+              $lookup:
+                {
+                  from: "products",
+                  localField: "product",
+                  foreignField: "_id",
+                  as: "product"
+                }
+            },
+            {
+              $lookup:
+                {
+                  from: "categories",
+                  localField: "product.category",
+                  foreignField: "_id",
+                  as: "categories"
+                }
+            },
+            {
+                $project:
+                  {
+                    "_id": 1,
+                    "product": 1,
+                    "discount":1,
+                    "discount":1,
+                    "refunded":1,
+                    "isActive":1,
+                    "stock":1,
+                    "categories._id": 1,
+                    "categories.name": 1,
+                    
+                }
+            },
+            {
+              $match://req.params.id
+                {
+                  "categories._id":  ObjectId(req.params.id)
+                }
+            },
+          ])
+        //.find()
+        res.json(drugstore);
     })
+
 );
 
 drugStoreRouter.get(
@@ -230,6 +277,83 @@ function removeLots(lots, targetCount) {
     return lots;
   }
   
+  const checkStock=(drugStore,num)=>{
+
+    let sum=0;
+    drugStore.map((item)=>{
+        sum+=item.count
+    })
+    if(sum<num) return false
+    return true
+
+
+  }
+  const updateStock=(drugStore,num)=>{
+
+    let minIndex=findMinPos(drugStore)
+    if(drugStore[minIndex]?.count>num){
+        console.log("==============================TH1 num<")
+        console.log("value Old",drugStore)
+        drugStore[minIndex].count-=num//TH1 num<count
+        console.log("num",num);
+        console.log("value New",drugStore)
+       
+    }
+    else{
+        if(drugStore[minIndex].count==num){
+            console.log("==============================TH2 num==")
+            console.log("value Old",drugStore)
+            drugStore.splice(minIndex,1)
+            console.log("num",num);
+            console.log("value New",drugStore)
+        }else {
+            console.log("==============================TH3 num>")//num > nhưng <sum
+            console.log("value Old",drugStore?.stock)
+            let i = 0;
+            const length =3
+            while (i < length) {
+                if(drugStore.reduce((sum,item)=>{
+                    sum+=item.count
+                },0)<num){
+                    console.log("break");
+                    break
+                }
+
+
+                if(drugStore.length==0){
+                    break
+                }else if(drugStore.length==1){
+                    minIndex=0;
+                }else
+                    minIndex=findMinPos(drugStore)
+                console.log("minIndex ",minIndex)
+                if(drugStore[minIndex].count<=num){
+                    console.log(`${drugStore[minIndex].count}<=${num}`)
+                    num-=drugStore[minIndex].count
+                    drugStore.splice(minIndex,1)
+                    console.log("num",num);
+                    //console.log("drugstore",drugstore);
+                }
+                else{
+                    console.log(`${drugStore[minIndex].count}>${num}`)
+                    drugStore[minIndex].count-=num
+                    num=0;
+                }
+
+                i++;
+            }
+            if(num==0)
+                console.log("value New final",drugStore)
+            else{
+                console.log("Thất bại!!!!!!!!!");
+                //res.json({err:"Rollback"})
+            }    
+            
+            
+        }
+    }
+    return drugStore
+  }
 
 drugStoreRouter.get(
     "/:id/test-stock",
@@ -241,13 +365,8 @@ drugStoreRouter.get(
         let num= req.query.num
         var drugstore=[]
         drugstore = await DrugStore.findById(req.params.id,{stock:1})
-        //res.json(drugstore.stock);
         let minIndex = 0;
-
         let newStock=drugstore?.stock
-        
-        
-        //newStock=filteredItems
         const filteredItems = newStock.filter(item => {
             const expDate = new Date(item.expDrug);
             return expDate > threeMonthsFromNow;
@@ -260,73 +379,83 @@ drugStoreRouter.get(
 
         console.log("newStock",newStock)  
 
-        if(newStock[minIndex]?.count>num){
-            console.log("==============================TH1 num<")
-            console.log("value Old",newStock)
-            newStock[minIndex].count-=num//TH1 num<count
-            console.log("num",num);
-            console.log("value New",newStock)
-           
-        }
+        //const stock =updateStock(newStock,num)
+        if(checkStock(newStock,num)){
+            console.log("check",checkStock(newStock,num))
+            res.json(updateStock(newStock,num))
+        } 
         else{
-            if(newStock[minIndex].count==num){
-                console.log("==============================TH2 num==")
-                console.log("value Old",newStock)
-                newStock.splice(minIndex,1)
-                console.log("num",num);
-                console.log("value New",newStock)
-            }else {
-                console.log("==============================TH3 num>")//num > nhưng <sum
-                console.log("value Old",drugstore?.stock)
-                let i = 0;
-                const length =3
-                while (i < length) {
-                    if(newStock.reduce((sum,item)=>{
-                        sum+=item.count
-                    },0)<num){
-                        console.log("break");
-                        break
-                    }
+            console.log("num lon")
+            res.json({err:"Rollback"})
+        } 
+            
+
+        //if(newStock[minIndex]?.count>num){
+        //    console.log("==============================TH1 num<")
+        //    console.log("value Old",newStock)
+        //    newStock[minIndex].count-=num//TH1 num<count
+        //    console.log("num",num);
+        //    console.log("value New",newStock)
+           
+        //}
+        //else{
+        //    if(newStock[minIndex].count==num){
+        //        console.log("==============================TH2 num==")
+        //        console.log("value Old",newStock)
+        //        newStock.splice(minIndex,1)
+        //        console.log("num",num);
+        //        console.log("value New",newStock)
+        //    }else {
+        //        console.log("==============================TH3 num>")//num > nhưng <sum
+        //        console.log("value Old",drugstore?.stock)
+        //        let i = 0;
+        //        const length =3
+        //        while (i < length) {
+        //            if(newStock.reduce((sum,item)=>{
+        //                sum+=item.count
+        //            },0)<num){
+        //                console.log("break");
+        //                break
+        //            }
 
 
-                    if(newStock.length==0){
-                        break
-                    }else if(newStock.length==1){
-                        minIndex=0;
-                    }else
-                        minIndex=findMinPos(newStock)
-                    console.log("minIndex ",minIndex)
-                    if(newStock[minIndex].count<=num){
-                        console.log(`${newStock[minIndex].count}<=${num}`)
-                        num-=newStock[minIndex].count
-                        newStock.splice(minIndex,1)
-                        console.log("num",num);
-                        //console.log("drugstore",drugstore);
-                    }
-                    //else{
-                    //    console.log(`${newStock[minIndex].count}>${num}`)
-                    //    newStock[minIndex].count-=num
-                    //    num=0;
-                    //}
+        //            if(newStock.length==0){
+        //                break
+        //            }else if(newStock.length==1){
+        //                minIndex=0;
+        //            }else
+        //                minIndex=findMinPos(newStock)
+        //            console.log("minIndex ",minIndex)
+        //            if(newStock[minIndex].count<=num){
+        //                console.log(`${newStock[minIndex].count}<=${num}`)
+        //                num-=newStock[minIndex].count
+        //                newStock.splice(minIndex,1)
+        //                console.log("num",num);
+        //                //console.log("drugstore",drugstore);
+        //            }
+        //            else{
+        //                console.log(`${newStock[minIndex].count}>${num}`)
+        //                newStock[minIndex].count-=num
+        //                num=0;
+        //            }
 
-                    i++;
-                }
-                if(num==0)
-                    console.log("value New final",newStock)
-                else{
-                    console.log("Thất bại!!!!!!!!!");
-                    res.json({err:"Rollback"})
-                }    
+        //            i++;
+        //        }
+        //        if(num==0)
+        //            console.log("value New final",newStock)
+        //        else{
+        //            console.log("Thất bại!!!!!!!!!");
+        //            res.json({err:"Rollback"})
+        //        }    
                 
                 
-            }
-        }
+        //    }
+        //}
         
 
 
 
         //console.log(drugstore)
-        res.json(newStock)
         //const drugStore=await DrugStore.findById(req.params.id);
         //if(drugStore) {
         //    drugStore.stock=drugstore.stock;
