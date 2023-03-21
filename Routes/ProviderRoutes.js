@@ -10,10 +10,20 @@ providerRoutes.get("/",
         // const pageSize = 9;
         // const currentPage = Number(req.query.pageNumber) || 1;
         const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-          name: {
-              $regex: req.query.keyword,
-              $options: "i"
-          },
+          $or:[
+            {
+              name: {
+                $regex: req.query.keyword,
+                $options: "i"
+              }
+            },
+            {
+              phone: {
+                $regex: req.query.keyword,
+                $options: "i"
+              }
+            }
+          ]
           
       } : {}
         // const count = await Provider.countDocuments({...keyword});

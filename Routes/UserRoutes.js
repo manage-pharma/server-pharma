@@ -284,7 +284,24 @@ userRouter.get(
   "/",
   protect,
   asyncHandler(async (req, res) => {
-    const users = await User.find({}).sort({ _id: -1 })
+    const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
+      $or:[
+        {
+          name: {
+            $regex: req.query.keyword,
+            $options: "i"
+          }
+        },
+        {
+          phone: {
+            $regex: req.query.keyword,
+            $options: "i"
+          }
+        }
+      ]
+      
+  } : {}
+    const users = await User.find({...keyword}).sort({ _id: -1 })
     res.json(users);
   })
 );
