@@ -17,12 +17,12 @@ const protect = asyncHandler(async (req, res, next) => {
       next();
     } catch (error) {
       res.status(401);
-      throw new Error("Not authorized, token failed");
+      throw new Error("Không thể truy cập được, token bị lỗi");
     }
   }
   if (!token) {
     res.status(401);
-    throw new Error("Not authorized, no token");
+    throw new Error("Không thể truy cập được, yêu cầu token");
   }
 });
 
@@ -31,7 +31,7 @@ const admin = (req, res, next) => {
     next();
   } else {
     res.status(401);
-    throw new Error("Not authorized as an Admin");
+    throw new Error("Chức năng này không được hỗ trợ");
   }
 };
 export { protect, admin };

@@ -50,7 +50,7 @@ contentRouter.put(
     } else {
       
       res.status(404);
-      throw new Error("Content not found");
+      throw new Error("Không tìm thấy nội dung");
     }
   })
 );
