@@ -193,7 +193,7 @@ exportStockRoutes.post(
       });
 
       const createdExportStock = await exportsStock.save();
-      logger.info('ExportStock created', { createdExportStock })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Export Stock 👉 Post: 200`, { user: req.user.name, createdExportStock })
       res.status(201).json(createdExportStock);
     } catch (error) {
       res.status(400).json(error.message);
@@ -312,7 +312,7 @@ exportStockRoutes.put(
         const updatedImport = await thisExport.save({ session });
         await session.commitTransaction();
         session.endSession();
-        logger.info('ExportStock updated status', { updatedImport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Status Stock Export 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       } else {
         await session.abortTransaction();
@@ -553,7 +553,7 @@ exportStockRoutes.put(
         thisExport.exportedAt = exportedAt || thisExport.exportedAt;
 
         const updatedStockExport = await thisExport.save();
-        logger.info('ExportStock updated', { updatedStockExport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Stock Export 👉 Post: 200`, { user: req.user.name, updatedStockExport })
         res.json(updatedStockExport);
       } else {
         res.status(404);
@@ -576,7 +576,7 @@ exportStockRoutes.put(
       if (thisExport) {
         thisExport.isDeleted = true;
         const updatedExport = await thisExport.save();
-        logger.info('ExportStock cancel', { updatedExport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Canceled Export 👉 Post: 200`, { user: req.user.name, updatedExport })
         res.json(updatedExport);
       } 
       else {

@@ -298,7 +298,7 @@ productRoute.delete(
     const product=await Product.findById(req.params.id);
     if(product) {
       await product.remove();
-      logger.info('Product deleted', { product })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Product deleted 👉 Post: 200`, { user: req.user.name, product })
       res.json({message: "Product deleted"});
     } else {
       res.status(404);
@@ -349,7 +349,7 @@ productRoute.post(
         ConfigNotify(message);
         await HistoryNotification.saveNotification(message);
         const createdProduct=await product.save();
-        logger.info('Product created', { createdProduct })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} 'Product created' 👉 Post: 200`, { user: req.user.name, createdProduct })
         res.status(201).json(createdProduct);
       } else {
         res.status(400);
@@ -388,7 +388,7 @@ productRoute.put(
       product.image=image.map(item => item.includes("/upload/")? item:'/upload/'+item)
 
       const updatedProduct=await product.save();
-      logger.info('Product updated', { updatedProduct })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Product updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
       res.json(updatedProduct);
       console.log({productUpdate: updatedProduct})
     } else {

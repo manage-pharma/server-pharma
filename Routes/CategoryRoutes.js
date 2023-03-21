@@ -87,7 +87,7 @@ categoryRouter.post(
             })
             if(category){
                 const createdCategory = await category.save();
-                logger.info('Category Created', { createdCategory })
+                logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Category 👉 Post: 200`, { user: req.user.name, createdCategory })
                 res.status(201).json(createdCategory);
             }
             else{
@@ -114,7 +114,7 @@ categoryRouter.put(
       // product.image = `/upload/${image}` || product.image;
 
       const updatedCategory = await category.save();
-      logger.info('Category updated', { updatedCategory })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Category 👉 Post: 200`, { user: req.user.name, updatedCategory })
       res.json(updatedCategory);
     } else {
       
@@ -134,7 +134,7 @@ categoryRouter.delete(
     const category = await Category.findById(req.params.id);
     if (category) {
       await category.remove();
-      logger.info('Category deleted', { category })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Deleted Category 👉 Post: 200`, { user: req.user.name, category })
       res.json({ message: "Category deleted" });
     } else {
       res.status(404);

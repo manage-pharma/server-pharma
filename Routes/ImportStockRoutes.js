@@ -199,7 +199,7 @@ importStockRoutes.post(
       });
   
       const createdImportStock = await importsStock.save();
-      logger.info('ImportStock created', { createdImportStock })
+      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Import Stock 👉 Post: 200`, { user: req.user.name, createdImportStock })
       res.status(201).json(createdImportStock);
     } catch (error) {
         res.status(400).json(error.message);
@@ -279,7 +279,7 @@ importStockRoutes.put(
         }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
-        logger.info('ImportStock updated status', { updatedImport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Updated Status 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       } 
       else {
@@ -368,7 +368,7 @@ importStockRoutes.put(
         thisImport.invoiceSymbol = invoiceSymbol || thisImport.invoiceSymbol;
         thisImport.importedAt = importedAt || thisImport.importedAt;
         const updatedProduct = await thisImport.save();
-        logger.info('ImportStock updated', { updatedProduct })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
         res.json(updatedProduct);
       } else {
         res.status(404);
@@ -392,7 +392,7 @@ importStockRoutes.put(
       if (thisImport) {
         thisImport.isDeleted = true;
         const updatedImport = await thisImport.save();
-        logger.info('ImportStock deleted', { updatedImport })
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Cancel 👉 Post: 200`, { user: req.user.name, updatedImport })
         res.json(updatedImport);
       } 
       else {
