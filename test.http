@@ -64,3 +64,8 @@ GET http://localhost:5000/api/inventory/tag?keyword=6402cfcadbae6faeb6f16cb8&fro
 
 ###
 GET http://localhost:5000/api/content
+
+###
+GET http://localhost:5000/api/req-inventory
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzYTE4OTAzOTRkMzIxOTBmNTk4MjU4NiIsImlhdCI6MTY3OTQ1MTM0MywiZXhwIjoxNjgyMDQzMzQzfQ.liL-O_Mqt8zq2SVUaIu5HsVeNhRYInm-5_r025n_Ca8
+
