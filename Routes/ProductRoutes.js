@@ -124,7 +124,7 @@ productRoute.get("/allproduct",async (req,res) => {
   const products=await Product.find()
     .populate("category","_id name")
     .populate("categoryDrug","_id name")
-    .sort({_id: -1}).select("-_id -rating -numberReviews -reviews -updatedAt -__v");
+    .sort({_id: -1}).select("-rating -numberReviews -reviews -updatedAt -__v");
   res.json(products);
 });
 
