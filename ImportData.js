@@ -32,8 +32,8 @@ ImportData.post(
     })
 
     data.map((item, index)=>{
-      if(arr.includes(item.category)){
-        let indexCategory = arr.findIndex(i => i === item.category)
+      if(arr.includes(item.category.name)){
+        let indexCategory = arr.findIndex(i => i === item.category.name)
         item.category = mongoose.Types.ObjectId(category[indexCategory]._id.toHexString());
       }
       else{
