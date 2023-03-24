@@ -37,6 +37,7 @@ userRouter.post(
         phone: user.phone,
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
+        pCoin:user.pCoin,
         createdAt: user.createdAt,
         methodLogin: 'Account'
       });
