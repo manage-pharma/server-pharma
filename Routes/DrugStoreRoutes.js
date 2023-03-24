@@ -37,22 +37,22 @@ const upload=multer({
 });
 
 
-//GET ALL categoryDrug
+//GET ALL Drugstore
 drugStoreRouter.get("/",
     //protect,
     asyncHandler(async (req,res) => {
-        const drugStore=await DrugStore.find({})
+        const drugStoreStock=await DrugStore.find({})
             .populate("product")//có thể lọc feild bằng cách thêm 1 tham số "name regisId ..."
         //.sort({_id: -1})
-        res.json(drugStore)
+        res.json(drugStoreStock)
     })
 );
 
-//GET ALL categoryDrug
+//GET ALL Drugstore
 drugStoreRouter.get("/active",
     asyncHandler(async (req,res) => {
-        const drugStore=await DrugStore.find({isActive: true})
-        res.json(drugStore)
+        const drugStoreStock=await DrugStore.find({isActive: true})
+        res.json(drugStoreStock)
     })
 );
 drugStoreRouter.get(
@@ -79,8 +79,6 @@ drugStoreRouter.get(
         //const count = await DrugStore.countDocuments({ ...keyword, ...sortValue });
         const drugstores=await DrugStore.find({...sortValue})
             .populate("product")
-            //.populate("category","_id name")
-            //.populate("categoryDrug","_id name")
             // .limit(pageSize)
             // .skip(pageSize * (currentPage - 1))
             .sort({_id: -1});
@@ -107,7 +105,7 @@ drugStoreRouter.get("/alldrugstore",
         const drugstore=await DrugStore.find()
             .populate("product")
             //.populate("category","_id name")
-            //.populate("categoryDrug","_id name")
+            //.populate("Drugstore","_id name")
             .sort({_id: -1});
         res.json(drugstore);
     });
@@ -117,7 +115,7 @@ drugStoreRouter.get(
     //asyncHandler(async (req,res) => {
     //    const drugstore=await DrugStore.find()
     //        .populate("category","_id name")
-    //        .populate("categoryDrug","_id name");
+    //        .populate("Drugstore","_id name");
     //    const drugstoreCategories=drugstore.filter(
     //        (item) => item?.category?._id.toHexString()===req.params.id
     //    );
@@ -192,7 +190,7 @@ drugStoreRouter.get(
               $lookup:
                 {
                   from: "categorydrugs",
-                  localField: "product.categoryDrug",
+                  localField: "product.Drugstore",
                   foreignField: "_id",
                   as: "categorydrug"
                 }
@@ -233,49 +231,10 @@ function findMinPos(lots) {
     return minPos;
   }
 
-const findMinIndex=(arr)=>{
-    let minIndex = 0;
-    arr?.stock?.reduce((minIndex, current, index, array) => {
-        if (current.expDrug < array[minIndex].expDrug) {
-          return index;
-        } else {
-          return minIndex;
-        }
-      }, 0);
-      return minIndex
-}
-function removeLots(lots, targetCount) {
-    let currentCount = 0;
-    let indexesToRemove = [];
-  
-    // Tìm các phần tử cần xóa và tính tổng số lượng thuốc của các phần tử còn lại
-    for (let i = 0; i < lots.length; i++) {
-      currentCount += lots[i].count;
-      if (currentCount > targetCount) {
-        indexesToRemove.push(i);
-        break;
-      } else if (currentCount === targetCount) {
-        break;
-      }
-    }
-  
-    // Xóa các phần tử được tìm thấy
-    for (let i = indexesToRemove.length - 1; i >= 0; i--) {
-      lots.splice(indexesToRemove[i], 1);
-    }
-  
-    // Cập nhật số lượng thuốc của phần tử cuối cùng (nếu có)
-    if (lots.length > 0) {
-      lots[lots.length - 1].count -= (currentCount - targetCount);
-    }
-  
-    return lots;
-  }
-  
-  const checkStock=(drugStore,num)=>{
+  const checkStock=(drugStoreStock,num)=>{
 
     let sum=0;
-    drugStore.map((item)=>{
+    drugStoreStock.map((item)=>{
         sum+=item.count
     })
     if(sum<num) return false
@@ -283,31 +242,31 @@ function removeLots(lots, targetCount) {
 
 
   }
-  const updateStock=(drugStore,num)=>{
+  const updateStock=(drugStoreStock,num)=>{
 
-    let minIndex=findMinPos(drugStore)
-    if(drugStore[minIndex]?.count>num){
+    let minIndex=findMinPos(drugStoreStock)
+    if(drugStoreStock[minIndex]?.count>num){
         console.log("==============================TH1 num<")
-        console.log("value Old",drugStore)
-        drugStore[minIndex].count-=num//TH1 num<count
+        console.log("value Old",drugStoreStock)
+        drugStoreStock[minIndex].count-=num//TH1 num<count
         console.log("num",num);
-        console.log("value New",drugStore)
+        console.log("value New",drugStoreStock)
        
     }
     else{
-        if(drugStore[minIndex].count==num){
+        if(drugStoreStock[minIndex].count==num){
             console.log("==============================TH2 num==")
-            console.log("value Old",drugStore)
-            drugStore.splice(minIndex,1)
+            console.log("value Old",drugStoreStock)
+            drugStoreStock.splice(minIndex,1)
             console.log("num",num);
-            console.log("value New",drugStore)
+            console.log("value New",drugStoreStock)
         }else {
             console.log("==============================TH3 num>")//num > nhưng <sum
-            console.log("value Old",drugStore?.stock)
+            console.log("value Old",drugStoreStock?.stock)
             let i = 0;
             const length =3
             while (i < length) {
-                if(drugStore.reduce((sum,item)=>{
+                if(drugStoreStock.reduce((sum,item)=>{
                     sum+=item.count
                 },0)<num){
                     console.log("break");
@@ -315,30 +274,30 @@ function removeLots(lots, targetCount) {
                 }
 
 
-                if(drugStore.length==0){
+                if(drugStoreStock.length==0){
                     break
-                }else if(drugStore.length==1){
+                }else if(drugStoreStock.length==1){
                     minIndex=0;
                 }else
-                    minIndex=findMinPos(drugStore)
+                    minIndex=findMinPos(drugStoreStock)
                 console.log("minIndex ",minIndex)
-                if(drugStore[minIndex].count<=num){
-                    console.log(`${drugStore[minIndex].count}<=${num}`)
-                    num-=drugStore[minIndex].count
-                    drugStore.splice(minIndex,1)
+                if(drugStoreStock[minIndex].count<=num){
+                    console.log(`${drugStoreStock[minIndex].count}<=${num}`)
+                    num-=drugStoreStock[minIndex].count
+                    drugStoreStock.splice(minIndex,1)
                     console.log("num",num);
                     //console.log("drugstore",drugstore);
                 }
                 else{
-                    console.log(`${drugStore[minIndex].count}>${num}`)
-                    drugStore[minIndex].count-=num
+                    console.log(`${drugStoreStock[minIndex].count}>${num}`)
+                    drugStoreStock[minIndex].count-=num
                     num=0;
                 }
 
                 i++;
             }
             if(num==0)
-                console.log("value New final",drugStore)
+                console.log("value New final",drugStoreStock)
             else{
                 console.log("Thất bại!!!!!!!!!");
                 //res.json({err:"Rollback"})
@@ -347,9 +306,70 @@ function removeLots(lots, targetCount) {
             
         }
     }
-    return drugStore
+    return drugStoreStock
   }
+drugStoreRouter.get(
+    "/:id/update-stock",
+    //protect,
+    //admin,
+    asyncHandler(async (req,res) => {
+        const currentDate = new Date();
+        const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
+        let num= req.query.num
+        var drugstore=[]
+        drugstore = await DrugStore.findById(req.params.id,{stock:1})
+        let minIndex = 0;
+        let newStock=drugstore?.stock
+        const filteredItems = newStock.filter(item => {
+            const expDate = new Date(item.expDrug);
+            return expDate > threeMonthsFromNow;
+          });
 
+        newStock=filteredItems
+        console.log("newStock",newStock)  
+
+
+        //============
+
+        const drugStoreStock=await DrugStore.findById(req.params.id);
+        if(drugStoreStock) {
+            drugStoreStock.stock=updateStock(newStock,num);
+            const updateddrugStore=await drugStoreStock.save();
+            //res.json(updateddrugStore);
+            res.json({status:"success"});
+        } else {
+
+            //res.status(404);
+            res.json({status:"error"})
+            throw new Error("Product not found");
+        }
+        
+
+    })
+);
+drugStoreRouter.get(
+    "/:id/check-stock",
+    //protect,
+    //admin,
+    asyncHandler(async (req,res) => {
+        const currentDate = new Date();
+        const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
+        let num= req.query.num
+        var drugstore=[]
+        drugstore = await DrugStore.findById(req.params.id,{stock:1})
+        let newStock=drugstore?.stock
+        const filteredItems = newStock.filter(item => {
+            const expDate = new Date(item.expDrug);
+            return expDate > threeMonthsFromNow;
+          });
+
+        newStock=filteredItems
+        
+        if(checkStock(newStock,num)) res.json({result:true})
+        else res.json({result:false})
+
+    })
+);  
 drugStoreRouter.get(
     "/:id/test-stock",
     //protect,
@@ -451,12 +471,12 @@ drugStoreRouter.get(
 
 
         //console.log(drugstore)
-        //const drugStore=await DrugStore.findById(req.params.id);
-        //if(drugStore) {
-        //    drugStore.stock=drugstore.stock;
+        //const drugStoreStock=await DrugStore.findById(req.params.id);
+        //if(drugStoreStock) {
+        //    drugStoreStock.stock=drugstore.stock;
             
 
-        //    const updateddrugStore=await drugStore.save();
+        //    const updateddrugStore=await drugStoreStock.save();
         //    res.json(updateddrugStore);
         //} else {
 
@@ -476,7 +496,7 @@ drugStoreRouter.get(
         const drugstore=await DrugStore.findById(req.params.id)
             .populate("product")
         //.populate("category","_id name")
-        //.populate("categoryDrug","_id name");
+        //.populate("Drugstore","_id name");
         if(drugstore) {
             res.json(drugstore);
             console.log(
@@ -496,55 +516,23 @@ drugStoreRouter.get(
 
 
 
-////CREATE categoryDrug
-//drugStoreRouter.post(
-//    "/",
-//    //protect,
-//    //admin,
-//    asyncHandler(async (req,res) => {
-//        const {product,isActive,countInStock,discount,refunded}=req.body
-//        const drugStoreExist=await DrugStore.findOne({isActive});
-//        if(drugStoreExist) {
-//            res.status(400);
-//            throw new Error(" DrugStore name already exist");
-//        }
-//        else {
-//            const drugStore=new DrugStore({
-//                product,
-//                isActive,
-//                countInStock,
-//                discount,
-//                refunded
 
-//            })
-//            if(drugStore) {
-//                const createddrugStore=await drugStore.save();
-//                res.status(201).json(createddrugStore);
-//            }
-//            else {
-//                res.status(400);
-//                throw new Error("Invalid  DrugStore data")
-//            }
-//        }
-//    })
-//)
-
-//UPDATE categoryDrug
+//UPDATE Drugstore
 drugStoreRouter.put(
     "/:id",
     //protect,
     //admin,
     asyncHandler(async (req,res) => {
         const {countInStock,isActive,discount,refunded}=req.body;
-        const drugStore=await DrugStore.findById(req.params.id);
-        if(drugStore) {
-            //drugStore.countInStock=countInStock||drugStore.countInStock;
-            drugStore.discount=discount||drugStore.discount;
-            drugStore.refunded=refunded||drugStore.refunded;
-            drugStore.isActive=isActive
+        const drugStoreStock=await DrugStore.findById(req.params.id);
+        if(drugStoreStock) {
+            //drugStoreStock.countInStock=countInStock||drugStoreStock.countInStock;
+            drugStoreStock.discount=discount||drugStoreStock.discount;
+            drugStoreStock.refunded=refunded||drugStoreStock.refunded;
+            drugStoreStock.isActive=isActive
 
 
-            const updateddrugStore=await drugStore.save();
+            const updateddrugStore=await drugStoreStock.save();
             res.json(updateddrugStore);
         } else {
 
@@ -553,5 +541,7 @@ drugStoreRouter.put(
         }
     })
 );
+
+
 export default drugStoreRouter;
 

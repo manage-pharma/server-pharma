@@ -281,7 +281,7 @@ userRouter.put(
 // GET ALL USER ADMIN
 userRouter.get(
   "/",
-  protect,
+  //protect,
   asyncHandler(async (req, res) => {
     const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
       $or:[
@@ -352,7 +352,7 @@ userRouter.post(
 //GET SINGLE USER IN ADMIN
 userRouter.get(
   "/:id",
-  protect,
+  //protect,
   asyncHandler(async (req, res) => {
       const user = await User.findById(req.params.id)
       if (user){
@@ -364,6 +364,22 @@ userRouter.get(
       }
   })
 )
+
+userRouter.get(
+  "/:id/inc-coin",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      user.pCoin = Number(user.pCoin)+Number(req.query.coin)
+      const updatedUser = await user.save();
+      res.json(updatedUser);
+    } else {
+      res.status(404);
+      throw new Error("Không tìm thấy người dùng");
+    }
+  })
+);
 
 //UPDATE USER IN ADMIN
 userRouter.put(

@@ -16,6 +16,7 @@ import reviewRoutes from "./Routes/ReviewRoutes.js";
 import drugStoreRoutes from "./Routes/DrugStoreRoutes.js";
 import inventoryCheckRoutes from "./Routes/InventoryCheckRoutes.js";
 import contentRouter from "./Routes/ContentRoutes.js";
+import cartRouter from "./Routes/CartRoutes.js";
 import fs from "fs"
 // import {sendNotificationsExpDrug, sendNotificationsInventory} from './Services/push-notification.service.js'
 
@@ -40,6 +41,7 @@ app.use("/api/inventory-check", inventoryCheckRoutes);
 app.use("/api/review", reviewRoutes);
 app.use("/api/drugstore", drugStoreRoutes);
 app.use("/api/content", contentRouter);
+app.use("/api/cart", cartRouter);
 app.get("/api/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });

@@ -2,6 +2,7 @@ import express from "express";
 import asyncHandler from "express-async-handler";
 import { admin, protect } from "../Middleware/AuthMiddleware.js";
 import Order from "../Models/OrderModel.js";
+import DrugStore from '../Models/DrugStoreModel.js';
 import moment from 'moment';
 const day = moment(Date.now());
 
@@ -21,6 +22,8 @@ orderRouter.post(
       shippingPrice,
       totalPrice,
     } = req.body;
+
+    console.log({orderItemsRoutes:orderItems})
 
     if (orderItems && orderItems.length === 0) {
       res.status(400);
@@ -76,6 +79,47 @@ orderRouter.get(
   })
 );
 
+
+orderRouter.get(
+  "/:id/check-stock",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id)
+
+    let check=true
+    const currentDate = new Date();
+    const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
+    
+    var drugstore=[]
+
+    order.orderItems.map(async(item)=>{
+      let num= item.qty
+      drugstore = await DrugStore.findById(item.drugstoreId)
+      let newStock=drugstore?.stock
+      const filteredItems = newStock.filter(item => {
+          const expDate = new Date(item.expDrug);
+          return expDate > threeMonthsFromNow;
+        });
+
+      newStock=filteredItems
+      
+      if(!checkStock(newStock,num)) check=false
+    })
+    //res.json(order)
+    setTimeout(()=>{
+      if(check) res.json({result:true})
+      else res.json({result:false})
+    },100)
+
+    //if (order) {
+    //  res.json(order);
+    //} else {
+    //  res.status(404);
+    //  throw new Error("Order Not Found");
+    //}
+  })
+);
+
 // USER LIST ORDERS
 orderRouter.get(
   "/",
@@ -85,6 +129,114 @@ orderRouter.get(
     res.json(order);
   })
 );
+function findMinPos(lots) {
+  let minPos = lots[0].expDrug;
+  for (let i = 1; i < lots.length; i++) {
+    if (lots[i].expDrug < minPos) {
+      minPos = i;
+    }
+  }
+  return minPos;
+}
+
+const checkStock=(drugStoreStock,num)=>{
+
+  let sum=0;
+  drugStoreStock.map((item)=>{
+      sum+=item.count
+  })
+  if(sum<num) return false
+  return true
+
+
+}
+const updateStock=(drugStoreStock,num)=>{
+
+  let minIndex=findMinPos(drugStoreStock)
+  if(drugStoreStock[minIndex]?.count>num){
+      console.log("==============================TH1 num<")
+      console.log("value Old",drugStoreStock)
+      drugStoreStock[minIndex].count-=num//TH1 num<count
+      console.log("num",num);
+      console.log("value New",drugStoreStock)
+     
+  }
+  else{
+      if(drugStoreStock[minIndex].count==num){
+          console.log("==============================TH2 num==")
+          console.log("value Old",drugStoreStock)
+          drugStoreStock.splice(minIndex,1)
+          console.log("num",num);
+          console.log("value New",drugStoreStock)
+      }else {
+          console.log("==============================TH3 num>")//num > nhưng <sum
+          console.log("value Old",drugStoreStock?.stock)
+          let i = 0;
+          const length =3
+          while (i < length) {
+              if(drugStoreStock.reduce((sum,item)=>{
+                  sum+=item.count
+              },0)<num){
+                  console.log("break");
+                  break
+              }
+
+
+              if(drugStoreStock.length==0){
+                  break
+              }else if(drugStoreStock.length==1){
+                  minIndex=0;
+              }else
+                  minIndex=findMinPos(drugStoreStock)
+              console.log("minIndex ",minIndex)
+              if(drugStoreStock[minIndex].count<=num){
+                  console.log(`${drugStoreStock[minIndex].count}<=${num}`)
+                  num-=drugStoreStock[minIndex].count
+                  drugStoreStock.splice(minIndex,1)
+                  console.log("num",num);
+                  //console.log("drugstore",drugstore);
+              }
+              else{
+                  console.log(`${drugStoreStock[minIndex].count}>${num}`)
+                  drugStoreStock[minIndex].count-=num
+                  num=0;
+              }
+
+              i++;
+          }
+          if(num==0)
+              console.log("value New final",drugStoreStock)
+          else{
+              console.log("Thất bại!!!!!!!!!");
+              //res.json({err:"Rollback"})
+          }    
+          
+          
+      }
+  }
+  return drugStoreStock
+}
+const updateStockDrugStore= async(id,num)=>{
+  const currentDate = new Date();
+        const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
+        var drugstore=[]
+        drugstore = await DrugStore.findById(id,{stock:1})
+        let minIndex = 0;
+        let newStock=drugstore?.stock//lấy mảng
+
+        const filteredItems = newStock.filter(item => {
+            const expDate = new Date(item.expDrug);
+            return expDate > threeMonthsFromNow;
+          });
+
+        newStock=filteredItems//mảng stock có hạn sd > 3 tháng
+
+        const drugStoreStock=await DrugStore.findById(id);
+        if(drugStoreStock) {
+            drugStoreStock.stock=updateStock(newStock,num);//cập nhật thuộc tính stock bẳng stock mới
+            const updateddrugStore=await drugStoreStock.save();
+        }
+}
 
 // ORDER IS PAID
 orderRouter.put(
@@ -94,6 +246,7 @@ orderRouter.put(
     const order = await Order.findById(req.params.id);
 
     if (order) {
+      
       order.isPaid = true;
       order.paidAt = Date.now();
       order.paymentResult = {
@@ -102,7 +255,6 @@ orderRouter.put(
         update_time: req.body.update_time,
         email_address: req.body.email_address,
       };
-
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
@@ -112,7 +264,7 @@ orderRouter.put(
   })
 );
 
-// ORDER IS PAID
+// ORDER IS DELIVERY
 orderRouter.put(
   "/:id/delivered",
   protect,

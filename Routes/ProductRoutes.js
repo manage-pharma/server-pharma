@@ -398,6 +398,29 @@ productRoute.put(
   })
 );
 
+productRoute.put(
+  "/:id/update-review",
+  //protect,
+  //admin,
+  asyncHandler(async (req,res) => {
+      const {reviewId,status}=req.body;
+      const product=await Product.findById(req.params.id);
+      if(product) {
+          product.reviews.map((item)=>{
+              if(item._id==reviewId){
+                  item.isShow=status
+              }
+          })
+          const updatedProduct=await product.save();
+          res.json(updatedProduct);//
+      } else {
+
+          res.status(404);
+          throw new Error("DrugStore not found");
+      }
+  })
+);
+
 // Single File Route Handler
 productRoute.post("/single",upload.single("image"),(req,res, next) => {
   const file=req.file

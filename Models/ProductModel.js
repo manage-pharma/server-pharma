@@ -12,6 +12,11 @@ const reviewSchema=mongoose.Schema({
         type: String,
         require: true
     },
+    isShow: {
+        type: Boolean,
+        require: true,
+        default:true,
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         require: true,

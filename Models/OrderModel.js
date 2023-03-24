@@ -9,6 +9,11 @@ const orderSchema=mongoose.Schema(
     },
     orderItems: [
       {
+        drugstoreId:{
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: "DrugStore",
+        },
         _id: false,
         name: {type: String,required: true},
         qty: {type: Number,required: true},
