@@ -17,7 +17,7 @@ contentRouter.use(cors())
 
 //GET ALL CATEGORY
 contentRouter.get("/",
-  protect,
+  //protect,
   asyncHandler(async (req, res)=>{
     const content = await Content.find({})
     res.json(...content)
