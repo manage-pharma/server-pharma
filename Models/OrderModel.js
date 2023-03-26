@@ -1,4 +1,14 @@
 import mongoose from "mongoose";
+const statusSchema=mongoose.Schema({
+  status: {
+      type: String,
+      require: true
+  },
+  date: {
+      type: Date,
+      require: true,
+  },
+})
 
 const orderSchema=mongoose.Schema(
   {
@@ -19,6 +29,7 @@ const orderSchema=mongoose.Schema(
         qty: {type: Number,required: true},
         image: {type: Array,required: true},
         price: {type: Number,required: true},
+        refunded: {type: Number},
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
@@ -57,6 +68,35 @@ const orderSchema=mongoose.Schema(
       required: true,
       default: 0.0,
     },
+    cancellationDeadline: {
+      type: Date,
+    },
+    status: [statusSchema],
+    isCanceled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    isSuccess: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    isComformed: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    isReceived: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    totalPoints: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
     isPaid: {
       type: Boolean,
       required: true,
@@ -71,6 +111,15 @@ const orderSchema=mongoose.Schema(
       default: false,
     },
     deliveredAt: {
+      type: Date,
+    },
+    conformedAt: {
+      type: Date,
+    },
+    canceledAt: {
+      type: Date,
+    },
+    receivedAt: {
       type: Date,
     },
   },

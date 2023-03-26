@@ -222,12 +222,15 @@ drugStoreRouter.get(
     })
 );
 function findMinPos(lots) {
-    let minPos = lots[0].expDrug;
-    for (let i = 1; i < lots.length; i++) {
-      if (lots[i].expDrug < minPos) {
-        minPos = i;
-      }
-    }
+    let minPos = 0;
+    let minExpDrug = lots[0].expDrug;
+    if(lots.length>1)
+        for (let i = 1; i < lots.length; i++) {
+            if (lots[i].expDrug < minExpDrug) {
+                minPos = i;
+                minExpDrug=lots[i].expDrug;
+            }
+        }
     return minPos;
   }
 
@@ -245,7 +248,8 @@ function findMinPos(lots) {
   const updateStock=(drugStoreStock,num)=>{
 
     let minIndex=findMinPos(drugStoreStock)
-    if(drugStoreStock[minIndex]?.count>num){
+    console.log({minIndex})
+    if(drugStoreStock?.[minIndex]?.count>num){
         console.log("==============================TH1 num<")
         console.log("value Old",drugStoreStock)
         drugStoreStock[minIndex].count-=num//TH1 num<count

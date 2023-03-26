@@ -21,6 +21,7 @@ orderRouter.post(
       taxPrice,
       shippingPrice,
       totalPrice,
+      totalPoints
     } = req.body;
 
     console.log({orderItemsRoutes:orderItems})
@@ -30,15 +31,19 @@ orderRouter.post(
       throw new Error("No order items");
      
     } else {
+      var currentDate = new Date();
       const order = new Order({
         orderItems,
         user: req.user._id,
         shippingAddress,
         paymentMethod,
         itemsPrice,
+        status: [{status:"Chờ xác nhận",date:Date.now()}],
+        cancellationDeadline:currentDate.setDate(currentDate.getDate() + 1),//1 ngày huy đơn
         taxPrice,
         shippingPrice,
         totalPrice,
+        totalPoints
       });
 
       const createOrder = await order.save();
@@ -63,7 +68,7 @@ orderRouter.get(
 // GET ORDER BY ID
 orderRouter.get(
   "/:id",
-  protect,
+  //protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id).populate(
       "user",
@@ -238,6 +243,49 @@ const updateStockDrugStore= async(id,num)=>{
         }
 }
 
+// ORDER IS WAITING FOR CONFORM==ORDER CREATE
+
+// ORDER IS CANCELED
+orderRouter.get(
+  "/:id/canceled",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isCanceled = true;
+      order.status=[...order.status,{status:"Đã hủy",date:Date.now()}]
+      order.canceledAt=Date.now()
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+// ORDER IS CHECKED
+orderRouter.get(
+  "/:id/conform",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.status=[...order.status,{status:"Đã xác nhận",date:Date.now()}]
+      order.isComformed=true
+      order.conformedAt=Date.now()
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+
 // ORDER IS PAID
 orderRouter.put(
   "/:id/pay",
@@ -274,7 +322,30 @@ orderRouter.put(
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
+      order.status=[...order.status,{status:"Đã giao",date:Date.now()}]
 
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+
+//ORDER IS RECIVED
+orderRouter.get(
+  "/:id/received",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isSuccess = true;
+      order.status=[...order.status,{status:"Nhận hàng thành công",date:Date.now()}]
+      order.isReceived=true
+      order.receivedAt=Date.now()
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
