@@ -36,7 +36,186 @@ const upload=multer({
     fileFilter: fileFilter
 });
 
+//===========================USER ROUTER======================
+drugStoreRouter.get(
+    "/userGetActive",
+    asyncHandler(async (req,res) => {
+    const pageSize = 3;
+    const currentPage = Number(req.query.pageNumber) || 1
+    let keyword=
+    req.query.keyword&&req.query.keyword!==" "
+      ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: "i",
+        },
+      }
+      :{};
 
+        const handleSortPrice=() => {
+            switch(req.query.sort) {
+                case "cheap":
+                    return {
+                        price: {$lte: 100},
+                    };
+                case "expensive":
+                    return {
+                        price: {$gte: 100},
+                    };
+                default:
+                    return {};
+            }
+        };
+  
+        const sortValue=req.query.sort? handleSortPrice():{};
+        const count = await DrugStore.countDocuments({ ...keyword, ...sortValue,isActive:true });
+        const drugstores=await DrugStore.find({...sortValue,isActive:true})
+            .populate("product")
+             .limit(pageSize)
+             .skip(pageSize * (currentPage - 1))
+            .sort({_id: -1});
+         const totalPage = [];
+         for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
+           totalPage.push(i)
+         }
+        keyword = req.query.keyword ? req.query.keyword : ''
+          const drugstore = drugstores.filter(item => {
+            return item.product.name.includes(keyword);
+          });
+          res.json({ drugstore, currentPage, totalPage });
+        //res.json(drugstore);
+
+        console.log(
+            `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+        );
+    })
+);
+
+drugStoreRouter.get(
+    "/:id/categories/userGet",
+    asyncHandler(async (req,res) => {
+        const ObjectId = mongoose.Types.ObjectId;
+        const pageSize = 3;
+        const currentPage = Number(req.query.pageNumber) || 1
+
+        const drugstore = await DrugStore.aggregate([
+            {
+              $lookup:
+                {
+                  from: "products",
+                  localField: "product",
+                  foreignField: "_id",
+                  as: "product"
+                }
+            },
+            {
+              $lookup:
+                {
+                  from: "categories",
+                  localField: "product.category",
+                  foreignField: "_id",
+                  as: "categories"
+                }
+            },
+            {
+                $project:
+                  {
+                    "_id": 1,
+                    "product": 1,
+                    "discount":1,
+                    "discount":1,
+                    "refunded":1,
+                    "isActive":1,
+                    "stock":1,
+                    "categories._id": 1,
+                    "categories.name": 1,
+                    "isActive":1
+                    
+                }
+            },
+            {
+              $match://req.params.id
+                {
+                  "categories._id":  ObjectId(req.params.id),
+                  "isActive":true
+                }
+            },
+          ])
+        //.find()
+        //res.json(drugstore);
+        const count = drugstore.length
+        const totalPage = [];
+         for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
+           totalPage.push(i)
+         }
+        res.json({ drugstore, currentPage, totalPage });
+    })
+
+);
+
+drugStoreRouter.get(
+    "/:id/categories-drug/userGet",
+    asyncHandler(async (req,res) => {
+        const ObjectId = mongoose.Types.ObjectId;
+        const pageSize = 3;
+        const currentPage = Number(req.query.pageNumber) || 1
+
+        const drugstore = await DrugStore.aggregate([
+            {
+              $lookup:
+                {
+                  from: "products",
+                  localField: "product",
+                  foreignField: "_id",
+                  as: "product"
+                }
+            },
+            {
+              $lookup:
+                {
+                  from: "categorydrugs",
+                  localField: "product.categoryDrug",
+                  foreignField: "_id",
+                  as: "categorydrugs"
+                }
+            },
+            {
+                $project:
+                  {
+                    "_id": 1,
+                    "product": 1,
+                    "discount":1,
+                    "discount":1,
+                    "refunded":1,
+                    "isActive":1,
+                    "stock":1,
+                    "categorydrugs._id": 1,
+                    "categorydrugs.name": 1,
+                    
+                }
+            },
+            {
+              $match://req.params.id
+                {
+                    "categorydrugs._id":  ObjectId(req.params.id),
+                    "isActive":true
+                }
+            },
+          ])
+        //.find()
+        //res.json(drugstore);
+        const count = drugstore.length
+        const totalPage = [];
+         for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
+           totalPage.push(i)
+         }
+        res.json({ drugstore, currentPage, totalPage });
+    })
+
+);
+
+
+//===========================ADMIN ROUTER======================
 //GET ALL Drugstore
 drugStoreRouter.get("/",
     //protect,
@@ -112,15 +291,6 @@ drugStoreRouter.get("/alldrugstore",
 // GET FOR WEB AND APP
 drugStoreRouter.get(
     "/:id/categories",
-    //asyncHandler(async (req,res) => {
-    //    const drugstore=await DrugStore.find()
-    //        .populate("category","_id name")
-    //        .populate("Drugstore","_id name");
-    //    const drugstoreCategories=drugstore.filter(
-    //        (item) => item?.category?._id.toHexString()===req.params.id
-    //    );
-    //    res.json(drugstoreCategories);
-    //})
     asyncHandler(async (req,res) => {
         const ObjectId = mongoose.Types.ObjectId;
         const drugstore = await DrugStore.aggregate([
@@ -190,9 +360,9 @@ drugStoreRouter.get(
               $lookup:
                 {
                   from: "categorydrugs",
-                  localField: "product.Drugstore",
+                  localField: "product.categoryDrug",
                   foreignField: "_id",
-                  as: "categorydrug"
+                  as: "categorydrugs"
                 }
             },
             {
@@ -205,15 +375,15 @@ drugStoreRouter.get(
                     "refunded":1,
                     "isActive":1,
                     "stock":1,
-                    "categorydrug._id": 1,
-                    "categorydrug.name": 1,
+                    "categorydrugs._id": 1,
+                    "categorydrugs.name": 1,
                     
                 }
             },
             {
               $match://req.params.id
                 {
-                  "categorydrug._id":  ObjectId(req.params.id)
+                    "categorydrugs._id":  ObjectId(req.params.id)
                 }
             },
           ])
@@ -221,6 +391,8 @@ drugStoreRouter.get(
         res.json(drugstore);
     })
 );
+
+
 function findMinPos(lots) {
     let minPos = 0;
     let minExpDrug = lots[0].expDrug;
@@ -409,87 +581,6 @@ drugStoreRouter.get(
         } 
             
 
-        //if(newStock[minIndex]?.count>num){
-        //    console.log("==============================TH1 num<")
-        //    console.log("value Old",newStock)
-        //    newStock[minIndex].count-=num//TH1 num<count
-        //    console.log("num",num);
-        //    console.log("value New",newStock)
-           
-        //}
-        //else{
-        //    if(newStock[minIndex].count==num){
-        //        console.log("==============================TH2 num==")
-        //        console.log("value Old",newStock)
-        //        newStock.splice(minIndex,1)
-        //        console.log("num",num);
-        //        console.log("value New",newStock)
-        //    }else {
-        //        console.log("==============================TH3 num>")//num > nhưng <sum
-        //        console.log("value Old",drugstore?.stock)
-        //        let i = 0;
-        //        const length =3
-        //        while (i < length) {
-        //            if(newStock.reduce((sum,item)=>{
-        //                sum+=item.count
-        //            },0)<num){
-        //                console.log("break");
-        //                break
-        //            }
-
-
-        //            if(newStock.length==0){
-        //                break
-        //            }else if(newStock.length==1){
-        //                minIndex=0;
-        //            }else
-        //                minIndex=findMinPos(newStock)
-        //            console.log("minIndex ",minIndex)
-        //            if(newStock[minIndex].count<=num){
-        //                console.log(`${newStock[minIndex].count}<=${num}`)
-        //                num-=newStock[minIndex].count
-        //                newStock.splice(minIndex,1)
-        //                console.log("num",num);
-        //                //console.log("drugstore",drugstore);
-        //            }
-        //            else{
-        //                console.log(`${newStock[minIndex].count}>${num}`)
-        //                newStock[minIndex].count-=num
-        //                num=0;
-        //            }
-
-        //            i++;
-        //        }
-        //        if(num==0)
-        //            console.log("value New final",newStock)
-        //        else{
-        //            console.log("Thất bại!!!!!!!!!");
-        //            res.json({err:"Rollback"})
-        //        }    
-                
-                
-        //    }
-        //}
-        
-
-
-
-        //console.log(drugstore)
-        //const drugStoreStock=await DrugStore.findById(req.params.id);
-        //if(drugStoreStock) {
-        //    drugStoreStock.stock=drugstore.stock;
-            
-
-        //    const updateddrugStore=await drugStoreStock.save();
-        //    res.json(updateddrugStore);
-        //} else {
-
-        //    res.status(404);
-        //    throw new Error("Product not found");
-        //}
-        
-        
-
     })
 );
 
@@ -527,13 +618,14 @@ drugStoreRouter.put(
     //protect,
     //admin,
     asyncHandler(async (req,res) => {
-        const {countInStock,isActive,discount,refunded}=req.body;
+        const {countInStock,isActive,discount,refunded,discountDetail}=req.body;
         const drugStoreStock=await DrugStore.findById(req.params.id);
         if(drugStoreStock) {
             //drugStoreStock.countInStock=countInStock||drugStoreStock.countInStock;
             drugStoreStock.discount=discount||drugStoreStock.discount;
             drugStoreStock.refunded=refunded||drugStoreStock.refunded;
             drugStoreStock.isActive=isActive
+            drugStoreStock.discountDetail=discountDetail
 
 
             const updateddrugStore=await drugStoreStock.save();
@@ -545,6 +637,12 @@ drugStoreRouter.put(
         }
     })
 );
+
+
+
+
+
+
 
 
 export default drugStoreRouter;

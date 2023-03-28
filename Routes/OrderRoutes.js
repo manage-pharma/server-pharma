@@ -38,7 +38,7 @@ orderRouter.post(
         shippingAddress,
         paymentMethod,
         itemsPrice,
-        status: [{status:"Chờ xác nhận",date:Date.now()}],
+        status: [{level:1,status:"Chờ xác nhận",date:Date.now()}],
         cancellationDeadline:currentDate.setDate(currentDate.getDate() + 1),//1 ngày huy đơn
         taxPrice,
         shippingPrice,
@@ -68,7 +68,7 @@ orderRouter.get(
 // GET ORDER BY ID
 orderRouter.get(
   "/:id",
-  //protect,
+  protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id).populate(
       "user",
@@ -87,7 +87,6 @@ orderRouter.get(
 
 orderRouter.get(
   "/:id/check-stock",
-  //protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id)
 
@@ -110,18 +109,10 @@ orderRouter.get(
       
       if(!checkStock(newStock,num)) check=false
     })
-    //res.json(order)
     setTimeout(()=>{
       if(check) res.json({result:true})
       else res.json({result:false})
     },100)
-
-    //if (order) {
-    //  res.json(order);
-    //} else {
-    //  res.status(404);
-    //  throw new Error("Order Not Found");
-    //}
   })
 );
 
@@ -134,15 +125,7 @@ orderRouter.get(
     res.json(order);
   })
 );
-function findMinPos(lots) {
-  let minPos = lots[0].expDrug;
-  for (let i = 1; i < lots.length; i++) {
-    if (lots[i].expDrug < minPos) {
-      minPos = i;
-    }
-  }
-  return minPos;
-}
+
 
 const checkStock=(drugStoreStock,num)=>{
 
@@ -155,106 +138,160 @@ const checkStock=(drugStoreStock,num)=>{
 
 
 }
-const updateStock=(drugStoreStock,num)=>{
+///////////////////////
+//function findMinPos(lots) {
+//  let minPos = lots[0].expDrug;
+//  for (let i = 1; i < lots.length; i++) {
+//    if (lots[i].expDrug < minPos) {
+//      minPos = i;
+//    }
+//  }
+//  return minPos;
+//}
+//const updateStock=(drugStoreStock,num)=>{
 
-  let minIndex=findMinPos(drugStoreStock)
-  if(drugStoreStock[minIndex]?.count>num){
-      console.log("==============================TH1 num<")
-      console.log("value Old",drugStoreStock)
-      drugStoreStock[minIndex].count-=num//TH1 num<count
-      console.log("num",num);
-      console.log("value New",drugStoreStock)
+//  let minIndex=findMinPos(drugStoreStock)
+//  if(drugStoreStock[minIndex]?.count>num){
+//      console.log("==============================TH1 num<")
+//      console.log("value Old",drugStoreStock)
+//      drugStoreStock[minIndex].count-=num//TH1 num<count
+//      console.log("num",num);
+//      console.log("value New",drugStoreStock)
      
-  }
-  else{
-      if(drugStoreStock[minIndex].count==num){
-          console.log("==============================TH2 num==")
-          console.log("value Old",drugStoreStock)
-          drugStoreStock.splice(minIndex,1)
-          console.log("num",num);
-          console.log("value New",drugStoreStock)
-      }else {
-          console.log("==============================TH3 num>")//num > nhưng <sum
-          console.log("value Old",drugStoreStock?.stock)
-          let i = 0;
-          const length =3
-          while (i < length) {
-              if(drugStoreStock.reduce((sum,item)=>{
-                  sum+=item.count
-              },0)<num){
-                  console.log("break");
-                  break
-              }
+//  }
+//  else{
+//      if(drugStoreStock[minIndex].count==num){
+//          console.log("==============================TH2 num==")
+//          console.log("value Old",drugStoreStock)
+//          drugStoreStock.splice(minIndex,1)
+//          console.log("num",num);
+//          console.log("value New",drugStoreStock)
+//      }else {
+//          console.log("==============================TH3 num>")//num > nhưng <sum
+//          console.log("value Old",drugStoreStock?.stock)
+//          let i = 0;
+//          const length =3
+//          while (i < length) {
+//              if(drugStoreStock.reduce((sum,item)=>{
+//                  sum+=item.count
+//              },0)<num){
+//                  console.log("break");
+//                  break
+//              }
 
 
-              if(drugStoreStock.length==0){
-                  break
-              }else if(drugStoreStock.length==1){
-                  minIndex=0;
-              }else
-                  minIndex=findMinPos(drugStoreStock)
-              console.log("minIndex ",minIndex)
-              if(drugStoreStock[minIndex].count<=num){
-                  console.log(`${drugStoreStock[minIndex].count}<=${num}`)
-                  num-=drugStoreStock[minIndex].count
-                  drugStoreStock.splice(minIndex,1)
-                  console.log("num",num);
-                  //console.log("drugstore",drugstore);
-              }
-              else{
-                  console.log(`${drugStoreStock[minIndex].count}>${num}`)
-                  drugStoreStock[minIndex].count-=num
-                  num=0;
-              }
+//              if(drugStoreStock.length==0){
+//                  break
+//              }else if(drugStoreStock.length==1){
+//                  minIndex=0;
+//              }else
+//                  minIndex=findMinPos(drugStoreStock)
+//              console.log("minIndex ",minIndex)
+//              if(drugStoreStock[minIndex].count<=num){
+//                  console.log(`${drugStoreStock[minIndex].count}<=${num}`)
+//                  num-=drugStoreStock[minIndex].count
+//                  drugStoreStock.splice(minIndex,1)
+//                  console.log("num",num);
+//                  //console.log("drugstore",drugstore);
+//              }
+//              else{
+//                  console.log(`${drugStoreStock[minIndex].count}>${num}`)
+//                  drugStoreStock[minIndex].count-=num
+//                  num=0;
+//              }
 
-              i++;
-          }
-          if(num==0)
-              console.log("value New final",drugStoreStock)
-          else{
-              console.log("Thất bại!!!!!!!!!");
-              //res.json({err:"Rollback"})
-          }    
+//              i++;
+//          }
+//          if(num==0)
+//              console.log("value New final",drugStoreStock)
+//          else{
+//              console.log("Thất bại!!!!!!!!!");
+//              //res.json({err:"Rollback"})
+//          }    
           
           
-      }
-  }
-  return drugStoreStock
-}
-const updateStockDrugStore= async(id,num)=>{
-  const currentDate = new Date();
-        const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
-        var drugstore=[]
-        drugstore = await DrugStore.findById(id,{stock:1})
-        let minIndex = 0;
-        let newStock=drugstore?.stock//lấy mảng
+//      }
+//  }
+//  return drugStoreStock
+//}
+//const updateStockDrugStore= async(id,num)=>{
+//  const currentDate = new Date();
+//        const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
+//        var drugstore=[]
+//        drugstore = await DrugStore.findById(id,{stock:1})
+//        let minIndex = 0;
+//        let newStock=drugstore?.stock//lấy mảng
 
-        const filteredItems = newStock.filter(item => {
-            const expDate = new Date(item.expDrug);
-            return expDate > threeMonthsFromNow;
-          });
+//        const filteredItems = newStock.filter(item => {
+//            const expDate = new Date(item.expDrug);
+//            return expDate > threeMonthsFromNow;
+//          });
 
-        newStock=filteredItems//mảng stock có hạn sd > 3 tháng
+//        newStock=filteredItems//mảng stock có hạn sd > 3 tháng
 
-        const drugStoreStock=await DrugStore.findById(id);
-        if(drugStoreStock) {
-            drugStoreStock.stock=updateStock(newStock,num);//cập nhật thuộc tính stock bẳng stock mới
-            const updateddrugStore=await drugStoreStock.save();
-        }
-}
+//        const drugStoreStock=await DrugStore.findById(id);
+//        if(drugStoreStock) {
+//            drugStoreStock.stock=updateStock(newStock,num);//cập nhật thuộc tính stock bẳng stock mới
+//            const updateddrugStore=await drugStoreStock.save();
+//        }
+//}
+///////////////////
+//ORDER IS RECIVED
+//orderRouter.get(
+//  "/:id/received",
+//  protect,
+//  asyncHandler(async (req, res) => {
+//    const order = await Order.findById(req.params.id);
+
+//    if (order) {
+//      order.isSuccess = true;
+//      order.status=[...order.status,{status:"Nhận hàng thành công",date:Date.now()}]
+//      order.isReceived=true
+//      order.receivedAt=Date.now()
+//      const updatedOrder = await order.save();
+//      res.json(updatedOrder);
+//    } else {
+//      res.status(404);
+//      throw new Error("Order Not Found");
+//    }
+//  })
+//);
+
 
 // ORDER IS WAITING FOR CONFORM==ORDER CREATE
+
+// CANCEL ORDER 
+orderRouter.get(
+  "/:id/cancel",
+  protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      //order.isCanceled = true;
+      order.status=[...order.status,{level:3,status:"Yêu cầu hủy đơn",date:Date.now()}]
+      //order.canceledAt=Date.now()
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+
 
 // ORDER IS CANCELED
 orderRouter.get(
   "/:id/canceled",
-  //protect,
+  protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (order) {
       order.isCanceled = true;
-      order.status=[...order.status,{status:"Đã hủy",date:Date.now()}]
+      order.status=[...order.status,{level:0,status:"Đã hủy",date:Date.now()}]
       order.canceledAt=Date.now()
       const updatedOrder = await order.save();
       res.json(updatedOrder);
@@ -268,12 +305,13 @@ orderRouter.get(
 // ORDER IS CHECKED
 orderRouter.get(
   "/:id/conform",
+  //admin,
   //protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (order) {
-      order.status=[...order.status,{status:"Đã xác nhận",date:Date.now()}]
+      order.status=[...order.status,{level:2,status:"Đã xác nhận",date:Date.now()}]
       order.isComformed=true
       order.conformedAt=Date.now()
       const updatedOrder = await order.save();
@@ -284,6 +322,8 @@ orderRouter.get(
     }
   })
 );
+
+
 
 
 // ORDER IS PAID
@@ -315,6 +355,7 @@ orderRouter.put(
 // ORDER IS DELIVERY
 orderRouter.put(
   "/:id/delivered",
+  //admin,
   protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
@@ -322,7 +363,7 @@ orderRouter.put(
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
-      order.status=[...order.status,{status:"Đã giao",date:Date.now()}]
+      order.status=[...order.status,{level:5,status:"Đang vận chuyển",date:Date.now()}]
 
       const updatedOrder = await order.save();
       res.json(updatedOrder);
@@ -343,9 +384,11 @@ orderRouter.get(
 
     if (order) {
       order.isSuccess = true;
-      order.status=[...order.status,{status:"Nhận hàng thành công",date:Date.now()}]
+      order.status=[...order.status,{level:6,status:"Nhận hàng thành công",date:Date.now()}]
       order.isReceived=true
       order.receivedAt=Date.now()
+      order.isPaid=true
+      order.paidAt=Date.now()
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {

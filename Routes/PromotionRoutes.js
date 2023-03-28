@@ -14,7 +14,7 @@ promotionRouter.use(cors())
 
 // Single File Route Handler
 
-//GET ALL CATEGORY
+//GET ALL PROMOTION
 promotionRouter.get("/",
   protect,
   asyncHandler(async (req, res)=>{
@@ -24,7 +24,33 @@ promotionRouter.get("/",
 );
 
 
-//CREATE CATEGORY
+//CHECK PROMOTION
+promotionRouter.post(
+  "/check",
+  //protect,
+  //admin,
+  asyncHandler(async(req, res)=>{
+      const discountDetail = req.body
+      
+      //[
+      //  "64206c70e94ae3be23c60546",
+      //  "64206ef2e94ae3be23c606c6"
+      //]
+      const promotions = await Promotion.find();
+      let result = []
+      const filteredPromotions = promotions.map((promotion)=>{
+        discountDetail.map((item)=>{
+          if(item==promotion._id)  result.push(promotion)
+        })
+      })//&&Date.now()>promotion.startOn&&promotion.endOn>Date.now()
+      const totalDiscount=result.reduce((sum,item)=>sum+item.discount,0)
+      res.status(201).json({result,totalDiscount});   
+      
+  })
+)
+
+
+//CREATE PROMOTION
 promotionRouter.post(
     "/",
     protect,
@@ -56,7 +82,7 @@ promotionRouter.post(
     })
 )
 
-//UPDATE CATEGORY
+//UPDATE PROMOTION
 promotionRouter.put(
   "/:id",
   protect,
@@ -82,7 +108,7 @@ promotionRouter.put(
 );
 
 
-// DELETE CATEGORY
+// DELETE PROMOTION
 promotionRouter.delete(
   "/:id",
   protect,

@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 const statusSchema=mongoose.Schema({
+  level: {
+    type: Number,
+    require: true
+  },
   status: {
       type: String,
       require: true
