@@ -337,7 +337,7 @@ productRoute.post(
         allowToSell,
         prescription,
         description,
-        image: image.map(item => '/upload/'+item),
+        image: image.map(item => item),
         user: req.body._id,
       });
       if(product) {
@@ -385,7 +385,7 @@ productRoute.put(
         product.allowToSell=allowToSell,
         product.prescription=prescription||product.prescription
       product.description=description||product.description
-      product.image=image.map(item => item.includes("/upload/")? item:'/upload/'+item)
+      product.image=image.map(item => item)
 
       const updatedProduct=await product.save();
       logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Product updated 👉 Post: 200`, { user: req.user.name, updatedProduct })

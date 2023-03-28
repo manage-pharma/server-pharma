@@ -82,7 +82,7 @@ categoryRouter.post(
             const category = new Category({
                 name, 
                 description,
-                image: `/upload/${image}`,
+                image: image,
                 user: req.user._id,
             })
             if(category){
@@ -109,7 +109,7 @@ categoryRouter.put(
     if (category) {
       category.name = name || category.name;
       category.description = description || category.description;
-      category.image =  category.image === image ? category.image :`/upload/${image}`
+      category.image =  category.image === image ? category.image : image
       category.isActive =  isActive
       // product.image = `/upload/${image}` || product.image;
 
