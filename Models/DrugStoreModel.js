@@ -19,6 +19,7 @@ const reviewSchema=mongoose.Schema({
     }
 })
 
+
 const drugStoreSchema=mongoose.Schema(
     {
         product: {
@@ -59,6 +60,17 @@ const drugStoreSchema=mongoose.Schema(
             required: true,
             default: 0.0,
         },
+        viewNumber: {
+            type: Number,
+            required: true,
+            default: 0.0,
+        },
+        buyNumber: {
+            type: Number,
+            required: true,
+            default: 0.0,
+        },
+        
 
     },
     {

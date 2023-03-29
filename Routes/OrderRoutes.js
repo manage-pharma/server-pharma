@@ -21,10 +21,11 @@ orderRouter.post(
       taxPrice,
       shippingPrice,
       totalPrice,
+      discountPoint,
       totalPoints
     } = req.body;
 
-    console.log({orderItemsRoutes:orderItems})
+    console.log({orderBefore:req.body})
 
     if (orderItems && orderItems.length === 0) {
       res.status(400);
@@ -43,8 +44,10 @@ orderRouter.post(
         taxPrice,
         shippingPrice,
         totalPrice,
+        discountPoint,
         totalPoints
       });
+      console.log({orderAfter:order});
 
       const createOrder = await order.save();
       res.status(201).json(createOrder);
@@ -68,7 +71,7 @@ orderRouter.get(
 // GET ORDER BY ID
 orderRouter.get(
   "/:id",
-  protect,
+  //protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id).populate(
       "user",

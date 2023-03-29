@@ -6,6 +6,7 @@ import multer from "multer"
 import cors from "cors"
 import DrugStore from '../Models/DrugStoreModel.js';
 import mongoose from 'mongoose';
+import Promotion from '../Models/PromotionModel.js';
 const drugStoreRouter=express.Router();
 const day=moment(Date.now());
 
@@ -589,10 +590,10 @@ drugStoreRouter.get(
     "/:id",
     asyncHandler(async (req,res) => {
         const drugstore=await DrugStore.findById(req.params.id)
-            .populate("product")
-        //.populate("category","_id name")
-        //.populate("Drugstore","_id name");
+        .populate("product")
         if(drugstore) {
+           
+            
             res.json(drugstore);
             console.log(
                 `✏️  ${day.format(
@@ -622,7 +623,7 @@ drugStoreRouter.put(
         const drugStoreStock=await DrugStore.findById(req.params.id);
         if(drugStoreStock) {
             //drugStoreStock.countInStock=countInStock||drugStoreStock.countInStock;
-            drugStoreStock.discount=discount||drugStoreStock.discount;
+            //drugStoreStock.discount=discount||drugStoreStock.discount;
             drugStoreStock.refunded=refunded||drugStoreStock.refunded;
             drugStoreStock.isActive=isActive
             drugStoreStock.discountDetail=discountDetail

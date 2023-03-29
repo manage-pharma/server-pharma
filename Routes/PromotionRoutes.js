@@ -27,24 +27,39 @@ promotionRouter.get("/",
 //CHECK PROMOTION
 promotionRouter.post(
   "/check",
-  //protect,
-  //admin,
   asyncHandler(async(req, res)=>{
       const discountDetail = req.body
-      
-      //[
-      //  "64206c70e94ae3be23c60546",
-      //  "64206ef2e94ae3be23c606c6"
-      //]
+      console.log(discountDetail);
       const promotions = await Promotion.find();
       let result = []
-      const filteredPromotions = promotions.map((promotion)=>{
-        discountDetail.map((item)=>{
-          if(item==promotion._id)  result.push(promotion)
+      promotions?.map((promotion)=>{
+        discountDetail.discountDitail?.map((item)=>{//kt conf aps dungj
+          if(item==promotion._id &&new Date().getTime()>new Date(promotion?.startOn).getTime()&&new Date().getTime()<new Date(promotion?.endOn).getTime()){
+          result.push(promotion)
+          }  
+            
         })
-      })//&&Date.now()>promotion.startOn&&promotion.endOn>Date.now()
-      const totalDiscount=result.reduce((sum,item)=>sum+item.discount,0)
-      res.status(201).json({result,totalDiscount});   
+      })
+      const total=result.reduce((sum,item)=>sum+item.discount,0)
+      res.status(201).json({list:result,total});   
+      
+  })
+)
+
+//CHECK PROMOTION
+promotionRouter.get(
+  "/active",
+  asyncHandler(async(req, res)=>{
+      const promotions = await Promotion.find();
+      let result = []
+      promotions?.map((promotion)=>{
+          if(new Date().getTime()>new Date(promotion?.startOn).getTime()&&new Date().getTime()<new Date(promotion?.endOn).getTime()){
+          result.push(promotion)
+          }
+            
+        })
+
+      res.status(201).json(result);   
       
   })
 )

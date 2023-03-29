@@ -34,6 +34,7 @@ const orderSchema=mongoose.Schema(
         image: {type: Array,required: true},
         price: {type: Number,required: true},
         refunded: {type: Number},
+        discount: {type: Number},
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
@@ -66,12 +67,23 @@ const orderSchema=mongoose.Schema(
       type: Number,
       required: true,
       default: 0.0,
+    },//itemsPrice
+    itemsPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
     totalPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
+    discountPoint: {
+      type: Number,
+      required: true,
+      default: 0.0,
+    },
+
     cancellationDeadline: {
       type: Date,
     },
