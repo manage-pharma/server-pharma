@@ -35,7 +35,7 @@ contentRouter.put(
     const { logo,phone,banners,companyName,companyAddress,links,contacts,zaloUrl,fbUrl,qrCode} = req.body;
     const content = await Content.findOne({}).exec();
     if (content) {
-      content.logo = logo ? "/upload/" + logo : content.logo;
+      content.logo = logo ?logo : content.logo;
       content.phone = phone || content.phone;
       content.banners = banners || content.banners;
       content.companyName = companyName || content.companyName;
@@ -44,7 +44,7 @@ contentRouter.put(
       content.contacts = contacts || content.contacts;
       content.zaloUrl = zaloUrl || content.zaloUrl;
       content.fbUrl = fbUrl || content.fbUrl;
-      content.qrCode = qrCode ? "/upload/" + qrCode : content.qrCode;
+      content.qrCode = qrCode ? qrCode : content.qrCode;
       const updatedContent = await  content.save();
       res.json(updatedContent);
     } else {

@@ -93,6 +93,24 @@ drugStoreRouter.get(
 );
 
 drugStoreRouter.get(
+    "/userGetNew",
+    asyncHandler(async (req,res) => {
+    
+        
+        const drugstores=await DrugStore.find({isActive:true})
+            .populate("product")
+            .sort({createdAt: -1})
+            .limit(4)
+          res.json(drugstores);
+        //res.json(drugstore);
+
+        console.log(
+            `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+        );
+    })
+);
+
+drugStoreRouter.get(
     "/:id/categories/userGet",
     asyncHandler(async (req,res) => {
         const ObjectId = mongoose.Types.ObjectId;
