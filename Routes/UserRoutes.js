@@ -92,7 +92,7 @@ userRouter.post(
         }
       }
       else{
-        return res.status(400).json('Email verification failed')
+        return res.status(400).json('Email xác thực không thành công')
       }
     } catch (error) {
       res.status(400).json(error.message);
@@ -106,11 +106,11 @@ userRouter.post(
       const token = req.body.activation_token
       if(!token || token ==={}){
         res.status(400);
-        throw new Error("There is a problem with the link, please contact admin");
+        throw new Error("Có vấn đề với link này, hãy liên hệ admin để được hổ trợ");
       }
       else if(jwt.verify(token, process.env.JWT_SECRET).exp < Date.now() / 1000){
         res.status(400);
-        throw new Error("Gmail verify has expired");
+        throw new Error("Gmail không đúng định dạng");
       }
       else{
         const user = jwt.verify(token, process.env.JWT_SECRET)
@@ -135,7 +135,7 @@ userRouter.post(
           });
         } else {
           res.status(400);
-          throw new Error("Invalid User Data");
+          throw new Error("dữ liệu người dùng không đúng");
         }
       }
 
@@ -219,10 +219,10 @@ userRouter.post(
       if(user && (await user.matchPassword(password))){
         const url = `${CLIENT_URL}/login`
         notification(email, url, "Login")
-        res.json('Request successfully, please change your profile.')
+        res.json('Đã xác thực, bạn đã có thể cập nhật thông tin.')
       }
       else{
-        throw new Error("Email not found !");
+        throw new Error("Email không được tìm thấy !");
       }
   })
 )

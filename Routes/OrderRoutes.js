@@ -386,12 +386,31 @@ orderRouter.get(
     const order = await Order.findById(req.params.id);
 
     if (order) {
-      order.isSuccess = true;
       order.status=[...order.status,{level:6,status:"Nhận hàng thành công",date:Date.now()}]
       order.isReceived=true
       order.receivedAt=Date.now()
       order.isPaid=true
       order.paidAt=Date.now()
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+//ORDER IS RECIVED
+orderRouter.get(
+  "/:id/complete",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isSuccess = true;
+      order.status=[...order.status,{level:7,status:"Hoàn tất đơn hàng",date:Date.now()}]
+      
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
