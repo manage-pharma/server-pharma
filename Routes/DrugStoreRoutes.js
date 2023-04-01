@@ -284,11 +284,11 @@ drugStoreRouter.get(
         // for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
         //   totalPage.push(i)
         // }
-        const keyword = req.query.keyword ? req.query.keyword : ''
+        const keyword = req.query.keyword
           const filteredResult = drugstores.filter(item => {
             return item.product.name.includes(keyword);
           });
-        res.json(filteredResult);
+        res.json(drugstores);
         //res.json(drugstore);
 
         console.log(
