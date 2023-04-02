@@ -39,38 +39,14 @@ const upload=multer({
 
 //===========================USER ROUTER======================
 drugStoreRouter.get(
-    "/userGetActive",
+    "/userGetActive-Pagination",
     asyncHandler(async (req,res) => {
-    const pageSize = 3;
-    const currentPage = Number(req.query.pageNumber) || 1
-    let keyword=
-    req.query.keyword&&req.query.keyword!==" "
-      ? {
-        name: {
-          $regex: req.query.keyword,
-          $options: "i",
-        },
-      }
-      :{};
-
-        const handleSortPrice=() => {
-            switch(req.query.sort) {
-                case "cheap":
-                    return {
-                        price: {$lte: 100},
-                    };
-                case "expensive":
-                    return {
-                        price: {$gte: 100},
-                    };
-                default:
-                    return {};
-            }
-        };
-  
-        const sortValue=req.query.sort? handleSortPrice():{};
-        const count = await DrugStore.countDocuments({ ...keyword, ...sortValue,isActive:true });
-        const drugstores=await DrugStore.find({...sortValue,isActive:true})
+         const pageSize = 5;
+         const currentPage = Number(req.query.pageNumber) || 1;
+        
+        const keyword = req.query.keyword
+        const count = await DrugStore.countDocuments({ ...keyword});
+        const drugstores=await DrugStore.find({ ...keyword})
             .populate("product")
              .limit(pageSize)
              .skip(pageSize * (currentPage - 1))
@@ -79,11 +55,30 @@ drugStoreRouter.get(
          for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
            totalPage.push(i)
          }
-        keyword = req.query.keyword ? req.query.keyword : ''
-          const drugstore = drugstores.filter(item => {
-            return item.product.name.includes(keyword);
-          });
-          res.json({ drugstore, currentPage, totalPage });
+        
+         
+        res.json({drugstores,totalPage,currentPage});
+        //res.json(drugstore);
+
+        console.log(
+            `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+        );
+    })
+);
+
+drugStoreRouter.get(
+    "/userGetActive",
+    asyncHandler(async (req,res) => {
+         
+        
+        
+        const drugstores=await DrugStore.find({isActive:true})
+            .populate("product")
+             
+            .sort({_id: -1});
+       
+         
+        res.json(drugstores);
         //res.json(drugstore);
 
         console.log(
@@ -110,11 +105,93 @@ drugStoreRouter.get(
     })
 );
 
+drugStoreRouter.get(//USER GET TOP 5 BEST SELLER
+    "/userGetBestSeller",
+    asyncHandler(async (req,res) => {
+    
+        
+        const drugstores=await DrugStore.find({isActive:true})
+            .populate("product")
+            .sort({createdAt: -1})
+            .limit(5)
+          res.json(drugstores);
+        //res.json(drugstore);
+
+        console.log(
+            `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+        );
+    })
+);
+
+//USER GET SINGLE DRUGSTORE + VIEW
+drugStoreRouter.get(
+    "/:id/userGet",
+    asyncHandler(async (req,res) => {
+        const drugstore=await DrugStore.findById(req.params.id)
+        .populate("product")
+        if(drugstore) {
+           
+            
+            res.json(drugstore);
+            console.log(
+                `✏️  ${day.format(
+                    "MMMM Do YYYY, h:mm:ss a"
+                )} getDetailDrugstore 👉 Get: 200`
+            );
+        } else {
+            console.error(
+                `⛔  ${day.format("MMMM Do YYYY, h:mm:ss a")} Drugstore not found`
+            );
+            res.status(404);
+            throw new Error(`⛔ Drugstore not found`);
+        }
+    })
+);
+
+//USER GET SINGLE DRUGSTORE + VIEW
+drugStoreRouter.get(
+    "/:id/inc-view-num",
+    asyncHandler(async (req,res) => {
+        const drugStore=await DrugStore.findById(req.params.id);
+        if(drugStore) {
+            drugStore.viewNumber=drugStore.viewNumber+1;
+
+
+            const updateddrugStore=await drugStore.save();
+            res.json(updateddrugStore);
+        } else {
+
+            res.status(404);
+            throw new Error("Product not found");
+        }
+    })
+);
+
+
+//USER GET SINGLE DRUGSTORE + VIEW
+drugStoreRouter.get(
+    "/:id/inc-buy-num",
+    asyncHandler(async (req,res) => {
+        const drugStore=await DrugStore.findById(req.params.id);
+        if(drugStore) {
+            drugStore.buyNumber=drugStore.buyNumber+1;
+
+
+            const updateddrugStore=await drugStore.save();
+            res.json(updateddrugStore);
+        } else {
+
+            res.status(404);
+            throw new Error("Product not found");
+        }
+    })
+);
+
 drugStoreRouter.get(
     "/:id/categories/userGet",
     asyncHandler(async (req,res) => {
         const ObjectId = mongoose.Types.ObjectId;
-        const pageSize = 3;
+        const pageSize = 2;
         const currentPage = Number(req.query.pageNumber) || 1
 
         const drugstore = await DrugStore.aggregate([
@@ -176,7 +253,7 @@ drugStoreRouter.get(
     "/:id/categories-drug/userGet",
     asyncHandler(async (req,res) => {
         const ObjectId = mongoose.Types.ObjectId;
-        const pageSize = 3;
+        const pageSize = 2;
         const currentPage = Number(req.query.pageNumber) || 1
 
         const drugstore = await DrugStore.aggregate([
@@ -288,7 +365,7 @@ drugStoreRouter.get(
           const filteredResult = drugstores.filter(item => {
             return item.product.name.includes(keyword);
           });
-        res.json(drugstores);
+        res.json(filteredResult);
         //res.json(drugstore);
 
         console.log(
