@@ -16,20 +16,20 @@ docker run -d -p 30000:27017 --net mongoNet --name r2 mongo:latest --replSet mon
 ```
 Kiêm tra ip address của từng container trong mạng mongoNet
 ```
-docker inspect --format '{{ .NetworkSettings.Networks.mongoNet.IPAddress }}' mongo1
+docker inspect --format '{{ .NetworkSettings.Networks.mongoNet.IPAddress }}' r0
 172.18.0.2
-docker inspect --format '{{ .NetworkSettings.Networks.mongoNet.IPAddress }}' mongo2
+docker inspect --format '{{ .NetworkSettings.Networks.mongoNet.IPAddress }}' r1
 172.18.0.3
-docker inspect --format '{{ .NetworkSettings.Networks.mongoNet.IPAddress }}' mongo3
+docker inspect --format '{{ .NetworkSettings.Networks.mongoNet.IPAddress }}' r2
 172.18.0.4
 ```
 Kiêm tra ip addresscủa wsl
 ```
 ifconfig (192.168.0.1)
 ```
-Truy cập vào container mongo1 
+Truy cập vào container r0 
 ```
-docker exec -it mongo1 bash
+docker exec -it r0 bash
 ```
 Truy cập vào mongo
 ```
