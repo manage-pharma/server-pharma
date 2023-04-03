@@ -41,7 +41,7 @@ const upload=multer({
 drugStoreRouter.get(
     "/userGetActive-Pagination",
     asyncHandler(async (req,res) => {
-         const pageSize = 5;
+         const pageSize = 8;
          const currentPage = Number(req.query.pageNumber) || 1;
         
         const keyword = req.query.keyword
@@ -112,8 +112,26 @@ drugStoreRouter.get(//USER GET TOP 5 BEST SELLER
         
         const drugstores=await DrugStore.find({isActive:true})
             .populate("product")
-            .sort({createdAt: -1})
-            .limit(5)
+            .sort({buyNumber: -1})
+            //.limit(5)
+          res.json(drugstores);
+        //res.json(drugstore);
+
+        console.log(
+            `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+        );
+    })
+);
+
+drugStoreRouter.get(//USER GET TOP 5 BEST SELLER
+    "/userGetHot",
+    asyncHandler(async (req,res) => {
+    
+        
+        const drugstores=await DrugStore.find({isActive:true})
+            .populate("product")
+            .sort({viewNumber: -1})
+            //.limit(5)
           res.json(drugstores);
         //res.json(drugstore);
 
