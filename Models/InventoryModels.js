@@ -14,8 +14,16 @@ const inventorySchema = mongoose.Schema({
         require: true,
         default: 0
     },
+    manufactureDate:{
+        type: Date,
+        require: true
+    },
     expDrug:{
         type: Date,
+        require: true
+    },
+    expProduct:{
+        type: Number,
         require: true
     },
     importStock:[ 
