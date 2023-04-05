@@ -1,6 +1,6 @@
 import express, { application } from 'express'
 import asyncHandler from 'express-async-handler'
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protect, admin, userRoleAdmin } from "../Middleware/AuthMiddleware.js";
 import Provider from './../Models/ProviderModel.js';
 const providerRoutes = express.Router();
 import moment from 'moment';
@@ -70,7 +70,7 @@ providerRoutes.get("/:id",
 providerRoutes.post(
     "/",
     protect,
-    admin,
+    userRoleAdmin,
     asyncHandler(async(req, res)=>{
         const {name, contactName, taxCode, invoiceSymbol, phone, email, address} = req.body
         const categoryExist = await Provider.findOne({name});
@@ -104,7 +104,7 @@ providerRoutes.post(
 providerRoutes.put(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const { name, contactName, taxCode, invoiceSymbol, phone, email, address } = req.body;
     const provider = await Provider.findById(req.params.id);
@@ -133,7 +133,7 @@ export default providerRoutes;
 providerRoutes.delete(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const provider = await Provider.findById(req.params.id);
     if (provider) {

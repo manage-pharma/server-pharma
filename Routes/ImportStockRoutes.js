@@ -1,7 +1,7 @@
 import express from "express";
 import crypto from 'crypto';
 import asyncHandler from "express-async-handler";
-import { admin, protect } from "../Middleware/AuthMiddleware.js";
+import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
 import importStock from './../Models/ImportStock.js';
 import Product from '../Models/ProductModel.js'
 import mongoose from 'mongoose';
@@ -15,6 +15,7 @@ const importStockRoutes = express.Router();
 // ADMIN GET ALL IMPORT STOCK
 importStockRoutes.get("/",
     protect,
+    userRoleInventory,
     asyncHandler(async (req, res) => {
         // const pageSize = 9;
         // const currentPage = Number(req.query.pageNumber) || 1;
@@ -58,7 +59,7 @@ importStockRoutes.get("/",
 )
 // analytics stock import for app
 importStockRoutes.get(
-  "/analytics",
+  "/analytics", protect, userRoleInventory,
   asyncHandler(async (req, res) => {
     const from = req.query.from;
     const to = req.query.to;
@@ -172,6 +173,7 @@ importStockRoutes.get(
 importStockRoutes.post(
   "/",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const {
@@ -214,6 +216,7 @@ importStockRoutes.post(
 importStockRoutes.get(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     const order = await importStock.findById(req.params.id).populate(
       "user",
@@ -239,7 +242,7 @@ importStockRoutes.get(
 importStockRoutes.put(
   "/:id/status",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisImport = await importStock.findById(req.params.id);
@@ -302,6 +305,7 @@ importStockRoutes.put(
 importStockRoutes.put(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const thisImport = await importStock.findById(req.params.id);
@@ -345,7 +349,7 @@ importStockRoutes.put(
 importStockRoutes.put(
   "/:id/cancel",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisImport = await importStock.findById(req.params.id);

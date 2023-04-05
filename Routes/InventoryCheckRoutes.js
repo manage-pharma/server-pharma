@@ -1,7 +1,7 @@
 import express from "express";
 import crypto from "crypto";
 import asyncHandler from "express-async-handler";
-import { admin, protect } from "../Middleware/AuthMiddleware.js";
+import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
 import mongoose from "mongoose";
 import inventoryCheck from "../Models/InventoryCheckModel.js";
 import Product from "../Models/ProductModel.js";
@@ -16,6 +16,7 @@ const inventoryCheckRoutes = express.Router();
 inventoryCheckRoutes.get(
   "/",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     // const pageSize = 9;
     // const currentPage = Number(req.query.pageNumber) || 1;
@@ -72,6 +73,7 @@ inventoryCheckRoutes.get(
 inventoryCheckRoutes.post(
   "/",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const { user, note, checkedAt, checkItems } = req.body;
@@ -96,7 +98,8 @@ inventoryCheckRoutes.post(
 // GET IMPORT STOCK BY ID
 inventoryCheckRoutes.get(
   "/:id",
-  // protect,
+  protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     const order = await inventoryCheck
       .findById(req.params.id)
@@ -114,7 +117,7 @@ inventoryCheckRoutes.get(
 inventoryCheckRoutes.put(
   "/:id/status",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisImport = await inventoryCheck.findById(req.params.id);
@@ -219,6 +222,7 @@ inventoryCheckRoutes.put(
 inventoryCheckRoutes.put(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const thisImport = await inventoryCheck.findById(req.params.id);
@@ -245,7 +249,7 @@ inventoryCheckRoutes.put(
 inventoryCheckRoutes.put(
   "/:id/cancel",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisExport = await inventoryCheck.findById(req.params.id);

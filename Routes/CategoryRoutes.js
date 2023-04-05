@@ -1,7 +1,7 @@
 import express, { application } from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protect, admin, userRoleAdmin } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
 import Category from './../Models/CategoryModel.js';
@@ -70,7 +70,7 @@ categoryRouter.get("/active",
 categoryRouter.post(
     "/",
     protect,
-    admin,
+    userRoleAdmin,
     asyncHandler(async(req, res)=>{
         const {name, description, image} = req.body
         const categoryExist = await Category.findOne({name});
@@ -102,7 +102,7 @@ categoryRouter.post(
 categoryRouter.put(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const { name, description, image, isActive } = req.body;
     const category = await Category.findById(req.params.id);
@@ -129,7 +129,7 @@ export default categoryRouter;
 categoryRouter.delete(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const category = await Category.findById(req.params.id);
     if (category) {
