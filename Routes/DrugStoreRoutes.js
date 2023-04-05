@@ -6,7 +6,6 @@ import multer from "multer"
 import cors from "cors"
 import DrugStore from '../Models/DrugStoreModel.js';
 import mongoose from 'mongoose';
-import Promotion from '../Models/PromotionModel.js';
 const drugStoreRouter=express.Router();
 const day=moment(Date.now());
 
@@ -729,8 +728,8 @@ drugStoreRouter.get(
 //UPDATE Drugstore
 drugStoreRouter.put(
     "/:id",
-    //protect,
-    //admin,
+    protect,
+    admin,
     asyncHandler(async (req,res) => {
         const {countInStock,isActive,discount,refunded,discountDetail}=req.body;
         const drugStoreStock=await DrugStore.findById(req.params.id);

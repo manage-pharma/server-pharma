@@ -68,6 +68,31 @@ orderRouter.get(
   })
 );
 
+// ADMIN GET ALL ORDERS
+orderRouter.get(
+  "/all-check",
+  //protect,
+  //admin,
+  asyncHandler(async (req, res) => {
+    const from = req.query.from;
+    const to = req.query.to;
+    const D2D =
+      from && to
+        ? {
+          receivedAt: {
+              $gte: from,
+              $lte: to,
+            },
+          }
+        : {};
+    const orders = await Order.find({...D2D})
+      .sort({ _id: -1 })
+      .populate("user", "id name email");
+    res.json(orders);
+  })
+);
+
+
 // GET ORDER BY ID
 orderRouter.get(
   "/:id",
