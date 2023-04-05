@@ -249,7 +249,9 @@ importStockRoutes.put(
           { $and: [
             {idDrug: thisImport.importItems[i].product.toHexString()},
             {lotNumber: thisImport.importItems[i].lotNumber},
-            {expDrug: thisImport.importItems[i].expDrug}
+            {manufactureDate: thisImport.importItems[i].manufactureDate},
+            {expDrug: thisImport.importItems[i].expDrug},
+            {expProduct: thisImport.importItems[i].expProduct}
           ]},
           {
             $inc: { count: thisImport.importItems[i].qty },
@@ -269,7 +271,9 @@ importStockRoutes.put(
             const newUser = {
               idDrug: thisImport.importItems[i].product.toHexString(),
               lotNumber: thisImport.importItems[i].lotNumber,
+              manufactureDate: thisImport.importItems[i].manufactureDate,
               expDrug: thisImport.importItems[i].expDrug,
+              expProduct: thisImport.importItems[i].expProduct,
               count: +thisImport.importItems[i].qty,
               importStock: [{
                 _id: thisImport._id,
@@ -289,52 +293,6 @@ importStockRoutes.put(
         throw new Error("Không tìm thấy đơn nhập kho");
       }
     } catch (error) {
-      throw new Error(error.message)
-    }
-  })
-);
-
-// UPDATE STATUS HAVE TRANSACTION(DEMO)
-importStockRoutes.put(
-  "/:id/status/transaction",
-  protect,
-  admin,
-  asyncHandler(async (req, res) => {
-    const session = await mongoose.startSession()
-
-    try {
-      // start transaction transfer
-      session.startTransaction();
-      const thisImport = await importStock.findById(req.params.id);
-      if (thisImport) {
-        for (let i = 0; i < thisImport.importItems.length; i++) {
-          const updateStock = await Product.findOneAndUpdate({
-            _id: thisImport.importItems[i].product.toHexString()
-          },{
-            $inc: {countInStock: +thisImport.importItems[i].qty}
-          },{
-            session,
-            // new: true
-          }
-          );
-          if(!updateStock){
-            throw new Error("Không tìm thấy sản phẩm")
-          }
-        }
-        thisImport.status = true;
-        const updatedImport = await thisImport.save();
-        await session.commitTransaction();
-        session.endSession();
-        // end transaction transfer
-        res.json(updatedImport);
-      } 
-      else {
-        res.status(404);
-        throw new Error("Không tìm thấy đơn nhập");
-      }
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
       throw new Error(error.message)
     }
   })
