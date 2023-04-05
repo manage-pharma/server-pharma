@@ -1,7 +1,7 @@
 import express, { application } from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protect, admin, userRoleAdmin } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
 import CategoryDrug from '../Models/CategoryDrugModel.js';
@@ -37,8 +37,8 @@ const upload = multer({
 
 //GET ALL categoryDrug
 categoryDrugRouter.get("/",
-  //protect,
-  asyncHandler(async (req, res)=>{
+  protect,
+  (async (req, res)=>{
     const categoryDrug = await CategoryDrug.find({}).sort({ _id: -1 })
     res.json(categoryDrug)
   })
@@ -57,7 +57,7 @@ categoryDrugRouter.get("/active",
 categoryDrugRouter.post(
     "/",
     protect,
-    admin,
+    userRoleAdmin,
     asyncHandler(async(req, res)=>{
         const {name, description, isActive} = req.body
         const categoryDrugExist = await CategoryDrug.findOne({name});
@@ -89,7 +89,7 @@ categoryDrugRouter.post(
 categoryDrugRouter.put(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const { name, description, isActive } = req.body;
     const categoryDrug = await CategoryDrug.findById(req.params.id);
@@ -115,7 +115,7 @@ export default categoryDrugRouter;
 categoryDrugRouter.delete(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const categoryDrug = await CategoryDrug.findById(req.params.id);
     if (categoryDrug) {

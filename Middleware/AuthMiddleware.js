@@ -26,6 +26,35 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
+// user inventory
+const userRoleInventory = (req, res, next) => {
+  if (req.user && req.user.role === "isAdmin" || req.user.role === 'isInventory') {
+    next();
+  } else {
+    res.status(401);
+    throw new Error("Chức năng này không được hỗ trợ");
+  }
+};
+
+// user sale agent
+const userRoleSaleAgent = (req, res, next) => {
+  if (req.user && req.user.role === "isAdmin" || req.user.role === 'isSaleAgent') {
+    next();
+  } else {
+    res.status(401);
+    throw new Error("Chức năng này không được hỗ trợ");
+  }
+};
+// user role admin
+const userRoleAdmin = (req, res, next) => {
+  if (req.user && req.user.role === "isAdmin") {
+    next();
+  } else {
+    res.status(401);
+    throw new Error("Chức năng này không được hỗ trợ");
+  }
+};
+// isAdmin
 const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
     next();
@@ -34,4 +63,4 @@ const admin = (req, res, next) => {
     throw new Error("Chức năng này không được hỗ trợ");
   }
 };
-export { protect, admin };
+export { protect, admin, userRoleInventory, userRoleSaleAgent, userRoleAdmin };
