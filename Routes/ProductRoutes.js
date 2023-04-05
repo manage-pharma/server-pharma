@@ -127,7 +127,31 @@ productRoute.get("/allproduct",async (req,res) => {
     .sort({_id: -1}).select("-rating -numberReviews -reviews -updatedAt -__v");
   res.json(products);
 });
-
+// product list with qty
+productRoute.get("/totalqty",async (req,res) => {
+  const products= await Product.aggregate([
+    {
+      $lookup: {
+        from: "inventories",
+        localField: "_id",
+        foreignField: "idDrug",
+        as: "inventory"
+      }
+    },
+    {
+      $unwind: "$inventory"
+    },
+    {
+      $group: {
+        _id: "$_id",
+        name: { $first: "$name" },
+        unit: {$first: '$unit'},
+        total_count: { $sum: "$inventory.count" }
+      }
+    }
+  ])
+  res.json(products);
+});
 productRoute.get(
   "/all",
   //protect,
