@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import asyncHandler from "express-async-handler";
 import { admin, protect } from "../Middleware/AuthMiddleware.js";
 import Order from "../Models/OrderModel.js";
@@ -85,7 +85,7 @@ orderRouter.get(
             },
           }
         : {};
-    const orders = await Order.find({...D2D})
+    const orders = await Order.find({...D2D,isReceived:true})
       .sort({ _id: -1 })
       .populate("user", "id name email");
     res.json(orders);
