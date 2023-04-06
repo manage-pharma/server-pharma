@@ -1,7 +1,7 @@
 import express from "express";
 import crypto from "crypto";
 import asyncHandler from "express-async-handler";
-import { admin, protect } from "../Middleware/AuthMiddleware.js";
+import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
 import exportStock from "../Models/ExportStock.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
@@ -17,6 +17,7 @@ const exportStockRoutes = express.Router();
 exportStockRoutes.get(
   "/",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     // const pageSize = 9;
     // const currentPage = Number(req.query.pageNumber) || 1;
@@ -58,6 +59,7 @@ exportStockRoutes.get(
 // analytics stock export for app
 exportStockRoutes.get(
   "/analytics",
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     const from = req.query.from;
     const to = req.query.to;
@@ -169,6 +171,7 @@ exportStockRoutes.get(
 exportStockRoutes.post(
   "/",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const {
@@ -208,6 +211,7 @@ exportStockRoutes.post(
 exportStockRoutes.get(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     const order = await exportStock
       .findById(req.params.id)
@@ -227,7 +231,7 @@ exportStockRoutes.get(
 exportStockRoutes.put(
   "/:id/status",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisExport = await exportStock.findById(req.params.id);
@@ -520,6 +524,7 @@ exportStockRoutes.put(
 exportStockRoutes.put(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const thisExport = await exportStock.findById(req.params.id);
@@ -561,7 +566,7 @@ exportStockRoutes.put(
 exportStockRoutes.put(
   "/:id/cancel",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisExport = await exportStock.findById(req.params.id);

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import User from "./../Models/UserModel.js";
 import moment from 'moment';
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protect, admin, userRoleAdmin } from "../Middleware/AuthMiddleware.js";
 import {generateToken, createActivationToken} from "../utils/generateToken.js";
 import sendMail from "./../config/sendMail.js"
 import notification from "./../config/notification.js"
@@ -34,6 +34,7 @@ userRouter.post(
         _id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
         phone: user.phone,
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
@@ -282,7 +283,7 @@ userRouter.put(
 // GET ALL USER ADMIN
 userRouter.get(
   "/",
-  //protect,
+  protect,
   asyncHandler(async (req, res) => {
     const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
       $or:[
@@ -318,9 +319,9 @@ userRouter.get("/getAppUserData", protect, async (req, res) => {
 userRouter.post(
   "/add",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
-    const { name, email, password, phone } = req.body;
+    const { name, email, role, password, phone } = req.body;
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -331,6 +332,7 @@ userRouter.post(
     const user = await User.create({
       name,
       email,
+      role,
       password,
       phone
     });
@@ -339,6 +341,7 @@ userRouter.post(
       res.status(201).json({
         _id: user._id,
         name: user.name,
+        role: user.role,
         email: user.email,
         phone: user.phone,
         token: generateToken(user._id),
@@ -353,7 +356,8 @@ userRouter.post(
 //GET SINGLE USER IN ADMIN
 userRouter.get(
   "/:id",
-  //protect,
+  protect,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
       const user = await User.findById(req.params.id)
       if (user){
@@ -386,12 +390,13 @@ userRouter.get(
 userRouter.put(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
+      user.role = req.body.role || user.role;
       user.phone = req.body.phone || user.phone;
       if (req.body.password) {
         user.password = req.body.password;
@@ -401,6 +406,7 @@ userRouter.put(
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
+        role: updatedUser.role,
         phone: updatedUser.phone,
         isAdmin: updatedUser.isAdmin,
         createdAt: updatedUser.createdAt,

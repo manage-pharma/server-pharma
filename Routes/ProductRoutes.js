@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler";
 import Product from "../Models/ProductModel.js";
 import HistoryNotification from "./../Models/HistoryNotification.js";
 import moment from "moment";
-import {protect,admin} from "../Middleware/AuthMiddleware.js";
+import {protect,admin, userRoleAdmin} from "../Middleware/AuthMiddleware.js";
 import multer from "multer";
 import cors from "cors";
 import {ConfigNotify} from "../Services/push-notification.service.js";
@@ -317,7 +317,7 @@ productRoute.post(
 productRoute.delete(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req,res) => {
     const product=await Product.findById(req.params.id);
     if(product) {
@@ -335,7 +335,7 @@ productRoute.delete(
 productRoute.post(
   "/",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req,res) => {
     const {name, regisId, category, categoryDrug, unit, expDrug, packing, APIs, brandName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image}=req.body;
     console.log({brandName: brandName})
@@ -386,7 +386,7 @@ productRoute.post(
 productRoute.put(
   "/:id",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req,res) => {
     const {name,price,prescription,brandName,manufacturer,APIs,image,category,categoryDrug,countryOfOrigin,description,unit,regisId,packing, expDrug, instruction,allowToSell}=req.body;
     console.log({body: req.body})
