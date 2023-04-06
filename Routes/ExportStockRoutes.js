@@ -59,6 +59,7 @@ exportStockRoutes.get(
 // analytics stock export for app
 exportStockRoutes.get(
   "/analytics",
+  protect,
   userRoleInventory,
   asyncHandler(async (req, res) => {
     const from = req.query.from;
