@@ -147,27 +147,38 @@ userRouter.post(
 userRouter.post(
   "/",
   asyncHandler(async (req, res) => {
-    const { name, email, password, phone, isAdmin} = req.body;
+    const { name, email,phone, password} = req.body;
+
+    console.log(req.body);
 
     const userExists = await User.findOne({ email });
-    if(!validateEmail(email)){
-      res.status(400);
-      throw new Error("Invalid emails");
-    }
     if (userExists) {
       res.status(400);
       throw new Error("User already exists");
     }
-    const newUser = {
-      name, email, password, phone, isAdmin
-    }
 
-    const activation_token = createActivationToken(newUser);
-    const url = `${CLIENT_URL}/account/activate/${activation_token}`;
-    sendMail(email, url, "Verify your email address");
-    res.json('Thanks for your registration, please check your mail!')
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password,
+    });
+
+    if (user) { 
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        token: generateToken(user._id),
+      });
+    } else {
+      res.status(400);
+      throw new Error("Invalid User Data");
+    }
   })
-);
+); 
+
 //FORGOT PASS
 userRouter.post(
   "/forgotpass",

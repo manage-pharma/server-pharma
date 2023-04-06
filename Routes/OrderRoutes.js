@@ -74,18 +74,19 @@ orderRouter.get(
   //protect,
   //admin,
   asyncHandler(async (req, res) => {
-    const from = req.query.from;
-    const to = req.query.to;
+    const from = req.query.from
+    const to = req.query.to
     const D2D =
-      from && to
+      from!=='' && to!==''
         ? {
-          receivedAt: {
-              $gte: from,
-              $lte: to,
+          completedAt: {
+              $gte: new Date(from),
+              $lte: new Date(to),
             },
           }
         : {};
-    const orders = await Order.find({...D2D,isReceived:true})
+        console.log({from,to});
+    const orders = await Order.find({...D2D,isSuccess:true})
       .sort({ _id: -1 })
       .populate("user", "id name email");
     res.json(orders);
@@ -341,7 +342,7 @@ orderRouter.get(
     if (order) {
       order.status=[...order.status,{level:2,status:"Đã xác nhận",date:Date.now()}]
       order.isComformed=true
-      order.conformedAt=Date.now()
+      order.conformedAt=moment(new Date(Date.now())).format('YYYY-MM-DD')
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
@@ -390,7 +391,7 @@ orderRouter.put(
 
     if (order) {
       order.isDelivered = true;
-      order.deliveredAt = Date.now();
+      order.deliveredAt = moment(new Date(Date.now())).format('YYYY-MM-DD')
       order.status=[...order.status,{level:5,status:"Đang vận chuyển",date:Date.now()}]
 
       const updatedOrder = await order.save();
@@ -413,7 +414,7 @@ orderRouter.get(
     if (order) {
       order.status=[...order.status,{level:6,status:"Nhận hàng thành công",date:Date.now()}]
       order.isReceived=true
-      order.receivedAt=Date.now()
+      order.receivedAt=moment(new Date(Date.now())).format('YYYY-MM-DD')
       order.isPaid=true
       order.paidAt=Date.now()
       const updatedOrder = await order.save();
@@ -435,7 +436,7 @@ orderRouter.get(
     if (order) {
       order.isSuccess = true;
       order.status=[...order.status,{level:7,status:"Hoàn tất đơn hàng",date:Date.now()}]
-      
+      order.completedAt=moment(new Date(Date.now())).format('YYYY-MM-DD')
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
