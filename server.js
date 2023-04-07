@@ -4,6 +4,7 @@ import connectDatabase from "./config/MongoDB.js";
 import ImportData from "./ImportData.js";
 import productRoute from "./Routes/ProductRoutes.js";
 import userRouter from "./Routes/UserRoutes.js";
+import customerRouter from "./Routes/CustomerRoutes.js";
 import { errorHandler, notFound } from "./Middleware/Errors.js";
 import orderRouter from "./Routes/OrderRoutes.js";
 import categoryRouter from "./Routes/CategoryRoutes.js";
@@ -32,7 +33,8 @@ app.use(express.json());
 //API
 app.use("/api/import", ImportData);
 app.use("/api/products", productRoute);
-app.use("/api/users", userRouter);
+app.use("/api/users", userRouter);//customerRouter
+app.use("/api/customers", customerRouter);//customerRouter
 app.use("/api/orders", orderRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/category-drug", categoryDrugRouter);
