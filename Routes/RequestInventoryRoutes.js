@@ -1,7 +1,7 @@
 import express from "express";
 import crypto from 'crypto';
 import asyncHandler from "express-async-handler";
-import { admin, protect } from "../Middleware/AuthMiddleware.js";
+import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
 import { logger } from "../utils/logger.js";
 import moment from 'moment';
 import RequestInventory from "../Models/RequestInventoryModel.js";
@@ -12,6 +12,7 @@ const requestInventoryRoutes = express.Router();
 // ADMIN GET ALL IMPORT STOCK
 requestInventoryRoutes.get("/",
     protect,
+    userRoleInventory,
     asyncHandler(async (req, res) => {
         const keyword = req.query.keyword && req.query.keyword != ' ' ? {
             requestCode: {
@@ -46,6 +47,7 @@ requestInventoryRoutes.get("/",
 requestInventoryRoutes.post(
   "/",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const {
@@ -81,6 +83,7 @@ requestInventoryRoutes.post(
 requestInventoryRoutes.get(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     const order = await RequestInventory.findById(req.params.id).populate(
       "user",
@@ -105,7 +108,7 @@ requestInventoryRoutes.get(
 requestInventoryRoutes.put(
   "/:id/status",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisRequest = await RequestInventory.findById(req.params.id);
@@ -129,6 +132,7 @@ requestInventoryRoutes.put(
 requestInventoryRoutes.put(
   "/:id",
   protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     try {
       const thisRequest = await RequestInventory.findById(req.params.id);
@@ -164,7 +168,7 @@ requestInventoryRoutes.put(
 requestInventoryRoutes.put(
   "/:id/cancel",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     try {
       const thisRequest = await RequestInventory.findById(req.params.id);

@@ -138,6 +138,9 @@ const orderSchema=mongoose.Schema(
     receivedAt: {
       type: Date,
     },
+    completedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
