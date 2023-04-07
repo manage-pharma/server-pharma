@@ -63,6 +63,12 @@ content-type: application/json
 GET http://localhost:5000/api/inventory/tag?keyword=6402cfcadbae6faeb6f16cb8&from=2023-02-01T00:00:00.000Z&to=2023-03-28T00:00:00.000Z
 
 ###
+GET http://localhost:5000/api/inventory?oh=OH0&keyword=Salonpas
+
+###
+GET http://localhost:5000/api/inventory?oh=OH0&exp=HSD0
+
+###
 GET http://localhost:5000/api/content
 
 ###

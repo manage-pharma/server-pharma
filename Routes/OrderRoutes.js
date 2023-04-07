@@ -1,6 +1,6 @@
 ﻿import express from "express";
 import asyncHandler from "express-async-handler";
-import { admin, protect } from "../Middleware/AuthMiddleware.js";
+import { admin, protect, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
 import Order from "../Models/OrderModel.js";
 import DrugStore from '../Models/DrugStoreModel.js';
 import moment from 'moment';
@@ -59,7 +59,7 @@ orderRouter.post(
 orderRouter.get(
   "/all",
   protect,
-  admin,
+  userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const orders = await Order.find({})
       .sort({ _id: -1 })
