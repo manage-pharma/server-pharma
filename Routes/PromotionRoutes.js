@@ -1,7 +1,7 @@
 import express, { application } from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protect, admin, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
 import Promotion from '../Models/PromotionModel.js';
@@ -69,7 +69,7 @@ promotionRouter.get(
 promotionRouter.post(
     "/",
     protect,
-    admin,
+    userRoleSaleAgent,
     asyncHandler(async(req, res)=>{
         const {name,discount,startOn,endOn} = req.body
         const promotionExist = await Promotion.findOne({name});
@@ -101,7 +101,7 @@ promotionRouter.post(
 promotionRouter.put(
   "/:id",
   protect,
-  admin,
+  userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const { name, discount,startOn,endOn } = req.body;
     const promotion = await Promotion.findById(req.params.id);
@@ -127,7 +127,7 @@ promotionRouter.put(
 promotionRouter.delete(
   "/:id",
   protect,
-  admin,
+  userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const promotion = await Promotion.findById(req.params.id);
     if (promotion) {

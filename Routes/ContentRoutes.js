@@ -1,7 +1,7 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protect, admin, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
 import cors from "cors"
 import Content from './../Models/ContentModel.js';
 const contentRouter = express.Router();
@@ -30,7 +30,7 @@ contentRouter.get("/",
 contentRouter.put(
   "/",
  protect,
-  admin,
+  userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const { logo,phone,banners,companyName,companyAddress,links,contacts,zaloUrl,fbUrl,qrCode} = req.body;
     const content = await Content.findOne({}).exec();

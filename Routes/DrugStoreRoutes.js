@@ -1,7 +1,7 @@
 import express,{application} from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
-import {protect,admin} from "../Middleware/AuthMiddleware.js";
+import {protect,admin, userRoleSaleAgent} from "../Middleware/AuthMiddleware.js";
 import multer from "multer"
 import cors from "cors"
 import DrugStore from '../Models/DrugStoreModel.js';
@@ -729,7 +729,7 @@ drugStoreRouter.get(
 drugStoreRouter.put(
     "/:id",
     protect,
-    admin,
+    userRoleSaleAgent,
     asyncHandler(async (req,res) => {
         const {countInStock,isActive,discount,refunded,discountDetail}=req.body;
         const drugStoreStock=await DrugStore.findById(req.params.id);
