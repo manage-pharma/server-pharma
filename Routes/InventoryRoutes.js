@@ -9,68 +9,132 @@ const day = moment(Date.now());
 
 inventoryRoutes.get("/",
   asyncHandler(async (req, res)=>{
-      await Inventory.aggregate([
-        {
-          $group: {
-            _id: "$idDrug",
-            total_count: { $sum: "$count"},
-            products: { $push: "$$ROOT" }
-          }
-        },
-        {
-          $lookup: {
-            from: 'products',
-            let: { productId: "$_id" },
-            pipeline: [
-              { $match: { $expr: { $eq: ["$_id", "$$productId"] } } },
-              { $project: { name: 1, unit: 1, category: 1, categoryDrug: 1, image: 1 } },
-              {
-                $lookup: {
-                  from: "categories",
-                  localField: "category",
-                  foreignField: "_id",
-                  as: "category"
-                }
-              },
-              {
-                $lookup: {
-                  from: "categorydrugs",
-                  localField: "categoryDrug",
-                  foreignField: "_id",
-                  as: "categoryDrug"
-                }
-              },
-            ],
-            as: 'product'
-          }
-        },
-        { $unwind: "$product" },
-        {
-          $project: {
-            _id: 0,
-            idDrug: "$_id",
-            name: "$product.name",
-            image: "$product.image",
-            unit: "$product.unit",
-            category: "$product.category.name",
-            categoryDrug: "$product.categoryDrug.name",
-            total_count: 1,
-            products: 1,
-          }
-        },
-      ], function(err, result) {
-        if (err) {
-            return res.status(404).json({ message: err });
-        } else {
-          const keyword = req.query.keyword ? req.query.keyword : ''
-          const filteredResult = result.filter(item => {
-            return item.name.includes(keyword);
-          });
-          res.json(filteredResult);
+    const oh = req.query.oh;
+    const exp = req.query.exp;
+    let countFilter = {};
+    let expFilterOH0 = {};
+  
+    if (oh === "OH2") {
+      countFilter = { $gt: 30 };
+    } else if (oh === "OH1") {
+      countFilter = { $gte: 1, $lte: 30 };
+    } else if (oh === "OH0") {
+      countFilter = { $lte: 0 };
+    }else{
+      countFilter = { $exists: true }; 
+    }
+
+    if(exp === "HSD0") 
+    {
+      expFilterOH0 = { $lte: new Date() } 
+    }
+    else{
+      expFilterOH0 = { $exists: true };
+    }
+    await Inventory.aggregate([
+      {
+        $match: {
+          $and: [
+            { "count": countFilter },
+            { "expDrug": expFilterOH0 }
+          ]
         }
-      });
+      },
+      {
+        $group: {
+          _id: "$idDrug",
+          total_count: { $sum: "$count" },
+          products: { $push: "$$ROOT" }
+        }
+      },
+      {
+        $lookup: {
+          from: "products",
+          let: { productId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$productId"] } } },
+            {
+              $lookup: {
+                from: "categories",
+                localField: "category",
+                foreignField: "_id",
+                as: "category"
+              }
+            },
+            {
+              $lookup: {
+                from: "categorydrugs",
+                localField: "categoryDrug",
+                foreignField: "_id",
+                as: "categoryDrug"
+              }
+            },
+            { $project: { name: 1, unit: 1, category: { $arrayElemAt: ["$category.name", 0] }, categoryDrug: { $arrayElemAt: ["$categoryDrug.name", 0] }, image: 1 } }
+          ],
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $project: {
+          _id: 0,
+          idDrug: "$_id",
+          name: "$product.name",
+          image: "$product.image",
+          unit: "$product.unit",
+          category: "$product.category",
+          categoryDrug: "$product.categoryDrug",
+          total_count: 1,
+          products: 1,
+        }
+      },
+      {
+        $match: {
+          "name": { $regex: new RegExp(req.query.keyword, 'i') }
+        }
+      }
+    ], function(err, result) {
+      if (err) {
+          return res.status(404).json({ message: err });
+      } else {   
+        
+        function getEXP(item) {
+          const arr = []
+          if (exp === "HSD2") {
+            for(let i = 0 ; i < item?.products?.length; i++){
+              if(Math.round((moment(item?.products[i]?.expDrug) - moment(Date.now())) / (30.4 * 24 * 60 * 60 * 1000)) > +(item?.products[i]?.expProduct/2) ){
+                arr.push(item?.products[i])
+              }
+            }
+            return {
+              ...item,
+              products: arr
+            }
+          }
+          else if (exp === "HSD1") {
+            for(let i = 0 ; i < item?.products?.length; i++){
+              if(Math.round((moment(item?.products[i]?.expDrug) - moment(Date.now())) / (30.44 * 24 * 60 * 60 * 1000)) <= +(item?.products[i]?.expProduct/2) && Math.round((moment(item?.products[i]?.expDrug) - moment(Date.now())) / (24 * 60 * 60 * 1000)) >= 15  ){
+                arr.push(item?.products[i])
+              }
+            }
+            return {
+              ...item,
+              products: arr
+            }
+          } 
+        }
+  
+        const filteredResult = result.map(item => {
+          return getEXP(item)?.products?.length > 0 ?  getEXP(item) : {};
+        });
+        
+        const finalResult = (exp === "HSD2" || exp === "HSD1") ? filteredResult.filter(item => Object.keys(item).length !== 0) : result 
+        res.json(finalResult);
+      }
+    });
   })
 );
+
 
 // get to check inventory
 inventoryRoutes.get("/check",
@@ -274,6 +338,9 @@ inventoryRoutes.get("/tag",
     })
 );
 export default inventoryRoutes
+
+// console.log(`${item?.products[i]?.lotNumber} :${Math.round((moment(item?.products[i]?.expDrug) - moment(Date.now())) / (24 * 60 * 60 * 1000))}`)
+// console.log(`${item?.products[i]?.lotNumber} đã vô`)
 
 // const resultsExportByLotNumber = resultsExport.reduce((acc, inventory) => {
 //   if (!acc[inventory.lotNumber]) {
