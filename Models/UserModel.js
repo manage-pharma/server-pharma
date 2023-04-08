@@ -20,11 +20,6 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    pCoin: {
-      type: Number,
-      required: true,
-      default: 0
-    },
     isAdmin: {
       type: Boolean,
       required: true,
@@ -34,6 +29,10 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       default: 'userDefault',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     }
   },
   {
