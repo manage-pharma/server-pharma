@@ -9,7 +9,7 @@ import sendMail from "./../config/sendMail.js"
 import notification from "./../config/notification.js"
 import { google } from 'googleapis';
 import bcrypt from "bcryptjs";
-
+import { logger } from '../utils/logger.js';
 const {OAuth2} = google.auth;
 const client = new OAuth2(process.env.MAILING_SERVICE_CLIENT_ID)
 const { CLIENT_URL } = process.env
@@ -29,7 +29,7 @@ userRouter.post(
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
+    if (user && !user.isDeleted && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
         name: user.name,
@@ -38,7 +38,6 @@ userRouter.post(
         phone: user.phone,
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
-        pCoin:user.pCoin,
         createdAt: user.createdAt,
         methodLogin: 'Account'
       });
@@ -251,7 +250,6 @@ userRouter.get(
         email: user.email,
         phone: user.phone,
         isAdmin: user.isAdmin,
-        pCoin: user.pCoin,
         createdAt: user.createdAt,
         
       });
@@ -313,7 +311,7 @@ userRouter.get(
       ]
       
   } : {}
-    const users = await User.find({...keyword}).sort({ _id: -1 })
+    const users = await User.find({...keyword, isDeleted: { $ne: true } }).sort({ _id: -1 })
     res.json(users);
   })
 );
@@ -381,22 +379,6 @@ userRouter.get(
   })
 )
 
-userRouter.get(
-  "/:id/inc-coin",
-  //protect,
-  asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id);
-    if (user) {
-      user.pCoin = Number(user.pCoin)+Number(req.query.coin)
-      const updatedUser = await user.save();
-      res.json(updatedUser);
-    } else {
-      res.status(404);
-      throw new Error("Không tìm thấy người dùng");
-    }
-  })
-);
-
 //UPDATE USER IN ADMIN
 userRouter.put(
   "/:id",
@@ -429,4 +411,29 @@ userRouter.put(
     }
   })
 );
+
+// UPDATE STATUS
+userRouter.put(
+  "/:id/delete",
+  protect,
+  userRoleAdmin,
+  asyncHandler(async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+      if (user) {
+        user.isDeleted = true;
+        const deletedUser = await user.save();
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} User is deleted 👉 Post: 200`, { user: req.user.name, deletedUser })
+        res.json(deletedUser);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Không tìm thấy người dùng");
+      }
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  })
+);
+
 export default userRouter
