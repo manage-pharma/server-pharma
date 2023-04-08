@@ -1,6 +1,6 @@
 ﻿import express from "express";
 import asyncHandler from "express-async-handler";
-import { admin, protect, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
+import { admin, protect,protectCustomer, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
 import Order from "../Models/OrderModel.js";
 import DrugStore from '../Models/DrugStoreModel.js';
 import moment from 'moment';
@@ -11,7 +11,7 @@ const orderRouter = express.Router();
 // CREATE ORDER
 orderRouter.post(
   "/",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const {
       orderItems,
@@ -26,6 +26,7 @@ orderRouter.post(
     } = req.body;
 
     console.log({orderBefore:req.body})
+    console.log(req.user);
 
     if (orderItems && orderItems.length === 0) {
       res.status(400);
@@ -58,8 +59,8 @@ orderRouter.post(
 // ADMIN GET ALL ORDERS
 orderRouter.get(
   "/all",
-  protect,
-  userRoleSaleAgent,
+  //protect,
+  //userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const orders = await Order.find({})
       .sort({ _id: -1 })
@@ -72,7 +73,7 @@ orderRouter.get(
 orderRouter.get(
   "/all-check",
   //protect,
-  //admin,
+  userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const from = req.query.from
     const to = req.query.to
@@ -97,9 +98,30 @@ orderRouter.get(
 // GET ORDER BY ID
 orderRouter.get(
   "/:id",
-  //protect,
+  //userRoleSaleAgent,
   asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id).populate(
+    const order = await Order.findById(req.params.id)
+    .populate(
+      "user",
+      "name email"
+    );
+
+    if (order) {
+      res.json(order);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+// GET ORDER BY User
+orderRouter.get(
+  "/:id/UserGet",
+  //protectCustomer,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id)
+    .populate(
       "user",
       "name email"
     );
@@ -148,7 +170,7 @@ orderRouter.get(
 // USER LIST ORDERS
 orderRouter.get(
   "/",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const order = await Order.find({ user: req.user._id }).sort({ _id: -1 });
     res.json(order);
@@ -292,7 +314,7 @@ const checkStock=(drugStoreStock,num)=>{
 // CANCEL ORDER 
 orderRouter.get(
   "/:id/cancel",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 
@@ -315,12 +337,33 @@ orderRouter.get(
 orderRouter.get(
   "/:id/canceled",
   protect,
+  admin,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (order) {
       order.isCanceled = true;
       order.status=[...order.status,{level:0,status:"Đã hủy",date:Date.now()}]
+      order.canceledAt=Date.now()
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+// ORDER IS CANCELED
+orderRouter.get(
+  "/:id/AdminCanceled",
+  protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isCanceled = true;
+      order.status=[...order.status,{level:0,status:"Admin Đã hủy",date:Date.now()}]
       order.canceledAt=Date.now()
       const updatedOrder = await order.save();
       res.json(updatedOrder);
@@ -407,7 +450,7 @@ orderRouter.put(
 //ORDER IS RECIVED
 orderRouter.get(
   "/:id/received",
-  //protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import Customer from "../Models/CustomerModel.js";
 import moment from 'moment';
-import { protect, admin } from "../Middleware/AuthMiddleware.js";
+import { protectCustomer, admin } from "../Middleware/AuthMiddleware.js";
 import {generateToken, createActivationToken} from "../utils/generateToken.js";
 import sendMail from "../config/sendMail.js"
 import notification from "../config/notification.js"
@@ -241,9 +241,9 @@ customerRouter.post(
 //PROFILE
 customerRouter.get(
   "/profile",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
-    const customer = await Customer.findById(req.customer._id);
+    const customer = await Customer.findById(req.user._id);
     if (customer) {
       res.json({
         _id: customer._id,
@@ -264,9 +264,9 @@ customerRouter.get(
 // UPDATE PROFILE
 customerRouter.put(
   "/profile",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
-    const customer = await Customer.findById(req.customer._id);
+    const customer = await Customer.findById(req.user._id);
 
     if (customer) {
       customer.name = req.body.name || customer.name;
@@ -294,7 +294,7 @@ customerRouter.put(
 // GET ALL USER ADMIN
 customerRouter.get(
   "/",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
       $or:[
@@ -318,9 +318,9 @@ customerRouter.get(
   })
 );
 // GET USER DATA FOR APP MOBILE
-customerRouter.get("/getAppCustomerData", protect, async (req, res) => {
+customerRouter.get("/getAppCustomerData", protectCustomer, async (req, res) => {
 
-  const customer = await Customer.findById(req.customer);
+  const customer = await Customer.findById(req.user);
   console.log(customer)
   res.json({ ...customer._doc, token: req.token });
 });
@@ -329,7 +329,7 @@ customerRouter.get("/getAppCustomerData", protect, async (req, res) => {
 // CREATE ACCOUNT IN ADMIN
 customerRouter.post(
   "/add",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const { name, email, role, password, phone } = req.body;
     const customerExists = await Customer.findOne({ email });
@@ -366,7 +366,7 @@ customerRouter.post(
 //GET SINGLE USER IN ADMIN
 customerRouter.get(
   "/:id",
-  protect,
+  protectCustomer,
 
   asyncHandler(async (req, res) => {
       const customer = await Customer.findById(req.params.id)
@@ -382,7 +382,7 @@ customerRouter.get(
 
 customerRouter.get(
   "/:id/inc-coin",
-  //protect,
+  //protectCustomer,
   asyncHandler(async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (customer) {
@@ -399,7 +399,7 @@ customerRouter.get(
 //UPDATE USER IN ADMIN
 customerRouter.put(
   "/:id",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (customer) {
