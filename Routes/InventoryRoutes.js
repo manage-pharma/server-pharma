@@ -9,10 +9,10 @@ const day = moment(Date.now());
 
 inventoryRoutes.get("/",
   asyncHandler(async (req, res)=>{
-    const oh = req.query.oh;
-    const exp = req.query.exp;
+    const { oh, exp, from, to } = req.query;
     let countFilter = {};
     let expFilterOH0 = {};
+    let expFromTo = {};
   
     if (oh === "OH2") {
       countFilter = { $gt: 30 };
@@ -31,12 +31,24 @@ inventoryRoutes.get("/",
     else{
       expFilterOH0 = { $exists: true };
     }
+
+    if (from && to) {
+      expFromTo["$gte"] = new Date(from);
+      expFromTo["$lte"] = new Date(to);
+    } else if (from) {
+      expFromTo["$gte"] = new Date(from);
+    } else if (to) {
+      expFromTo["$lte"] = new Date(to);
+    } else {
+      expFromTo["$exists"] = true;
+    }
     await Inventory.aggregate([
       {
         $match: {
           $and: [
             { "count": countFilter },
-            { "expDrug": expFilterOH0 }
+            { "expDrug": expFilterOH0 },
+            { "expDrug": expFromTo }
           ]
         }
       },
@@ -90,8 +102,12 @@ inventoryRoutes.get("/",
       },
       {
         $match: {
-          "name": { $regex: new RegExp(req.query.keyword, 'i') }
+          $or: [
+            { "name": { $regex: new RegExp(req.query.keyword, 'i') } },
+            { "products": { $elemMatch: { "lotNumber": { $regex: new RegExp(req.query.keyword, 'i') } } } }
+          ]
         }
+        
       }
     ], function(err, result) {
       if (err) {
