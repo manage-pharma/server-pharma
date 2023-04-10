@@ -3,12 +3,13 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import Customer from "../Models/CustomerModel.js";
 import moment from 'moment';
-import { protectCustomer, admin } from "../Middleware/AuthMiddleware.js";
+import { protectCustomer, admin,protect } from "../Middleware/AuthMiddleware.js";
 import {generateToken, createActivationToken} from "../utils/generateToken.js";
 import sendMail from "../config/sendMail.js"
 import notification from "../config/notification.js"
 import { google } from 'googleapis';
 import bcrypt from "bcryptjs";
+import {logger} from "../utils/logger.js";
 
 const {OAuth2} = google.auth;
 const client = new OAuth2(process.env.MAILING_SERVICE_CLIENT_ID)
@@ -230,7 +231,7 @@ customerRouter.post(
       const customer = await Customer.findOne({email})
       if(customer && (await customer.matchPassword(password))){
         const url = `${CLIENT_URL}/login`
-        notification(email, url, "Login")
+        //notification(email, url, "Login")
         res.json('Đã xác thực, bạn đã có thể cập nhật thông tin.')
       }
       else{
@@ -243,7 +244,7 @@ customerRouter.get(
   "/profile",
   protectCustomer,
   asyncHandler(async (req, res) => {
-    const customer = await Customer.findById(req.user._id);
+    const customer = await Customer.findById(req.customer._id);
     if (customer) {
       res.json({
         _id: customer._id,
@@ -264,9 +265,39 @@ customerRouter.get(
 // UPDATE PROFILE
 customerRouter.put(
   "/profile",
-  protectCustomer,
+  //protectCustomer,
   asyncHandler(async (req, res) => {
-    const customer = await Customer.findById(req.user._id);
+    const customer = await Customer.findById(req.customer._id);
+
+    if (customer) {
+      customer.name = req.body.name || customer.name;
+      customer.email = req.body.email || customer.email;
+      customer.phone = req.body.phone || customer.phone;
+      if (req.body.password) {
+        customer.password = req.body.password;
+      }
+      const updatedCustomer = await customer.save();
+      res.json({
+        _id: updatedCustomer._id,
+        name: updatedCustomer.name,
+        email: updatedCustomer.email,
+        phone: updatedCustomer.phone,
+        isAdmin: updatedCustomer.isAdmin,
+        createdAt: updatedCustomer.createdAt,
+        token: generateToken(updatedCustomer._id),
+      });
+    } else {
+      res.status(404);
+      throw new Error("Không tìm thấy người dùng");
+    }
+  })
+);
+
+customerRouter.put(
+  "/:id/profile",
+  //protectCustomer,
+  asyncHandler(async (req, res) => {
+    const customer = await Customer.findById(req.params.id);
 
     if (customer) {
       customer.name = req.body.name || customer.name;
@@ -320,7 +351,7 @@ customerRouter.get(
 // GET USER DATA FOR APP MOBILE
 customerRouter.get("/getAppCustomerData", protectCustomer, async (req, res) => {
 
-  const customer = await Customer.findById(req.user);
+  const customer = await Customer.findById(req.customer);
   console.log(customer)
   res.json({ ...customer._doc, token: req.token });
 });
@@ -366,7 +397,7 @@ customerRouter.post(
 //GET SINGLE USER IN ADMIN
 customerRouter.get(
   "/:id",
-  protectCustomer,
+  //protectCustomer,
 
   asyncHandler(async (req, res) => {
       const customer = await Customer.findById(req.params.id)
@@ -424,6 +455,31 @@ customerRouter.put(
     } else {
       res.status(404);
       throw new Error("Không tìm thấy người dùng");
+    }
+  })
+);
+
+
+// UPDATE STATUS
+customerRouter.put(
+  "/:id/delete",
+  protect,
+  //customerRoleAdmin,
+  asyncHandler(async (req, res) => {
+    try {
+      const customer = await Customer.findById(req.params.id);
+      if (customer) {
+        customer.isDeleted = true;
+        const deletedCustomer = await customer.save();
+        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Customer is deleted 👉 Post: 200`, { customer: req.user.name, deletedCustomer })
+        res.json(deletedCustomer);
+      } 
+      else {
+        res.status(404);
+        throw new Error("Không tìm thấy người dùng");
+      }
+    } catch (error) {
+      throw new Error(error.message)
     }
   })
 );
