@@ -1,6 +1,6 @@
 ﻿import express from "express";
 import asyncHandler from "express-async-handler";
-import { admin, protect,protectCustomer, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
+import { admin, protect,protectCustomer, userRoleInventory, userRoleSaleAgent } from "../Middleware/AuthMiddleware.js";
 import Order from "../Models/OrderModel.js";
 import DrugStore from '../Models/DrugStoreModel.js';
 import moment from 'moment';
@@ -59,8 +59,8 @@ orderRouter.post(
 // ADMIN GET ALL ORDERS
 orderRouter.get(
   "/all",
-  //protect,
-  //userRoleSaleAgent,
+  protect,
+  userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const orders = await Order.find({})
       .sort({ _id: -1 })
@@ -72,7 +72,7 @@ orderRouter.get(
 // ADMIN GET ALL ORDERS
 orderRouter.get(
   "/all-check",
-  //protect,
+  protect,
   userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const from = req.query.from
@@ -314,6 +314,7 @@ const checkStock=(drugStoreStock,num)=>{
 // CANCEL ORDER 
 orderRouter.get(
   "/:id/cancel",
+  protect,
   protectCustomer,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
