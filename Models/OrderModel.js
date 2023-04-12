@@ -141,6 +141,15 @@ const orderSchema=mongoose.Schema(
     completedAt: {
       type: Date,
     },
+  //  orderStock: [
+  //    {
+  //        _id: false,
+  //        lotNumber: {type: String, require: true},
+  //        expDrug: {type: Date, require: true},
+  //        count: {type: Number, require: true},
+  //        priority: {type: Number, require: true, default: 0}
+  //    }
+  //],
   },
   {
     timestamps: true,

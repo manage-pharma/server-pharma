@@ -276,7 +276,7 @@ customerRouter.put(
       customer.name = req.body.name || customer.name;
       customer.email = req.body.email || customer.email;
       customer.phone = req.body.phone || customer.phone;
-      customer.address = req.body.address || customer.phone;
+      customer.address = req.body.address || customer.address;
       customer.gender = req.body.gender || customer.gender;
       customer.dateOfBirth = req.body.dateOfBirth || customer.dateOfBirth;
       if (req.body.password) {
