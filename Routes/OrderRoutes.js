@@ -94,6 +94,38 @@ orderRouter.get(
   })
 );
 
+// ADMIN GET ALL ORDERS
+orderRouter.get(
+  "/all-search",
+  protect,
+  userRoleSaleAgent,
+  asyncHandler(async (req, res) => {
+    const from = req.query.from
+    const to = req.query.to
+    const D2D =
+      from!=='' && to!==''
+        ? {
+          createdAt: {
+              $gte: new Date(from),
+              $lte: new Date(to),
+            },
+          }
+        : {};
+        console.log({from,to});
+    const orders = await Order.find({...D2D})
+      .sort({ _id: -1 })
+      .populate("user", "id name email");
+
+      const keyword = req.query.keyword
+          const filteredResult = orders.filter(item => {
+            
+            return item?.user?.name?.includes(keyword);
+          });
+        
+    res.json(filteredResult);
+  })
+);
+
 
 // GET ORDER BY ID
 orderRouter.get(

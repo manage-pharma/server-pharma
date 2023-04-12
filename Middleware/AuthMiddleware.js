@@ -71,6 +71,19 @@ const userRoleSaleAgent = (req, res, next) => {
     throw new Error("Chức năng này không được hỗ trợ");
   }
 };
+
+
+// user inventory
+const userRoleShare = (req, res, next) => {
+  if (req.user && req.user.role === "isAdmin" || req.user.role === 'isInventory'||req.user.role === 'isSaleAgent') {
+    next();
+  } else {
+    res.status(401);
+    throw new Error("Chức năng này không được hỗ trợ");
+  }
+};
+
+
 // user role admin
 const userRoleAdmin = (req, res, next) => {
   if (req.user && req.user.role === "isAdmin") {

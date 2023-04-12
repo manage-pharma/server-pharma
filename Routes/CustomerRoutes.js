@@ -244,7 +244,7 @@ customerRouter.get(
   "/profile",
   protectCustomer,
   asyncHandler(async (req, res) => {
-    const customer = await Customer.findById(req.customer._id);
+    const customer = await Customer.findById(req.user._id);
     if (customer) {
       res.json({
         _id: customer._id,
@@ -253,6 +253,9 @@ customerRouter.get(
         phone: customer.phone,
         isAdmin: customer.isAdmin,
         pCoin: customer.pCoin,
+        address: customer.address,
+        dateOfBirth: customer.dateOfBirth,
+        gender: customer.gender,
         createdAt: customer.createdAt,
         
       });
@@ -265,14 +268,17 @@ customerRouter.get(
 // UPDATE PROFILE
 customerRouter.put(
   "/profile",
-  //protectCustomer,
+  protectCustomer,//
   asyncHandler(async (req, res) => {
-    const customer = await Customer.findById(req.customer._id);
+    const customer = await Customer.findById(req.user._id);
 
     if (customer) {
       customer.name = req.body.name || customer.name;
       customer.email = req.body.email || customer.email;
       customer.phone = req.body.phone || customer.phone;
+      customer.address = req.body.address || customer.phone;
+      customer.gender = req.body.gender || customer.gender;
+      customer.dateOfBirth = req.body.dateOfBirth || customer.dateOfBirth;
       if (req.body.password) {
         customer.password = req.body.password;
       }
@@ -282,6 +288,9 @@ customerRouter.put(
         name: updatedCustomer.name,
         email: updatedCustomer.email,
         phone: updatedCustomer.phone,
+        address: updatedCustomer.address,
+        dateOfBirth: updatedCustomer.dateOfBirth,
+        gender: updatedCustomer.gender,
         isAdmin: updatedCustomer.isAdmin,
         createdAt: updatedCustomer.createdAt,
         token: generateToken(updatedCustomer._id),
@@ -303,6 +312,10 @@ customerRouter.put(
       customer.name = req.body.name || customer.name;
       customer.email = req.body.email || customer.email;
       customer.phone = req.body.phone || customer.phone;
+      customer.address = req.body.address || customer.phone;
+      customer.gender = req.body.gender || customer.gender;
+      customer.dateOfBirth = req.body.dateOfBirth || customer.dateOfBirth;
+      customer.totalOrder = req.body.totalOrder || customer.totalOrder;
       if (req.body.password) {
         customer.password = req.body.password;
       }
@@ -311,6 +324,9 @@ customerRouter.put(
         _id: updatedCustomer._id,
         name: updatedCustomer.name,
         email: updatedCustomer.email,
+        address: updatedCustomer.address,
+        dateOfBirth: updatedCustomer.dateOfBirth,
+        gender: updatedCustomer.gender,
         phone: updatedCustomer.phone,
         isAdmin: updatedCustomer.isAdmin,
         createdAt: updatedCustomer.createdAt,
@@ -385,6 +401,9 @@ customerRouter.post(
         role: customer.role,
         email: customer.email,
         phone: customer.phone,
+        address: customer.address,
+        dateOfBirth: customer.dateOfBirth,
+        gender: customer.gender,
         token: generateToken(customer._id),
       });
     } else {
@@ -397,7 +416,7 @@ customerRouter.post(
 //GET SINGLE USER IN ADMIN
 customerRouter.get(
   "/:id",
-  //protectCustomer,
+  protectCustomer,
 
   asyncHandler(async (req, res) => {
       const customer = await Customer.findById(req.params.id)
@@ -418,6 +437,7 @@ customerRouter.get(
     const customer = await Customer.findById(req.params.id);
     if (customer) {
       customer.pCoin = Number(customer.pCoin)+Number(req.query.coin)
+      customer.totalOrder=Number(customer.totalOrder)+1
       const updatedCustomer = await customer.save();
       res.json(updatedCustomer);
     } else {

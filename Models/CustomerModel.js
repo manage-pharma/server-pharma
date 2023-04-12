@@ -16,6 +16,19 @@ const customerSchema = mongoose.Schema(
       type: String,
       unique: true,
     },
+    address: {
+      type: String,
+      
+      default :""
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+    gender: {
+      type: Number,
+      
+      default :0
+    },
     password: {
       type: String,
       required: true,
@@ -38,7 +51,11 @@ const customerSchema = mongoose.Schema(
       type: String,
       required: true,
       default: 'userDefault',
-    }
+    },//totalOrder
+    totalOrder: {
+      type: Number,
+      default :0
+    },
   },
   {
     timestamps: true,
