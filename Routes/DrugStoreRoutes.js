@@ -597,6 +597,24 @@ function findMinPos(lots) {
     }
     return drugStoreStock
   }
+
+  function updateCount(A, B) {
+    let result = [];
+    for (let i = 0; i < A.length; i++) {
+      let obj = Object.assign({}, A[i]);
+      for (let j = 0; j < B.length; j++) {
+        if (A[i].lotNumber === B[j].lotNumber) {
+          obj.count = A[i].count-B[j].count;
+          break;
+        }
+      }
+      result.push(obj);
+    }
+    return result;
+  }
+  
+
+
 drugStoreRouter.get(
     "/:id/update-stock",
     //protect,
@@ -615,6 +633,7 @@ drugStoreRouter.get(
           });
 
         newStock=filteredItems
+        const originalArray =JSON.parse(JSON.stringify(filteredItems));
         console.log("newStock",newStock)  
 
 
@@ -623,9 +642,13 @@ drugStoreRouter.get(
         const drugStoreStock=await DrugStore.findById(req.params.id);
         if(drugStoreStock) {
             drugStoreStock.stock=updateStock(newStock,num);
+            
             const updateddrugStore=await drugStoreStock.save();
+
+            
             //res.json(updateddrugStore);
-            res.json({status:"success"});
+            res.json({status:"success",originalArray,orderStock:[...updateCount(originalArray,drugStoreStock.stock)]});
+            
         } else {
 
             //res.status(404);
@@ -677,6 +700,8 @@ drugStoreRouter.get(
           });
 
         newStock=filteredItems
+        
+        //const originalArray =JSON.parse(JSON.stringify(filteredItems));
         console.log("con han",newStock)  
         
         minIndex=findMinPos(newStock)
@@ -684,14 +709,59 @@ drugStoreRouter.get(
         console.log("newStock",newStock)  
 
         //const stock =updateStock(newStock,num)
-        if(checkStock(newStock,num)){
-            console.log("check",checkStock(newStock,num))
-            res.json(updateStock(newStock,num))
-        } 
-        else{
-            console.log("num lon")
-            res.json({err:"Rollback"})
-        } 
+        res.json(updateStock(newStock,num))
+        //if(checkStock(newStock,num)){
+        //    console.log("check",checkStock(newStock,num))
+            
+        //    //res.json(updateStock(newStock,num))
+            
+        //} 
+        //else{
+        //    console.log("num lon")
+        //    res.json({err:"Rollback"})
+        //} 
+            
+
+    })
+);
+drugStoreRouter.get(
+    "/:id/order-stock",
+    //protect,
+    //admin,
+    asyncHandler(async (req,res) => {
+        const currentDate = new Date();
+        const threeMonthsFromNow = new Date(currentDate.setMonth(currentDate.getMonth() + 3));
+        let num= req.query.num
+        var drugstore=[]
+        drugstore = await DrugStore.findById(req.params.id,{stock:1})
+        let minIndex = 0;
+        let newStock=drugstore?.stock
+        const filteredItems = newStock.filter(item => {
+            const expDate = new Date(item.expDrug);
+            return expDate > threeMonthsFromNow;
+          });
+
+        newStock=[...filteredItems]
+        
+        const originalArray =JSON.parse(JSON.stringify(filteredItems));
+        console.log("con han",newStock)  
+        
+        minIndex=findMinPos(newStock)
+
+        console.log("newStock",newStock)  
+
+        //const stock =updateStock(newStock,num)
+        res.json(updateCount(originalArray ,updateStock(newStock,num)))
+        //if(checkStock(newStock,num)){
+        //    console.log("check",checkStock(newStock,num))
+            
+        //    //res.json(updateStock(newStock,num))
+            
+        //} 
+        //else{
+        //    console.log("num lon")
+        //    res.json({err:"Rollback"})
+        //} 
             
 
     })

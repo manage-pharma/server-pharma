@@ -384,7 +384,7 @@ orderRouter.get(
   })
 );
 
-//ORDER IS RECIVED
+//ORDER IS COMPLETE
 orderRouter.get(
   "/:id/complete",
   //protect,
@@ -395,6 +395,27 @@ orderRouter.get(
       order.isSuccess = true;
       order.status=[...order.status,{level:7,status:"Hoàn tất đơn hàng",date:Date.now()}]
       order.completedAt=moment(new Date(Date.now())).format('YYYY-MM-DD')
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+//UPDATE DETAIL NUM OF LOT
+orderRouter.put(
+  "/:id/update-order-item",
+  //protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    console.log("newOrderItems",req.body);
+    console.log("order",order);
+
+    if (order) {
+      order.orderItems = req.body;
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
