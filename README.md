@@ -1,4 +1,4 @@
-### CÁCH CONFIG REPLICATE SET MONGODB
+### CONFIG REPLICATE SET MONGODB
 Tạo một mạng chung
 ```
 docker network create mongoNet
