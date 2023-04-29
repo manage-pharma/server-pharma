@@ -27,22 +27,31 @@ const validateEmail = (email) => {
 customerRouter.post(
   "/login",
   asyncHandler(async (req, res) => {
+
     const { email, password } = req.body;
     const customer = await Customer.findOne({ email });
 
     if (customer && (await customer.matchPassword(password))) {
-      res.json({
-        _id: customer._id,
-        name: customer.name,
-        email: customer.email,
-        role: customer.role,
-        phone: customer.phone,
-        isAdmin: customer.isAdmin,
-        token: generateToken(customer._id),
-        pCoin:customer.pCoin,
-        createdAt: customer.createdAt,
-        methodLogin: 'Account'
-      });
+      const currentDate = new Date();
+      const specificDate = new Date(customer?.lockTo)
+      if(currentDate.getTime() < specificDate.getTime()){
+        res.status(401);
+        throw new Error("Tài khoản bị khóa đến "+customer?.lockTo);
+      }else{
+        res.json({
+          _id: customer._id,
+          name: customer.name,
+          email: customer.email,
+          role: customer.role,
+          phone: customer.phone,
+          isAdmin: customer.isAdmin,
+          token: generateToken(customer._id),
+          pCoin:customer.pCoin,
+          createdAt: customer.createdAt,
+          methodLogin: 'Account'
+        });
+
+      }
       console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} postLogin 👉 Get: 200`)
     } else {
       res.status(401);
@@ -149,9 +158,6 @@ customerRouter.post(
   "/",
   asyncHandler(async (req, res) => {
     const { name, email,phone, password} = req.body;
-
-    console.log(req.body);
-
     const customerExists = await Customer.findOne({ email });
     if (customerExists) {
       res.status(400);
@@ -368,7 +374,6 @@ customerRouter.get(
 customerRouter.get("/getAppCustomerData", protectCustomer, async (req, res) => {
 
   const customer = await Customer.findById(req.customer);
-  console.log(customer)
   res.json({ ...customer._doc, token: req.token });
 });
 
@@ -488,8 +493,10 @@ customerRouter.put(
   asyncHandler(async (req, res) => {
     try {
       const customer = await Customer.findById(req.params.id);
+      const currentDate = new Date();
       if (customer) {
-        customer.isDeleted = true;
+        customer.lockTo=currentDate.setDate(currentDate.getDate() + 7)
+
         const deletedCustomer = await customer.save();
         logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Customer is deleted 👉 Post: 200`, { customer: req.user.name, deletedCustomer })
         res.json(deletedCustomer);

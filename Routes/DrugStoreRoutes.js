@@ -1,4 +1,4 @@
-import express,{application} from 'express'
+﻿import express,{application} from 'express'
 import asyncHandler from 'express-async-handler'
 import moment from 'moment';
 import {protect,admin, userRoleSaleAgent} from "../Middleware/AuthMiddleware.js";
@@ -44,8 +44,8 @@ drugStoreRouter.get(
          const currentPage = Number(req.query.pageNumber) || 1;
         
         const keyword = req.query.keyword
-        const count = await DrugStore.countDocuments({ ...keyword});
-        const drugstores=await DrugStore.find({ ...keyword})
+        const count = await DrugStore.countDocuments({ ...keyword,isActive:true});
+        const drugstores=await DrugStore.find({ ...keyword,isActive:true})
             .populate("product")
              .limit(pageSize)
              .skip(pageSize * (currentPage - 1))
@@ -533,32 +533,23 @@ function findMinPos(lots) {
   const updateStock=(drugStoreStock,num)=>{
 
     let minIndex=findMinPos(drugStoreStock)
-    console.log({minIndex})
+
     if(drugStoreStock?.[minIndex]?.count>num){
-        console.log("==============================TH1 num<")
-        console.log("value Old",drugStoreStock)
         drugStoreStock[minIndex].count-=num//TH1 num<count
-        console.log("num",num);
-        console.log("value New",drugStoreStock)
-       
     }
     else{
         if(drugStoreStock[minIndex].count==num){
-            console.log("==============================TH2 num==")
-            console.log("value Old",drugStoreStock)
+            
             drugStoreStock.splice(minIndex,1)
-            console.log("num",num);
-            console.log("value New",drugStoreStock)
+            
         }else {
-            console.log("==============================TH3 num>")//num > nhưng <sum
-            console.log("value Old",drugStoreStock?.stock)
+            //num > nhưng <sum
             let i = 0;
             const length =3
             while (i < length) {
                 if(drugStoreStock.reduce((sum,item)=>{
                     sum+=item.count
                 },0)<num){
-                    console.log("break");
                     break
                 }
 
@@ -569,16 +560,11 @@ function findMinPos(lots) {
                     minIndex=0;
                 }else
                     minIndex=findMinPos(drugStoreStock)
-                console.log("minIndex ",minIndex)
                 if(drugStoreStock[minIndex].count<=num){
-                    console.log(`${drugStoreStock[minIndex].count}<=${num}`)
                     num-=drugStoreStock[minIndex].count
                     drugStoreStock.splice(minIndex,1)
-                    console.log("num",num);
-                    //console.log("drugstore",drugstore);
                 }
                 else{
-                    console.log(`${drugStoreStock[minIndex].count}>${num}`)
                     drugStoreStock[minIndex].count-=num
                     num=0;
                 }
@@ -634,10 +620,6 @@ drugStoreRouter.get(
 
         newStock=filteredItems
         const originalArray =JSON.parse(JSON.stringify(filteredItems));
-        console.log("newStock",newStock)  
-
-
-        //============
 
         const drugStoreStock=await DrugStore.findById(req.params.id);
         if(drugStoreStock) {
@@ -699,29 +681,9 @@ drugStoreRouter.get(
             return expDate > threeMonthsFromNow;
           });
 
-        newStock=filteredItems
-        
-        //const originalArray =JSON.parse(JSON.stringify(filteredItems));
-        console.log("con han",newStock)  
-        
+        newStock=filteredItems       
         minIndex=findMinPos(newStock)
-
-        console.log("newStock",newStock)  
-
-        //const stock =updateStock(newStock,num)
         res.json(updateStock(newStock,num))
-        //if(checkStock(newStock,num)){
-        //    console.log("check",checkStock(newStock,num))
-            
-        //    //res.json(updateStock(newStock,num))
-            
-        //} 
-        //else{
-        //    console.log("num lon")
-        //    res.json({err:"Rollback"})
-        //} 
-            
-
     })
 );
 drugStoreRouter.get(
@@ -743,27 +705,9 @@ drugStoreRouter.get(
 
         newStock=[...filteredItems]
         
-        const originalArray =JSON.parse(JSON.stringify(filteredItems));
-        console.log("con han",newStock)  
-        
+        const originalArray =JSON.parse(JSON.stringify(filteredItems)); 
         minIndex=findMinPos(newStock)
-
-        console.log("newStock",newStock)  
-
-        //const stock =updateStock(newStock,num)
         res.json(updateCount(originalArray ,updateStock(newStock,num)))
-        //if(checkStock(newStock,num)){
-        //    console.log("check",checkStock(newStock,num))
-            
-        //    //res.json(updateStock(newStock,num))
-            
-        //} 
-        //else{
-        //    console.log("num lon")
-        //    res.json({err:"Rollback"})
-        //} 
-            
-
     })
 );
 
@@ -808,6 +752,7 @@ drugStoreRouter.put(
             //drugStoreStock.discount=discount||drugStoreStock.discount;
             drugStoreStock.refunded=refunded||drugStoreStock.refunded;
             drugStoreStock.isActive=isActive
+            drugStoreStock.discount=discount
             drugStoreStock.discountDetail=discountDetail
 
 

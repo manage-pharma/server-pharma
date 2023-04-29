@@ -25,9 +25,6 @@ orderRouter.post(
       totalPoints
     } = req.body;
 
-    console.log({orderBefore:req.body})
-    console.log(req.user);
-
     if (orderItems && orderItems.length === 0) {
       res.status(400);
       throw new Error("No order items");
@@ -41,14 +38,13 @@ orderRouter.post(
         paymentMethod,
         itemsPrice,
         status: [{level:1,status:"Chờ xác nhận",date:Date.now()}],
-        cancellationDeadline:currentDate.setDate(currentDate.getDate() + 1),//1 ngày huy đơn
+        cancellationDeadline:currentDate.setDate(currentDate.getDate() + 2),//1 ngày huy đơn
         taxPrice,
         shippingPrice,
         totalPrice,
         discountPoint,
         totalPoints
       });
-      console.log({orderAfter:order});
 
       const createOrder = await order.save();
       res.status(201).json(createOrder);
@@ -86,7 +82,6 @@ orderRouter.get(
             },
           }
         : {};
-        console.log({from,to});
     const orders = await Order.find({...D2D,isSuccess:true})
       .sort({ _id: -1 })
       .populate("user", "id name email");
@@ -111,7 +106,6 @@ orderRouter.get(
             },
           }
         : {};
-        console.log({from,to});
     const orders = await Order.find({...D2D})
       .sort({ _id: -1 })
       .populate("user", "id name email");
@@ -316,7 +310,7 @@ orderRouter.get(
 // ORDER IS PAID
 orderRouter.put(
   "/:id/pay",
-  protect,
+  protectCustomer,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 
@@ -328,8 +322,9 @@ orderRouter.put(
         id: req.body.id,
         status: req.body.status,
         update_time: req.body.update_time,
-        email_address: req.body.email_address,
+        email_address: req.body.payer.email_address,
       };
+
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
@@ -410,9 +405,6 @@ orderRouter.put(
   //protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-
-    console.log("newOrderItems",req.body);
-    console.log("order",order);
 
     if (order) {
       order.orderItems = req.body;

@@ -56,6 +56,10 @@ const customerSchema = mongoose.Schema(
       type: Number,
       default :0
     },
+    lockTo: {
+      type: Date,
+      default:''
+    },
   },
   {
     timestamps: true,

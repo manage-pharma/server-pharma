@@ -29,7 +29,6 @@ promotionRouter.post(
   "/check",
   asyncHandler(async(req, res)=>{
       const discountDetail = req.body
-      console.log(discountDetail);
       const promotions = await Promotion.find();
       let result = []
       promotions?.map((promotion)=>{
