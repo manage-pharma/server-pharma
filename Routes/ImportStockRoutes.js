@@ -270,7 +270,6 @@ importStockRoutes.put(
           )   
           if(updatedInventory === null)
           {
-            console.log(updatedInventory)
             const newUser = {
               idDrug: thisImport.importItems[i].product.toHexString(),
               lotNumber: thisImport.importItems[i].lotNumber,

@@ -1,9 +1,9 @@
-import express from "express";
+﻿import express from "express";
 import asyncHandler from "express-async-handler";
 import Product from "../Models/ProductModel.js";
 import HistoryNotification from "./../Models/HistoryNotification.js";
 import moment from "moment";
-import {protect,admin, userRoleAdmin} from "../Middleware/AuthMiddleware.js";
+import {protect,protectCustomer,admin, userRoleAdmin} from "../Middleware/AuthMiddleware.js";
 import multer from "multer";
 import cors from "cors";
 import {ConfigNotify} from "../Services/push-notification.service.js";
@@ -278,7 +278,7 @@ productRoute.get(
 // PRODUCT REVIEW
 productRoute.post(
   "/:id/review",
-  protect,
+  protectCustomer,
   asyncHandler(async (req,res) => {
     const {rating,comment}=req.body;
     const product=await Product.findById(req.params.id);
@@ -338,7 +338,6 @@ productRoute.post(
   userRoleAdmin,
   asyncHandler(async (req,res) => {
     const {name, regisId, category, categoryDrug, unit, expDrug, packing, APIs, brandName, manufacturer, countryOfOrigin, instruction, price, allowToSell, prescription, description, image}=req.body;
-    console.log({brandName: brandName})
     const productExist=await Product.findOne({name,unit});
     if(productExist) {
       res.status(400);
@@ -389,7 +388,6 @@ productRoute.put(
   userRoleAdmin,
   asyncHandler(async (req,res) => {
     const {name,price,prescription,brandName,manufacturer,APIs,image,category,categoryDrug,countryOfOrigin,description,unit,regisId,packing, expDrug, instruction,allowToSell}=req.body;
-    console.log({body: req.body})
     const product=await Product.findById(req.params.id);
     if(product) {
       product.name=name||product.name;
@@ -414,7 +412,6 @@ productRoute.put(
       const updatedProduct=await product.save();
       logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Product updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
       res.json(updatedProduct);
-      console.log({productUpdate: updatedProduct})
     } else {
       res.status(404);
       throw new Error("Không tìm thấy sản phẩm");
@@ -448,7 +445,6 @@ productRoute.put(
 // Single File Route Handler
 productRoute.post("/single",upload.single("image"),(req,res, next) => {
   const file=req.file
-  console.log(file)
   if(!file) {
     const error=new Error("Vui lòng tải ảnh lên");
     error.httpStatusCode=400;

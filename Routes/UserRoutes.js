@@ -147,9 +147,6 @@ userRouter.post(
   "/",
   asyncHandler(async (req, res) => {
     const { name, email,phone, password} = req.body;
-
-    console.log(req.body);
-
     const userExists = await User.findOne({ email });
     if (userExists) {
       res.status(400);
@@ -319,7 +316,6 @@ userRouter.get(
 userRouter.get("/getAppUserData", protect, async (req, res) => {
 
   const user = await User.findById(req.user);
-  console.log(user)
   res.json({ ...user._doc, token: req.token });
 });
 

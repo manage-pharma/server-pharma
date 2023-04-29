@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+﻿import mongoose from 'mongoose'
 const reviewSchema=mongoose.Schema({
     name: {
         type: String,
@@ -20,7 +20,7 @@ const reviewSchema=mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         require: true,
-        ref: 'User'
+        ref: 'Customer'
     }
 })
 const productSchema=mongoose.Schema({
