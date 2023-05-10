@@ -69,7 +69,7 @@ orderRouter.get(
 orderRouter.get(
   "/all-check",
   protect,
-  userRoleSaleAgent,
+  // userRoleSaleAgent,
   asyncHandler(async (req, res) => {
     const from = req.query.from
     const to = req.query.to
