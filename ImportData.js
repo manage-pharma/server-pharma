@@ -4,7 +4,7 @@ import users from "./data/User.js";
 import products from "./data/Products.js";
 import Product from "./Models/ProductModel.js";
 import asyncHandler from "express-async-handler";
-import { admin, protect } from "./Middleware/AuthMiddleware.js";
+import { admin, protect, userRoleAdmin } from "./Middleware/AuthMiddleware.js";
 import mongoose from 'mongoose'
 import Category from "./Models/CategoryModel.js";
 import fs from "fs"
@@ -22,7 +22,7 @@ ImportData.post(
 ImportData.post(
   "/products",
   protect,
-  admin,
+  userRoleAdmin,
   asyncHandler(async (req, res) => {
     const data = req.body;
     const arr = []

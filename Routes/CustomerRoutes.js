@@ -34,9 +34,25 @@ customerRouter.post(
     if (customer && (await customer.matchPassword(password))) {
       const currentDate = new Date();
       const specificDate = new Date(customer?.lockTo)
-      if(currentDate.getTime() < specificDate.getTime()){
-        res.status(401);
-        throw new Error("Tài khoản bị khóa đến "+customer?.lockTo);
+      if(customer?.lockTo!=''){//currentDate.getTime() < specificDate.getTime()
+        if(currentDate.getTime() < specificDate.getTime()){
+          res.status(401);
+          throw new Error("Tài khoản bị khóa đến "+customer?.lockTo);
+        }else{
+          res.json({
+            _id: customer._id,
+            name: customer.name,
+            email: customer.email,
+            role: customer.role,
+            phone: customer.phone,
+            isAdmin: customer.isAdmin,
+            token: generateToken(customer._id),
+            pCoin:customer.pCoin,
+            createdAt: customer.createdAt,
+            methodLogin: 'Account'
+          });
+        }
+        
       }else{
         res.json({
           _id: customer._id,
@@ -347,7 +363,7 @@ customerRouter.put(
 // GET ALL USER ADMIN
 customerRouter.get(
   "/",
-  protectCustomer,
+  //protectCustomer,
   asyncHandler(async (req, res) => {
     const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
       $or:[

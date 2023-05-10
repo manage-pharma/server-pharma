@@ -171,7 +171,7 @@ productRoute.get(
       switch(req.query.sort) {
         case "cheap":
           return {
-            price: {$lte: 10000},
+            price: {$lte: 100000},
           };
         case "expensive":
           return {
