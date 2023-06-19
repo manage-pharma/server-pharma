@@ -43,25 +43,39 @@ drugStoreRouter.get(
          const pageSize = 8;
          const currentPage = Number(req.query.pageNumber) || 1;
         
-        const keyword = req.query.keyword
-        const count = await DrugStore.countDocuments({ ...keyword,isActive:true});
-        const drugstores=await DrugStore.find({ ...keyword,isActive:true})
+        const keyword= req.query.keyword
+
+        const count = await DrugStore.countDocuments({isActive:true});
+        const drugstores=await DrugStore.find({ isActive:true})
             .populate("product")
              .limit(pageSize)
              .skip(pageSize * (currentPage - 1))
             .sort({_id: -1});
-         const totalPage = [];
-         for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
-           totalPage.push(i)
-         }
-        
-         
-        res.json({drugstores,totalPage,currentPage});
-        //res.json(drugstore);
+        if(keyword){
+            const filterSearch = drugstores.filter((p) => p?.product?.name?.toLowerCase().includes(keyword?.toLocaleLowerCase()))
+            const totalPage = [];
+            for (let i = 1; i <= Math.ceil(filterSearch?.length / pageSize); i++) {
+                totalPage.push(i)
+            }
+            res.json({drugstores: filterSearch,totalPage,currentPage});
+            //res.json(drugstore);
 
-        console.log(
-            `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
-        );
+            console.log(
+                `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+            );
+        }
+        else{
+            const totalPage = [];
+            for (let i = 1; i <= Math.ceil(count / pageSize); i++) {
+            totalPage.push(i)
+            }
+            res.json({drugstores,totalPage,currentPage});
+            //res.json(drugstore);
+
+            console.log(
+                `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} getMultiDrugstore 👉 Get: 200`
+            );
+        }
     })
 );
 
