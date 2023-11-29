@@ -76,9 +76,96 @@ async function sendNotificationsInventory() {
     });
   }
 }
+
+
+
+
+async function sendNotificationsExpDrugGROUP() {
+  const now = new Date();
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const pipeline = [
+    {
+      $match: { expDrug: { $lt: thirtyDaysFromNow } }
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'idDrug',
+        foreignField: '_id',
+        as: 'drugDetails'
+      }
+    },
+    {
+      $unwind: '$drugDetails'
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$drugDetails.name',
+        lotNumber: 1,
+        status: {
+          $dateToString: {
+            format: "hết hạn ngày %d tháng %m năm %Y",
+            date: "$expDrug"
+          }
+        },
+      }
+    }
+  ];
+  const products = await Inventory.aggregate(pipeline);
+  console.log('products', products)
+  if (products.length > 0) {
+    const message = {
+      headings: "Phòng Khám đa khoa",
+      contents: `Thuốc sắp hết hạn sử dụng`,
+      listItem: products
+    };
+    ConfigNotify(message);
+    await HistoryNotification.saveNotification(message);
+  }
+}
+async function sendNotificationsInventoryGROUP() {
+  const pipeline = [
+    {
+      $match: { count: { $lt: 30 } }
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'idDrug',
+        foreignField: '_id',
+        as: 'drugDetails'
+      }
+    },
+    {
+      $unwind: '$drugDetails'
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$drugDetails.name',
+        lotNumber: 1,
+        status: '$count'
+      }
+    }
+  ];
+  const products = await Inventory.aggregate(pipeline);
+  if (products.length > 0) {
+
+    const message = {
+      headings: "Phòng Khám đa khoa Mỹ Thạnh",
+      contents: `Thuốc dưới mức tồn kho`,
+      listItem: products
+    };
+    ConfigNotify(message);
+    await HistoryNotification.saveNotification(message);
+  }
+}
 export {
   sendNotificationsExpDrug,
   sendNotificationsInventory,
+  sendNotificationsExpDrugGROUP,
+  sendNotificationsInventoryGROUP,
   SendNotification,
   ConfigNotify,
 };

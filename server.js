@@ -1,5 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
+import { Server } from "socket.io";
+import http from "http"
+import fs from "fs"
 import connectDatabase from "./config/MongoDB.js";
 import ImportData from "./ImportData.js";
 import productRoute from "./Routes/ProductRoutes.js";
@@ -20,7 +23,8 @@ import contentRouter from "./Routes/ContentRoutes.js";
 import cartRouter from "./Routes/CartRoutes.js";
 import promotionRouter from "./Routes/PromotionRoutes.js";
 import requestInventoryRoutes from "./Routes/RequestInventoryRoutes.js";
-import fs from "fs"
+import notificationRoutes from "./Routes/NotificationRoutes.js";
+import { sendNotificationsExpDrugGROUP, sendNotificationsInventoryGROUP } from "./Services/push-notification.service.js";
 
 // import {sendNotificationsExpDrug, sendNotificationsInventory} from './Services/push-notification.service.js'
 
@@ -49,6 +53,7 @@ app.use("/api/content", contentRouter);
 app.use("/api/promotion", promotionRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/req-inventory", requestInventoryRoutes)
+app.use("/api/notification", notificationRoutes)
 app.get("/api/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
@@ -69,7 +74,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT;
-app.listen(PORT,console.log(`✨ Server run in port ${PORT}`));
+// app.listen(PORT,console.log(`✨ Server run in port ${PORT}`));
 // app.listen(PORT, "192.168.4.61", () => {
 //   console.log(`✨ Server run in port ${PORT}`);
 
@@ -79,4 +84,26 @@ app.listen(PORT,console.log(`✨ Server run in port ${PORT}`));
 //     console.log('run')
 //   }, 24 * 60 * 60 * 1000);
 // });
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:24222',
+    methods: ["GET", "POST"]
+  },
+});
 
+
+io.on("connection", (socket) => {
+  console.log('Client connected');
+});
+
+setInterval(async () => {
+  sendNotificationsExpDrugGROUP(),
+  sendNotificationsInventoryGROUP(),
+  io.emit("changeNotification", 'ok');
+  console.log('run')
+},  24 * 60 * 60 * 1000);
+
+server.listen(PORT, ()=>{
+  console.log(`✨ Server run in port with socket ${PORT}`)
+})
