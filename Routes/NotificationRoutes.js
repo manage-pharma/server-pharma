@@ -9,9 +9,17 @@ const day = moment(Date.now());
 //GET ALL NOTIFICATION
 notificationRoutes.get("/",
   protect,
-  asyncHandler(async (req, res)=>{
-    const notification = await HistoryNotification.find({}).sort({ isReaded: -1, createdAt: 1 })
-    res.json(notification)
+  asyncHandler(async (req, res) => {
+    let query = HistoryNotification.find({}).sort({ isReaded: 1, createdAt: 1 })
+    const isLimit = req.query.limit 
+
+    if (isLimit === 'limit') {
+      query = query.limit(10)
+    }
+    const numberUnread = await HistoryNotification.countDocuments({ isReaded: false })
+    const notifications = await query.exec()
+
+    res.json({notifications, numberUnread})
   })
 );
 
