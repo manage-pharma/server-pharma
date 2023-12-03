@@ -10,8 +10,10 @@ const notificationSchema = mongoose.Schema(
       required: true,
     },
     listItem: [{
+      _id: {type: String},
       name: {type: String },
       lotNumber: {type: String},
+      unit: {type: String},
       status: {type: String },
     }],
     signature: {

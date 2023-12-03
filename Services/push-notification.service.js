@@ -117,7 +117,7 @@ async function sendNotificationsExpDrugGROUP() {
   if (products.length > 0) {
     const message = {
       headings: "Phòng Khám đa khoa",
-      contents: `Thuốc sắp hết hạn sử dụng`,
+      contents: `thuốc sắp hết hạn sử dụng`,
       signature: "EXP",
       listItem: products
     };
@@ -143,9 +143,10 @@ async function sendNotificationsInventoryGROUP() {
     },
     {
       $project: {
-        _id: 0,
+        _id: '$drugDetails._id',
         name: '$drugDetails.name',
         lotNumber: 1,
+        unit: '$drugDetails.unit',
         status: '$count'
       }
     }
@@ -155,7 +156,7 @@ async function sendNotificationsInventoryGROUP() {
 
     const message = {
       headings: "phòng Khám đa khoa Mỹ Thạnh",
-      contents: `thuốc dưới mức tồn kho`,
+      contents: `lô thuốc dưới mức tồn kho`,
       signature: "OH",
       listItem: products
     };
