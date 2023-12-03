@@ -8,6 +8,16 @@ const notificationSchema = mongoose.Schema(
     contents: {
       type: String,
       required: true,
+    },
+    listItem: [{
+      name: {type: String },
+      lotNumber: {type: String},
+      status: {type: String },
+    }],
+    isReaded: {
+      type: Boolean,
+      default: false,
+      required: true,
     }
   },
   {
@@ -18,7 +28,8 @@ const notificationSchema = mongoose.Schema(
 notificationSchema.statics.saveNotification = async function (message) {
   const notification = new HistoryNotification({
     headings: message.headings,
-    contents: message.contents
+    contents: message.contents,
+    listItem: message.listItem
   })
   return await notification.save();
 };
