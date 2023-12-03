@@ -118,6 +118,7 @@ async function sendNotificationsExpDrugGROUP() {
     const message = {
       headings: "Phòng Khám đa khoa",
       contents: `Thuốc sắp hết hạn sử dụng`,
+      signature: "EXP",
       listItem: products
     };
     ConfigNotify(message);
@@ -153,8 +154,9 @@ async function sendNotificationsInventoryGROUP() {
   if (products.length > 0) {
 
     const message = {
-      headings: "Phòng Khám đa khoa Mỹ Thạnh",
-      contents: `Thuốc dưới mức tồn kho`,
+      headings: "phòng Khám đa khoa Mỹ Thạnh",
+      contents: `thuốc dưới mức tồn kho`,
+      signature: "OH",
       listItem: products
     };
     ConfigNotify(message);
