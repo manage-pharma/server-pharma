@@ -74,6 +74,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT;
+const proxyOrigin =  process.env.CLIENT_URL
 // app.listen(PORT,console.log(`✨ Server run in port ${PORT}`));
 // app.listen(PORT, "192.168.4.61", () => {
 //   console.log(`✨ Server run in port ${PORT}`);
@@ -87,7 +88,7 @@ const PORT = process.env.PORT;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:24222',
+    origin: proxyOrigin,
     methods: ["GET", "POST"]
   },
 });
