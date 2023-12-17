@@ -41,6 +41,10 @@ const exportStockSchema = mongoose.Schema(
       type: Boolean,
       default: false
     },
+    isExportCanceled: {
+      type: Boolean,
+      default: false
+    },
     isDeleted:{
       type: Boolean,
       default: false
