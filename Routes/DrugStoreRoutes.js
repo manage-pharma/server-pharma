@@ -393,10 +393,11 @@ drugStoreRouter.get(
         //   totalPage.push(i)
         // }
         const keyword = req.query.keyword
-          const filteredResult = drugstores.filter(item => {
-            return item.product.name.includes(keyword);
-          });
-        res.json(filteredResult);
+        const filteredResult = drugstores.filter(item => {
+        return item.product.name.includes(keyword);
+        });
+        console.log('keyword', keyword ? filteredResult : drugstores)
+        res.json(keyword ? filteredResult : drugstores);
         //res.json(drugstore);
 
         console.log(

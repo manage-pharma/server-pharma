@@ -387,6 +387,10 @@ orderRouter.get(
     const order = await Order.findById(req.params.id);
 
     if (order) {
+      order.isReceived=true
+      order.receivedAt=moment(new Date(Date.now())).format('YYYY-MM-DD')
+      order.isPaid=true
+      order.paidAt=Date.now()
       order.isSuccess = true;
       order.status=[...order.status,{level:7,status:"Hoàn tất đơn hàng",date:Date.now()}]
       order.completedAt=moment(new Date(Date.now())).format('YYYY-MM-DD')

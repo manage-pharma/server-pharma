@@ -47,27 +47,27 @@ const drugStoreSchema=mongoose.Schema(
 
         discount: {
             type: Number,
-            required: true,
+            // required: true,
             default: 0.0,
         },
         discountDetail   : {
             type: Array,
-            required: true,
+            // required: true,
             default: [],
         },
         refunded: {
             type: Number,
-            required: true,
+            // required: true,
             default: 0.0,
         },
         viewNumber: {
             type: Number,
-            required: true,
+            // required: true,
             default: 0.0,
         },
         buyNumber: {
             type: Number,
-            required: true,
+            // required: true,
             default: 0.0,
         },
         
