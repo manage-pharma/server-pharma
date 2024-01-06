@@ -17,8 +17,7 @@ const notificationSchema = mongoose.Schema(
       status: {type: String },
     }],
     signature: {
-      type: String,
-      required: true,
+      type: String
     },
     isReaded: {
       type: Boolean,
