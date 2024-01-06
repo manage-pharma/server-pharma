@@ -22,6 +22,7 @@ exportStockRoutes.get(
   asyncHandler(async (req, res) => {
     // const pageSize = 9;
     // const currentPage = Number(req.query.pageNumber) || 1;
+    let phieuxuatFilter = {}
     const keyword = req.query.keyword && req.query.keyword != ' ' ? {
       exportCode: {
           $regex: req.query.keyword,
@@ -29,8 +30,7 @@ exportStockRoutes.get(
       },
     } : {}
 
-    const from = req.query.from;
-    const to = req.query.to;
+    const { phieuxuat, from, to } = req.query;
     const D2D =
       from && to
         ? {
@@ -40,9 +40,18 @@ exportStockRoutes.get(
             },
           }
         : {};
+
+      if (phieuxuat === "XNB") {
+        phieuxuatFilter = { isExportCanceled: {$eq: false} }
+      } else if (phieuxuat === "XH") {
+        phieuxuatFilter = { isExportCanceled: {$eq: true} }
+      } else{
+        phieuxuatFilter = { $exists: true }; 
+      }
+
     // const count = await exportStock.countDocuments({...keyword, ...D2D});
     const stockExported = await exportStock
-      .find({ ...keyword, ...D2D, isDeleted: {$eq: false} })
+      .find({ ...keyword, ...D2D,...phieuxuatFilter, isDeleted: {$eq: false} })
       .populate("user", "name")
       .populate("exportItems.product", "name")
       .sort({ _id: -1 });

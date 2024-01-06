@@ -85,8 +85,11 @@ async function sendNotificationsExpDrugGROUP() {
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const pipeline = [
     {
-      $match: { expDrug: { $lt: thirtyDaysFromNow } }
-    },
+      $match: {
+        expDrug: { $lt: thirtyDaysFromNow },
+        count: { $gt: 0 }
+      }
+    },    
     {
       $lookup: {
         from: 'products',
@@ -101,6 +104,7 @@ async function sendNotificationsExpDrugGROUP() {
     {
       $project: {
         _id: 0,
+        _id: '$drugDetails._id',
         name: '$drugDetails.name',
         lotNumber: 1,
         status: {
