@@ -245,6 +245,7 @@ inventoryRoutes.get("/tag",
               // count: 1,    
               exportStock: "$exportstocks._id",
               exportedAt: "$exportstocks.exportedAt",
+              isExportCanceled: "$exportstocks.isExportCanceled",
               exportedItem: {
                 $filter: {
                   input: {
@@ -292,15 +293,92 @@ inventoryRoutes.get("/tag",
                 $gte: new Date(fromParam),
                 $lte: new Date(toParam),
               },
+              isExportCanceled: { $eq: false },
+            },
+          },         
+        ]);
+        const resultsExportCancel = await Inventory.aggregate([
+          {
+            $match: {
+              idDrug: ObjectId(req.query.keyword),
             },
           },
+          {
+            $lookup: {
+              from: "exportstocks",
+              localField: "exportStock._id",
+              foreignField: "_id",
+              as: "exportstocks",
+            },
+          },
+          {
+            $unwind: "$exportstocks",
+          },
+          {
+            $project: {
+              _id: 0,
+              lotNumber: 1,
+              // expDrug: 1,
+              // count: 1,    
+              exportStock: "$exportstocks._id",
+              exportedAt: "$exportstocks.exportedAt",
+              isExportCanceled: "$exportstocks.isExportCanceled",
+              exportedItem: {
+                $filter: {
+                  input: {
+                    $map: {
+                      input: "$exportstocks.exportItems",
+                      as: "exportItem",
+                      in: {
+                        $cond: [
+                          { $eq: [ "$$exportItem.product", ObjectId(req.query.keyword) ] },
+                          {
+                            $mergeObjects: [
+                              "$$exportItem",
+                              {
+                                lotField: {
+                                  $arrayElemAt: [
+                                    {
+                                      $filter: {
+                                        input: "$$exportItem.lotField",
+                                        as: "lot",
+                                        cond: {
+                                          $eq: [ "$$lot.lotNumber", "$lotNumber" ]
+                                        }
+                                      }
+                                    },
+                                    0
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          null
+                        ]
+                      }
+                    }
+                  },
+                  as: "exportItem",
+                  cond: { $ne: [ "$$exportItem", null ] }
+                }
+              }
+            },
+          },
+          {
+            $match: {
+              exportedAt: {
+                $gte: new Date(fromParam),
+                $lte: new Date(toParam),
+              },
+              isExportCanceled: { $eq: true },
+            },
+          }
         ]);
-      
         const importTotals = resultsImport.reduce((acc, cur) => {
           const lotNumber = cur.lotNumber;
           const importedQty = cur.importedItem.reduce((total, item) => total + item.qty, 0);
           if (!acc[lotNumber]) {
-            acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+            acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0, exportedCancelItemTotal: 0 };
           }
           acc[lotNumber].importedItemTotal += importedQty;
           return acc;
@@ -310,20 +388,30 @@ inventoryRoutes.get("/tag",
           const lotNumber = cur.lotNumber;
           const exportedQty = cur.exportedItem.reduce((total, item) => total + item.lotField.count, 0);
           if (!acc[lotNumber]) {
-            acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0 };
+            acc[lotNumber] = { importedItemTotal: 0, exportedItemTotal: 0, exportedCancelItemTotal: 0 };
           }
           acc[lotNumber].exportedItemTotal += exportedQty;
           return acc;
         }, {});
   
+        const exportCancelTotals = resultsExportCancel.reduce((acc, cur) => {
+          const lotNumber = cur.lotNumber;
+          const exportedQty = cur.exportedItem.reduce((total, item) => total + item.lotField.count, 0);
+          if (!acc[lotNumber]) {
+            acc[lotNumber] = { importedItemTotal: 0, exportedCancelItemTotal: 0, exportedCancelItemTotal: 0 };
+          }
+          acc[lotNumber].exportedCancelItemTotal += exportedQty;
+          return acc;
+        }, {});
         const totals = {};
         Object.keys(importTotals).forEach((lotNumber) => {
           totals[lotNumber] = {
             importedItemTotal: importTotals[lotNumber].importedItemTotal,
             exportedItemTotal: exportTotals[lotNumber]?.exportedItemTotal || 0,
+            exportedCancelItemTotal: exportCancelTotals[lotNumber]?.exportedCancelItemTotal || 0,
           };
         });
-
+        console.log(totals)
         return totals;
       }
 
@@ -335,20 +423,21 @@ inventoryRoutes.get("/tag",
         const lotNumberFromDB = await Inventory.findOne({lotNumber: lotNumber_FromTo});
         for (const lotNumber_FromNow of Object.keys(from_now)) {
           if(lotNumber_FromTo === lotNumber_FromNow && lotNumber_FromTo === lotNumberFromDB.lotNumber){
-            const TDK = (lotNumberFromDB.count + from_now[lotNumber_FromNow].exportedItemTotal) - from_now[lotNumber_FromNow].importedItemTotal 
-            const TCK = (TDK + from_to[lotNumber_FromTo].importedItemTotal) - from_to[lotNumber_FromTo].exportedItemTotal
+            const TDK = (lotNumberFromDB.count + ( from_now[lotNumber_FromNow].exportedItemTotal + from_now[lotNumber_FromNow].exportedCancelItemTotal) ) - from_now[lotNumber_FromNow].importedItemTotal 
+            const TCK = (TDK + from_to[lotNumber_FromTo].importedItemTotal) - ( from_to[lotNumber_FromTo].exportedItemTotal + from_to[lotNumber_FromTo].exportedCancelItemTotal ) 
             
             output.push({
               lotNumber: lotNumber_FromTo,
               TDK: TDK,
               N: from_to[lotNumber_FromTo].importedItemTotal,
               X: from_to[lotNumber_FromTo].exportedItemTotal,
+              XH: from_to[lotNumber_FromTo].exportedCancelItemTotal,
               TCK: TCK
             })
           }
         }
       }
-      
+      console.log(output)
       res.json(output);  
        
     })

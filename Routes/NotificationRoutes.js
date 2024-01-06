@@ -10,13 +10,13 @@ const day = moment(Date.now());
 notificationRoutes.get("/",
   protect,
   asyncHandler(async (req, res) => {
-    let query = HistoryNotification.find({}).sort({ isReaded: 1, createdAt: 1 })
+    let query = HistoryNotification.find({}).where('signature').exists().sort({ isReaded: 1, createdAt: 1,  })
     const isLimit = req.query.limit 
 
     if (isLimit === 'limit') {
       query = query.limit(10)
     }
-    const numberUnread = await HistoryNotification.countDocuments({ isReaded: false })
+    const numberUnread = await HistoryNotification.countDocuments({ isReaded: false }).where('signature').exists()
     const notifications = await query.exec()
 
     res.json({notifications, numberUnread})
