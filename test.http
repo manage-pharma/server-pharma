@@ -75,3 +75,5 @@ GET http://localhost:5000/api/content
 GET http://localhost:5000/api/req-inventory
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzYTE4OTAzOTRkMzIxOTBmNTk4MjU4NiIsImlhdCI6MTY3OTQ1MTM0MywiZXhwIjoxNjgyMDQzMzQzfQ.liL-O_Mqt8zq2SVUaIu5HsVeNhRYInm-5_r025n_Ca8
 
+###
+GET http://localhost:24221/api/inventory/report/nhapxuat?keyword=659938b6d072db126956fcf0&from=2024-01-01&to=2024-04-30&type=year
