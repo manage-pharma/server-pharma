@@ -4,7 +4,7 @@
 /node_modules
 /uploads
 /utils/logs
-/data/*.json
+# /data/*.json
 /.pnp
 .pnp.js
 # testing
