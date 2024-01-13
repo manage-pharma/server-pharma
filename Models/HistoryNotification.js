@@ -9,25 +9,27 @@ const notificationSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    listItem: [{
-      _id: {type: String},
-      name: {type: String },
-      lotNumber: {type: String},
-      unit: {type: String},
-      status: {type: String },
-    }],
+    listItem: [
+      {
+        _id: { type: String },
+        name: { type: String },
+        lotNumber: { type: String },
+        unit: { type: String },
+        status: { type: String },
+      },
+    ],
     signature: {
-      type: String
+      type: String,
     },
     isReaded: {
       type: Boolean,
       default: false,
       required: true,
-    }
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 notificationSchema.statics.saveNotification = async function (message) {
@@ -35,10 +37,13 @@ notificationSchema.statics.saveNotification = async function (message) {
     headings: message.headings,
     contents: message.contents,
     listItem: message.listItem,
-    signature: message.signature
-  })
+    signature: message.signature,
+  });
   return await notification.save();
 };
 
-const HistoryNotification = mongoose.model("HistoryNotification", notificationSchema);
+const HistoryNotification = mongoose.model(
+  "HistoryNotification",
+  notificationSchema,
+);
 export default HistoryNotification;

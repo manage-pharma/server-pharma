@@ -10,11 +10,11 @@ const protect = asyncHandler(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    try { 
+    try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
-      req.token = token
+      req.token = token;
       next();
     } catch (error) {
       res.status(401);
@@ -27,7 +27,6 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-
 const protectCustomer = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -35,11 +34,11 @@ const protectCustomer = asyncHandler(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    try { 
+    try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await Customer.findById(decoded.id).select("-password");
-      req.token = token
+      req.token = token;
       next();
     } catch (error) {
       res.status(401);
@@ -54,7 +53,10 @@ const protectCustomer = asyncHandler(async (req, res, next) => {
 
 // user inventory
 const userRoleInventory = (req, res, next) => {
-  if (req.user && req.user.role === "isAdmin" || req.user.role === 'isInventory') {
+  if (
+    (req.user && req.user.role === "isAdmin") ||
+    req.user.role === "isInventory"
+  ) {
     next();
   } else {
     res.status(401);
@@ -64,25 +66,30 @@ const userRoleInventory = (req, res, next) => {
 
 // user sale agent
 const userRoleSaleAgent = (req, res, next) => {
-  if (req.user && req.user.role === "isAdmin" || req.user.role === 'isSaleAgent') {
+  if (
+    (req.user && req.user.role === "isAdmin") ||
+    req.user.role === "isSaleAgent"
+  ) {
     next();
   } else {
     res.status(401);
     throw new Error("Chức năng này không được hỗ trợ");
   }
 };
-
 
 // user inventory
 const userRoleShare = (req, res, next) => {
-  if (req.user && req.user.role === "isAdmin" || req.user.role === 'isInventory'||req.user.role === 'isSaleAgent') {
+  if (
+    (req.user && req.user.role === "isAdmin") ||
+    req.user.role === "isInventory" ||
+    req.user.role === "isSaleAgent"
+  ) {
     next();
   } else {
     res.status(401);
     throw new Error("Chức năng này không được hỗ trợ");
   }
 };
-
 
 // user role admin
 const userRoleAdmin = (req, res, next) => {
@@ -102,4 +109,11 @@ const admin = (req, res, next) => {
     throw new Error("Chức năng này không được hỗ trợ");
   }
 };
-export { protect,protectCustomer, admin, userRoleInventory, userRoleSaleAgent, userRoleAdmin };
+export {
+  protect,
+  protectCustomer,
+  admin,
+  userRoleInventory,
+  userRoleSaleAgent,
+  userRoleAdmin,
+};

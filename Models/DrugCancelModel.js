@@ -18,7 +18,7 @@ const drugCancelSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const DrugCancel = mongoose.model("DrugCancel", drugCancelSchema);

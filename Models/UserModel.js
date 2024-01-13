@@ -28,16 +28,16 @@ const userSchema = mongoose.Schema(
     role: {
       type: String,
       required: true,
-      default: 'userDefault',
+      default: "userDefault",
     },
     isDeleted: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Login

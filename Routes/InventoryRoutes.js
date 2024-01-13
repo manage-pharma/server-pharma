@@ -137,7 +137,7 @@ inventoryRoutes.get(
                 if (
                   Math.round(
                     (moment(item?.products[i]?.expDrug) - moment(Date.now())) /
-                      (30.4 * 24 * 60 * 60 * 1000)
+                      (30.4 * 24 * 60 * 60 * 1000),
                   ) > +(item?.products[i]?.expProduct / 2)
                 ) {
                   arr.push(item?.products[i]);
@@ -152,11 +152,11 @@ inventoryRoutes.get(
                 if (
                   Math.round(
                     (moment(item?.products[i]?.expDrug) - moment(Date.now())) /
-                      (30.44 * 24 * 60 * 60 * 1000)
+                      (30.44 * 24 * 60 * 60 * 1000),
                   ) <= +(item?.products[i]?.expProduct / 2) &&
                   Math.round(
                     (moment(item?.products[i]?.expDrug) - moment(Date.now())) /
-                      (24 * 60 * 60 * 1000)
+                      (24 * 60 * 60 * 1000),
                   ) >= 15
                 ) {
                   arr.push(item?.products[i]);
@@ -179,9 +179,9 @@ inventoryRoutes.get(
               : result;
           res.json(finalResult);
         }
-      }
+      },
     );
-  })
+  }),
 );
 
 // get to check inventory
@@ -199,10 +199,10 @@ inventoryRoutes.get(
         : {};
     const categoryDrug = await Inventory.find(
       { ...keyword },
-      { idDrug: 1, lotNumber: 1, count: 1, expDrug: 1 }
+      { idDrug: 1, lotNumber: 1, count: 1, expDrug: 1 },
     ).populate("idDrug", "name");
     res.json(categoryDrug);
-  })
+  }),
 );
 
 inventoryRoutes.get(
@@ -425,7 +425,7 @@ inventoryRoutes.get(
         const lotNumber = cur.lotNumber;
         const importedQty = cur.importedItem.reduce(
           (total, item) => total + item.qty,
-          0
+          0,
         );
         if (!acc[lotNumber]) {
           acc[lotNumber] = {
@@ -442,7 +442,7 @@ inventoryRoutes.get(
         const lotNumber = cur.lotNumber;
         const exportedQty = cur.exportedItem.reduce(
           (total, item) => total + item.lotField.count,
-          0
+          0,
         );
         if (!acc[lotNumber]) {
           acc[lotNumber] = {
@@ -459,7 +459,7 @@ inventoryRoutes.get(
         const lotNumber = cur.lotNumber;
         const exportedQty = cur.exportedItem.reduce(
           (total, item) => total + item.lotField.count,
-          0
+          0,
         );
         if (!acc[lotNumber]) {
           acc[lotNumber] = {
@@ -521,181 +521,186 @@ inventoryRoutes.get(
     }
     console.log(output);
     res.json(output);
-  })
+  }),
 );
-
 
 inventoryRoutes.get(
-  '/report/nhapxuat',
+  "/report/nhapxuat",
   asyncHandler(async (req, res) => {
-   
-    const from = new Date(req.query.from)
-    const to = new Date(req.query.to)
-    const type = req.query.type
-    const keyword = req.query.keyword
-    console.log(from, to)
-    const result = {}
+    const from = new Date(req.query.from);
+    const to = new Date(req.query.to);
+    const type = req.query.type;
+    const keyword = req.query.keyword;
+    console.log(from, to);
+    const result = {};
 
-    if (type === 'year') {
-      result.month = await handleChart(keyword, from, to ,'month')
-      result.quarter = await handleChart(keyword, from, to ,'quarter')
-    } else if (type === 'month') {
-      result.month = await handleChart(keyword, from, to ,'month')
-      result.day = await handleChart(keyword, from, to ,'day');
-    } else if (type === 'week' || type === 'day') {
-      result.day = await handleChart(keyword, from, to , 'day')
+    if (type === "year") {
+      result.month = await handleChart(keyword, from, to, "month");
+      result.quarter = await handleChart(keyword, from, to, "quarter");
+    } else if (type === "month") {
+      result.month = await handleChart(keyword, from, to, "month");
+      result.day = await handleChart(keyword, from, to, "day");
+    } else if (type === "week" || type === "day") {
+      result.day = await handleChart(keyword, from, to, "day");
     }
 
-    res.json(result)
-    
-  })
+    res.json(result);
+  }),
 );
-
 
 async function handleChart(keyword, from, to, type) {
   const ObjectId = mongoose.Types.ObjectId;
 
   const matchConditionImport = {
-    'importItems.product': ObjectId(keyword),
+    "importItems.product": ObjectId(keyword),
     importedAt: { $gte: from, $lte: to },
   };
 
   const matchConditionExport = {
-    'exportItems.product': ObjectId(keyword),
+    "exportItems.product": ObjectId(keyword),
     exportedAt: { $gte: from, $lte: to },
     isExportCanceled: false,
   };
 
   const matchConditionCanceledExport = {
-    'exportItems.product': ObjectId(keyword),
+    "exportItems.product": ObjectId(keyword),
     exportedAt: { $gte: from, $lte: to },
     isExportCanceled: true,
   };
 
   const dateFormatImported =
-    type === 'quarter'
+    type === "quarter"
       ? {
           $concat: [
-            'Q',
+            "Q",
             {
               $toString: {
                 $switch: {
                   branches: [
-                    { case: { $lte: [{ $month: '$importedAt' }, 3] }, then: 1 },
-                    { case: { $lte: [{ $month: '$importedAt' }, 6] }, then: 2 },
-                    { case: { $lte: [{ $month: '$importedAt' }, 9] }, then: 3 },
-                    { case: { $lte: [{ $month: '$importedAt' }, 12] }, then: 4 },
+                    { case: { $lte: [{ $month: "$importedAt" }, 3] }, then: 1 },
+                    { case: { $lte: [{ $month: "$importedAt" }, 6] }, then: 2 },
+                    { case: { $lte: [{ $month: "$importedAt" }, 9] }, then: 3 },
+                    {
+                      case: { $lte: [{ $month: "$importedAt" }, 12] },
+                      then: 4,
+                    },
                   ],
-                  default: 'undefined',
+                  default: "undefined",
                 },
               },
             },
-            '/',
-            { $toString: { $year: '$importedAt' } },
+            "/",
+            { $toString: { $year: "$importedAt" } },
           ],
         }
-      : type === 'month'
-      ? '%m/%Y'
-      : '%d/%m/%Y';
-
+      : type === "month"
+        ? "%m/%Y"
+        : "%d/%m/%Y";
 
   const dateFormatExported =
-    type === 'quarter'
+    type === "quarter"
       ? {
           $concat: [
-            'Q',
+            "Q",
             {
               $toString: {
                 $switch: {
                   branches: [
-                    { case: { $lte: [{ $month: '$exportedAt' }, 3] }, then: 1 },
-                    { case: { $lte: [{ $month: '$exportedAt' }, 6] }, then: 2 },
-                    { case: { $lte: [{ $month: '$exportedAt' }, 9] }, then: 3 },
-                    { case: { $lte: [{ $month: '$exportedAt' }, 12] }, then: 4 },
+                    { case: { $lte: [{ $month: "$exportedAt" }, 3] }, then: 1 },
+                    { case: { $lte: [{ $month: "$exportedAt" }, 6] }, then: 2 },
+                    { case: { $lte: [{ $month: "$exportedAt" }, 9] }, then: 3 },
+                    {
+                      case: { $lte: [{ $month: "$exportedAt" }, 12] },
+                      then: 4,
+                    },
                   ],
-                  default: 'undefined',
+                  default: "undefined",
                 },
               },
             },
-            '/',
-            { $toString: { $year: '$exportedAt' } },
+            "/",
+            { $toString: { $year: "$exportedAt" } },
           ],
         }
-      : type === 'month'
-      ? '%m/%Y'
-      : '%d/%m/%Y';
+      : type === "month"
+        ? "%m/%Y"
+        : "%d/%m/%Y";
 
   const groupConditionImport = {
     _id: {
-      name: '$name',
+      name: "$name",
       time: {
         $dateToString: {
           format: dateFormatImported,
-          date: '$importedAt',
+          date: "$importedAt",
         },
       },
     },
-    value: { $sum: '$importItems.qty' },
+    value: { $sum: "$importItems.qty" },
   };
 
   const groupConditionExport = {
     _id: {
-      name: '$name',
+      name: "$name",
       time: {
         $dateToString: {
           format: dateFormatExported,
-          date: '$exportedAt',
+          date: "$exportedAt",
         },
       },
     },
-    value: { $sum: '$exportItems.qty' },
+    value: { $sum: "$exportItems.qty" },
   };
 
   const groupConditionCanceledExport = {
     _id: {
-      name: '$name',
+      name: "$name",
       time: {
         $dateToString: {
           format: dateFormatExported,
-          date: '$exportedAt',
+          date: "$exportedAt",
         },
       },
     },
-    value: { $sum: '$exportItems.qty' },
+    value: { $sum: "$exportItems.qty" },
   };
 
   const pipelineImport = [
     { $match: matchConditionImport },
-    { $unwind: '$importItems' },
+    { $unwind: "$importItems" },
     { $match: matchConditionImport },
     { $group: groupConditionImport },
   ];
 
   const pipelineExport = [
     { $match: matchConditionExport },
-    { $unwind: '$exportItems' },
+    { $unwind: "$exportItems" },
     { $match: matchConditionExport },
     { $group: groupConditionExport },
   ];
 
   const pipelineCanceledExport = [
     { $match: matchConditionCanceledExport },
-    { $unwind: '$exportItems' },
+    { $unwind: "$exportItems" },
     { $match: matchConditionCanceledExport },
     { $group: groupConditionCanceledExport },
   ];
 
   const resultImport = await importStock.aggregate(pipelineImport);
   const resultExport = await exportStock.aggregate(pipelineExport);
-  const resultCanceledExport = await exportStock.aggregate(pipelineCanceledExport);
+  const resultCanceledExport = await exportStock.aggregate(
+    pipelineCanceledExport,
+  );
   // Generate an array with all possible time values in the given range
   const allTimeValues = generateAllTimeValues(from, to, type);
 
   // Modify the result to include 'name' and adjust 'time' format for imports
   const adjustedResultImport = allTimeValues.map((timeValue) => {
-    const matchedItem = resultImport.find((item) => item._id.time === timeValue);
+    const matchedItem = resultImport.find(
+      (item) => item._id.time === timeValue,
+    );
     return {
-      name: 'Nhập',
+      name: "Nhập",
       time: timeValue,
       value: matchedItem ? matchedItem.value : 0,
     };
@@ -703,9 +708,11 @@ async function handleChart(keyword, from, to, type) {
 
   // Modify the result to include 'name' and adjust 'time' format for regular exports
   const adjustedResultExport = allTimeValues.map((timeValue) => {
-    const matchedItem = resultExport.find((item) => item._id.time === timeValue);
+    const matchedItem = resultExport.find(
+      (item) => item._id.time === timeValue,
+    );
     return {
-      name: 'Xuất',
+      name: "Xuất",
       time: timeValue,
       value: matchedItem ? matchedItem.value : 0,
     };
@@ -713,52 +720,55 @@ async function handleChart(keyword, from, to, type) {
 
   // Modify the result to include 'name' and adjust 'time' format for canceled exports
   const adjustedResultCanceledExport = allTimeValues.map((timeValue) => {
-    const matchedItem = resultCanceledExport.find((item) => item._id.time === timeValue);
+    const matchedItem = resultCanceledExport.find(
+      (item) => item._id.time === timeValue,
+    );
     return {
-      name: 'Xuất Huỷ',
+      name: "Xuất Huỷ",
       time: timeValue,
       value: matchedItem ? matchedItem.value : 0,
     };
   });
 
-  const combinedResult = adjustedResultImport.concat(adjustedResultExport, adjustedResultCanceledExport)
-  return combinedResult
+  const combinedResult = adjustedResultImport.concat(
+    adjustedResultExport,
+    adjustedResultCanceledExport,
+  );
+  return combinedResult;
 }
 
 function generateAllTimeValues(startDate, endDate, type) {
-  const timeValues = []
-  const currentDate = new Date(startDate)
-  const lastDate = new Date(endDate)
+  const timeValues = [];
+  const currentDate = new Date(startDate);
+  const lastDate = new Date(endDate);
 
-  const addLeadingZero = (number) => (number < 10 ? `0${number}` : number)
+  const addLeadingZero = (number) => (number < 10 ? `0${number}` : number);
 
   while (currentDate <= lastDate) {
-    const year = currentDate.getFullYear()
-    const month = addLeadingZero(currentDate.getMonth() + 1)
-    const day = addLeadingZero(currentDate.getDate())
+    const year = currentDate.getFullYear();
+    const month = addLeadingZero(currentDate.getMonth() + 1);
+    const day = addLeadingZero(currentDate.getDate());
 
     const dateFormat =
       type === "quarter"
         ? `Q${Math.floor((currentDate.getMonth() + 3) / 3)}/${year}`
         : type === "month"
-        ? `${month}/${year}`
-        : `${day}/${month}/${year}`
+          ? `${month}/${year}`
+          : `${day}/${month}/${year}`;
 
-    timeValues.push(dateFormat)
+    timeValues.push(dateFormat);
 
     if (type === "quarter") {
-      currentDate.setMonth(currentDate.getMonth() + 3)
+      currentDate.setMonth(currentDate.getMonth() + 3);
     } else if (type === "month") {
-      currentDate.setMonth(currentDate.getMonth() + 1)
+      currentDate.setMonth(currentDate.getMonth() + 1);
     } else {
-      currentDate.setDate(currentDate.getDate() + 1)
+      currentDate.setDate(currentDate.getDate() + 1);
     }
   }
 
   return timeValues;
 }
-
-
 
 export default inventoryRoutes;
 

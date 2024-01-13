@@ -1,20 +1,20 @@
 import mongoose from "mongoose";
-const statusSchema=mongoose.Schema({
+const statusSchema = mongoose.Schema({
   level: {
     type: Number,
-    require: true
+    require: true,
   },
   status: {
-      type: String,
-      require: true
+    type: String,
+    require: true,
   },
   date: {
-      type: Date,
-      require: true,
+    type: Date,
+    require: true,
   },
-})
+});
 
-const orderSchema=mongoose.Schema(
+const orderSchema = mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -23,38 +23,39 @@ const orderSchema=mongoose.Schema(
     },
     orderItems: [
       {
-        drugstoreId:{
+        drugstoreId: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
           ref: "DrugStore",
         },
         _id: false,
-        name: {type: String,required: true},
-        qty: {type: Number,required: true},
-        image: {type: Array,required: true},
-        price: {type: Number,required: true},
-        refunded: {type: Number},
-        discount: {type: Number},
+        name: { type: String, required: true },
+        qty: { type: Number, required: true },
+        image: { type: Array, required: true },
+        price: { type: Number, required: true },
+        refunded: { type: Number },
+        discount: { type: Number },
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
           ref: "Product",
         },
-          detailStock: [
-            {
-                _id: false,
-                lotNumber: {type: String, require: true},
-                expDrug: {type: Date, require: true},
-                count: {type: Number, require: true,default:0},
-                priority: {type: Number, require: true, default: 0}
-            }
+        detailStock: [
+          {
+            _id: false,
+            lotNumber: { type: String, require: true },
+            expDrug: { type: Date, require: true },
+            count: { type: Number, require: true, default: 0 },
+            priority: { type: Number, require: true, default: 0 },
+          },
         ],
-      }],
+      },
+    ],
     shippingAddress: {
-      address: {type: String,required: true},
-      city: {type: String,required: true},
-      postalCode: {type: String,required: true},
-      country: {type: String,required: true},
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
     },
     paymentMethod: {
       type: String,
@@ -62,10 +63,10 @@ const orderSchema=mongoose.Schema(
       default: "Paypal",
     },
     paymentResult: {
-      id: {type: String},
-      status: {type: String},
-      update_time: {type: String},
-      email_address: {type: String},
+      id: { type: String },
+      status: { type: String },
+      update_time: { type: String },
+      email_address: { type: String },
     },
     taxPrice: {
       type: Number,
@@ -76,7 +77,7 @@ const orderSchema=mongoose.Schema(
       type: Number,
       required: true,
       default: 0.0,
-    },//itemsPrice
+    }, //itemsPrice
     itemsPrice: {
       type: Number,
       required: true,
@@ -150,13 +151,12 @@ const orderSchema=mongoose.Schema(
     completedAt: {
       type: Date,
     },
-
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-const Order=mongoose.model("Order",orderSchema);
+const Order = mongoose.model("Order", orderSchema);
 
 export default Order;

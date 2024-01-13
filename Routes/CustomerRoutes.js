@@ -2,43 +2,49 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import Customer from "../Models/CustomerModel.js";
-import moment from 'moment';
-import { protectCustomer, admin,protect } from "../Middleware/AuthMiddleware.js";
-import {generateToken, createActivationToken} from "../utils/generateToken.js";
-import sendMail from "../config/sendMail.js"
-import notification from "../config/notification.js"
-import { google } from 'googleapis';
+import moment from "moment";
+import {
+  protectCustomer,
+  admin,
+  protect,
+} from "../Middleware/AuthMiddleware.js";
+import {
+  generateToken,
+  createActivationToken,
+} from "../utils/generateToken.js";
+import sendMail from "../config/sendMail.js";
+import notification from "../config/notification.js";
+import { google } from "googleapis";
 import bcrypt from "bcryptjs";
-import {logger} from "../utils/logger.js";
+import { logger } from "../utils/logger.js";
 
-const {OAuth2} = google.auth;
-const client = new OAuth2(process.env.MAILING_SERVICE_CLIENT_ID)
-const { CLIENT_URL } = process.env
+const { OAuth2 } = google.auth;
+const client = new OAuth2(process.env.MAILING_SERVICE_CLIENT_ID);
+const { CLIENT_URL } = process.env;
 const day = moment(Date.now());
 const customerRouter = express.Router();
 const validateEmail = (email) => {
   return email.match(
-    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
   );
 };
-
 
 // LOGIN
 customerRouter.post(
   "/login",
   asyncHandler(async (req, res) => {
-
     const { email, password } = req.body;
     const customer = await Customer.findOne({ email });
 
     if (customer && (await customer.matchPassword(password))) {
       const currentDate = new Date();
-      const specificDate = new Date(customer?.lockTo)
-      if(customer?.lockTo!=''){//currentDate.getTime() < specificDate.getTime()
-        if(currentDate.getTime() < specificDate.getTime()){
+      const specificDate = new Date(customer?.lockTo);
+      if (customer?.lockTo != "") {
+        //currentDate.getTime() < specificDate.getTime()
+        if (currentDate.getTime() < specificDate.getTime()) {
           res.status(401);
-          throw new Error("Tài khoản bị khóa đến "+customer?.lockTo);
-        }else{
+          throw new Error("Tài khoản bị khóa đến " + customer?.lockTo);
+        } else {
           res.json({
             _id: customer._id,
             name: customer.name,
@@ -47,13 +53,12 @@ customerRouter.post(
             phone: customer.phone,
             isAdmin: customer.isAdmin,
             token: generateToken(customer._id),
-            pCoin:customer.pCoin,
+            pCoin: customer.pCoin,
             createdAt: customer.createdAt,
-            methodLogin: 'Account'
+            methodLogin: "Account",
           });
         }
-        
-      }else{
+      } else {
         res.json({
           _id: customer._id,
           name: customer.name,
@@ -62,18 +67,19 @@ customerRouter.post(
           phone: customer.phone,
           isAdmin: customer.isAdmin,
           token: generateToken(customer._id),
-          pCoin:customer.pCoin,
+          pCoin: customer.pCoin,
           createdAt: customer.createdAt,
-          methodLogin: 'Account'
+          methodLogin: "Account",
         });
-
       }
-      console.log(`✏️  ${day.format('MMMM Do YYYY, h:mm:ss a')} postLogin 👉 Get: 200`)
+      console.log(
+        `✏️  ${day.format("MMMM Do YYYY, h:mm:ss a")} postLogin 👉 Get: 200`,
+      );
     } else {
       res.status(401);
       throw new Error("Không tìm thấy khách hàng");
     }
-  })
+  }),
 );
 
 // LOGIN_GOOGLE
@@ -81,15 +87,21 @@ customerRouter.post(
   "/google_login",
   asyncHandler(async (req, res) => {
     try {
-      const tokenId = req.body.tokenId
-      const verify = await client.verifyIdToken({idToken: tokenId, audience: process.env.MAILING_SERVICE_CLIENT_ID})
-      const {email_verified, email, name, picture} = verify.payload
-   
+      const tokenId = req.body.tokenId;
+      const verify = await client.verifyIdToken({
+        idToken: tokenId,
+        audience: process.env.MAILING_SERVICE_CLIENT_ID,
+      });
+      const { email_verified, email, name, picture } = verify.payload;
+
       const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(email + process.env.GOOGLE_SECRET, salt);
-      if(email_verified){
-        const customer = await Customer.findOne({email})
-        if(customer){
+      const passwordHash = await bcrypt.hash(
+        email + process.env.GOOGLE_SECRET,
+        salt,
+      );
+      if (email_verified) {
+        const customer = await Customer.findOne({ email });
+        if (customer) {
           res.json({
             _id: customer._id,
             name: customer.name,
@@ -97,83 +109,82 @@ customerRouter.post(
             isAdmin: customer.isAdmin,
             token: generateToken(customer._id),
             createdAt: customer.createdAt,
-            methodLogin: 'Google'
+            methodLogin: "Google",
           });
-        }
-        else{
+        } else {
           const newCustomer = new Customer({
-            name, 
-            email, 
+            name,
+            email,
             password: passwordHash,
-            avatar: picture
-          })
-          await newCustomer.save()
+            avatar: picture,
+          });
+          await newCustomer.save();
           res.status(201).json({
             _id: newCustomer._id,
             name: newCustomer.name,
             email: newCustomer.email,
             token: generateToken(newCustomer._id),
             createdAt: newCustomer.createdAt,
-            methodLogin: 'Google'
+            methodLogin: "Google",
           });
         }
-      }
-      else{
-        return res.status(400).json('Email xác thực không thành công')
+      } else {
+        return res.status(400).json("Email xác thực không thành công");
       }
     } catch (error) {
       res.status(400).json(error.message);
     }
-  })
+  }),
 );
-// ACTIVE REGISTER 
+// ACTIVE REGISTER
 customerRouter.post(
   "/active",
-  asyncHandler( async(req, res)=>{
-      const token = req.body.activation_token
-      if(!token || token ==={}){
-        res.status(400);
-        throw new Error("Có vấn đề với link này, hãy liên hệ admin để được hổ trợ");
-      }
-      else if(jwt.verify(token, process.env.JWT_SECRET).exp < Date.now() / 1000){
-        res.status(400);
-        throw new Error("Gmail không đúng định dạng");
-      }
-      else{
-        const customer = jwt.verify(token, process.env.JWT_SECRET)
-        const { name, email, password, phone, isAdmin } = customer.payload
-  
-        const customerNew = await Customer.create({
-          name,
-          email,
-          password,
-          phone,
-          isAdmin
-        });
-  
-        if (customerNew) { 
-          res.status(201).json({
-            _id: customer._id,
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            isAdmin: customer.isAdmin,
-            token: generateToken(customer._id),
-          });
-        } else {
-          res.status(400);
-          throw new Error("dữ liệu người dùng không đúng");
-        }
-      }
+  asyncHandler(async (req, res) => {
+    const token = req.body.activation_token;
+    if (!token || token === {}) {
+      res.status(400);
+      throw new Error(
+        "Có vấn đề với link này, hãy liên hệ admin để được hổ trợ",
+      );
+    } else if (
+      jwt.verify(token, process.env.JWT_SECRET).exp <
+      Date.now() / 1000
+    ) {
+      res.status(400);
+      throw new Error("Gmail không đúng định dạng");
+    } else {
+      const customer = jwt.verify(token, process.env.JWT_SECRET);
+      const { name, email, password, phone, isAdmin } = customer.payload;
 
+      const customerNew = await Customer.create({
+        name,
+        email,
+        password,
+        phone,
+        isAdmin,
+      });
+
+      if (customerNew) {
+        res.status(201).json({
+          _id: customer._id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          isAdmin: customer.isAdmin,
+          token: generateToken(customer._id),
+        });
+      } else {
+        res.status(400);
+        throw new Error("dữ liệu người dùng không đúng");
+      }
     }
-  )
-)
+  }),
+);
 // REGISTER
 customerRouter.post(
   "/",
   asyncHandler(async (req, res) => {
-    const { name, email,phone, password} = req.body;
+    const { name, email, phone, password } = req.body;
     const customerExists = await Customer.findOne({ email });
     if (customerExists) {
       res.status(400);
@@ -187,7 +198,7 @@ customerRouter.post(
       password,
     });
 
-    if (customer) { 
+    if (customer) {
       res.status(201).json({
         _id: customer._id,
         name: customer.name,
@@ -199,68 +210,65 @@ customerRouter.post(
       res.status(400);
       throw new Error("Invalid Customer Data");
     }
-  })
-); 
+  }),
+);
 
 //FORGOT PASS
 customerRouter.post(
   "/forgotpass",
-  asyncHandler(async (req, res)=>{
-      const email = req.body.forgot_email
-      if(!email){
-        throw new Error("Email is empty !");
-      }
-      const customer = await Customer.findOne({email})
-      if(!customer || customer === null){
-        throw new Error("Email not found !");
-      }
-      else{
-        const access_token = createActivationToken({id: customer._id}); 
-        const url = `${CLIENT_URL}/account/reset/${access_token}`
-        sendMail(email, url, "Reset your password")
-        res.json('Re-send the password, please check your email.')
-      }
-  })
-)
+  asyncHandler(async (req, res) => {
+    const email = req.body.forgot_email;
+    if (!email) {
+      throw new Error("Email is empty !");
+    }
+    const customer = await Customer.findOne({ email });
+    if (!customer || customer === null) {
+      throw new Error("Email not found !");
+    } else {
+      const access_token = createActivationToken({ id: customer._id });
+      const url = `${CLIENT_URL}/account/reset/${access_token}`;
+      sendMail(email, url, "Reset your password");
+      res.json("Re-send the password, please check your email.");
+    }
+  }),
+);
 // CONFIRM FORGOT
 customerRouter.post(
   "/confirm/password",
-  asyncHandler( async(req, res)=>{
-      const dataReset = req.body
-      const id = dataReset.token
-      const customer = jwt.verify(id, process.env.JWT_SECRET)
-      const findCustomer = await Customer.findById(customer.payload.id);
-      if (findCustomer) {
-        findCustomer.password = dataReset.password;
-        await findCustomer.save();
-        res.json('Change password successfully');
-      } else {
-        res.status(404);
-        throw new Error("Customer not found");
-      }
+  asyncHandler(async (req, res) => {
+    const dataReset = req.body;
+    const id = dataReset.token;
+    const customer = jwt.verify(id, process.env.JWT_SECRET);
+    const findCustomer = await Customer.findById(customer.payload.id);
+    if (findCustomer) {
+      findCustomer.password = dataReset.password;
+      await findCustomer.save();
+      res.json("Change password successfully");
+    } else {
+      res.status(404);
+      throw new Error("Customer not found");
     }
-  )
-)
+  }),
+);
 //CHANGE PROFILE
 customerRouter.post(
   "/changeprofile",
-  asyncHandler(async (req, res)=>{
-      const form = req.body
-      const {email, password} = form
-      if(!email && !password){
-        throw new Error("Form is empty !");
-      }
-      const customer = await Customer.findOne({email})
-      if(customer && (await customer.matchPassword(password))){
-        const url = `${CLIENT_URL}/login`
-        //notification(email, url, "Login")
-        res.json('Đã xác thực, bạn đã có thể cập nhật thông tin.')
-      }
-      else{
-        throw new Error("Email không được tìm thấy !");
-      }
-  })
-)
+  asyncHandler(async (req, res) => {
+    const form = req.body;
+    const { email, password } = form;
+    if (!email && !password) {
+      throw new Error("Form is empty !");
+    }
+    const customer = await Customer.findOne({ email });
+    if (customer && (await customer.matchPassword(password))) {
+      const url = `${CLIENT_URL}/login`;
+      //notification(email, url, "Login")
+      res.json("Đã xác thực, bạn đã có thể cập nhật thông tin.");
+    } else {
+      throw new Error("Email không được tìm thấy !");
+    }
+  }),
+);
 //PROFILE
 customerRouter.get(
   "/profile",
@@ -279,18 +287,17 @@ customerRouter.get(
         dateOfBirth: customer.dateOfBirth,
         gender: customer.gender,
         createdAt: customer.createdAt,
-        
       });
     } else {
       res.status(404);
       throw new Error("Không tìm thấy người dùng");
     }
-  })
+  }),
 );
 // UPDATE PROFILE
 customerRouter.put(
   "/profile",
-  protectCustomer,//
+  protectCustomer, //
   asyncHandler(async (req, res) => {
     const customer = await Customer.findById(req.user._id);
 
@@ -321,7 +328,7 @@ customerRouter.put(
       res.status(404);
       throw new Error("Không tìm thấy người dùng");
     }
-  })
+  }),
 );
 
 customerRouter.put(
@@ -358,37 +365,38 @@ customerRouter.put(
       res.status(404);
       throw new Error("Không tìm thấy người dùng");
     }
-  })
+  }),
 );
 // GET ALL USER ADMIN
 customerRouter.get(
   "/",
   //protectCustomer,
   asyncHandler(async (req, res) => {
-    const keyword = req.query.keyword && req.query.keyword !== ' ' ? {
-      $or:[
-        {
-          name: {
-            $regex: req.query.keyword,
-            $options: "i"
+    const keyword =
+      req.query.keyword && req.query.keyword !== " "
+        ? {
+            $or: [
+              {
+                name: {
+                  $regex: req.query.keyword,
+                  $options: "i",
+                },
+              },
+              {
+                phone: {
+                  $regex: req.query.keyword,
+                  $options: "i",
+                },
+              },
+            ],
           }
-        },
-        {
-          phone: {
-            $regex: req.query.keyword,
-            $options: "i"
-          }
-        }
-      ]
-      
-  } : {}
-    const customers = await Customer.find({...keyword}).sort({ _id: -1 })
+        : {};
+    const customers = await Customer.find({ ...keyword }).sort({ _id: -1 });
     res.json(customers);
-  })
+  }),
 );
 // GET USER DATA FOR APP MOBILE
 customerRouter.get("/getAppCustomerData", protectCustomer, async (req, res) => {
-
   const customer = await Customer.findById(req.customer);
   res.json({ ...customer._doc, token: req.token });
 });
@@ -412,10 +420,10 @@ customerRouter.post(
       email,
       role,
       password,
-      phone
+      phone,
     });
 
-    if (customer) { 
+    if (customer) {
       res.status(201).json({
         _id: customer._id,
         name: customer.name,
@@ -431,7 +439,7 @@ customerRouter.post(
       res.status(400);
       throw new Error("Thông tin người dùng không hợp lệ");
     }
-  })
+  }),
 );
 
 //GET SINGLE USER IN ADMIN
@@ -440,16 +448,15 @@ customerRouter.get(
   protectCustomer,
 
   asyncHandler(async (req, res) => {
-      const customer = await Customer.findById(req.params.id)
-      if (customer){
-        res.json(customer);
-      }
-      else{
-        res.status(404)
-        throw new Error(`Không tìm thấy người dùng`)
-      }
-  })
-)
+    const customer = await Customer.findById(req.params.id);
+    if (customer) {
+      res.json(customer);
+    } else {
+      res.status(404);
+      throw new Error(`Không tìm thấy người dùng`);
+    }
+  }),
+);
 
 customerRouter.get(
   "/:id/inc-coin",
@@ -457,15 +464,15 @@ customerRouter.get(
   asyncHandler(async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (customer) {
-      customer.pCoin = Number(customer.pCoin)+Number(req.query.coin)
-      customer.totalOrder=Number(customer.totalOrder)+1
+      customer.pCoin = Number(customer.pCoin) + Number(req.query.coin);
+      customer.totalOrder = Number(customer.totalOrder) + 1;
       const updatedCustomer = await customer.save();
       res.json(updatedCustomer);
     } else {
       res.status(404);
       throw new Error("Không tìm thấy người dùng");
     }
-  })
+  }),
 );
 
 //UPDATE USER IN ADMIN
@@ -497,9 +504,8 @@ customerRouter.put(
       res.status(404);
       throw new Error("Không tìm thấy người dùng");
     }
-  })
+  }),
 );
-
 
 // UPDATE STATUS
 customerRouter.put(
@@ -511,19 +517,21 @@ customerRouter.put(
       const customer = await Customer.findById(req.params.id);
       const currentDate = new Date();
       if (customer) {
-        customer.lockTo=currentDate.setDate(currentDate.getDate() + 7)
+        customer.lockTo = currentDate.setDate(currentDate.getDate() + 7);
 
         const deletedCustomer = await customer.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Customer is deleted 👉 Post: 200`, { customer: req.user.name, deletedCustomer })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Customer is deleted 👉 Post: 200`,
+          { customer: req.user.name, deletedCustomer },
+        );
         res.json(deletedCustomer);
-      } 
-      else {
+      } else {
         res.status(404);
         throw new Error("Không tìm thấy người dùng");
       }
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
-  })
+  }),
 );
-export default customerRouter
+export default customerRouter;

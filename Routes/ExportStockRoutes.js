@@ -1,14 +1,19 @@
 import express from "express";
 import crypto from "crypto";
 import asyncHandler from "express-async-handler";
-import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
+import {
+  admin,
+  protect,
+  userRoleAdmin,
+  userRoleInventory,
+} from "../Middleware/AuthMiddleware.js";
 import exportStock from "../Models/ExportStock.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import mongoose from "mongoose";
 import DrugStore from "../Models/DrugStoreModel.js";
 import { logger } from "../utils/logger.js";
-import moment from 'moment';
+import moment from "moment";
 import DrugCancel from "../Models/DrugCancelModel.js";
 const day = moment(Date.now());
 
@@ -22,13 +27,16 @@ exportStockRoutes.get(
   asyncHandler(async (req, res) => {
     // const pageSize = 9;
     // const currentPage = Number(req.query.pageNumber) || 1;
-    let phieuxuatFilter = {}
-    const keyword = req.query.keyword && req.query.keyword != ' ' ? {
-      exportCode: {
-          $regex: req.query.keyword,
-          $options: "i"
-      },
-    } : {}
+    let phieuxuatFilter = {};
+    const keyword =
+      req.query.keyword && req.query.keyword != " "
+        ? {
+            exportCode: {
+              $regex: req.query.keyword,
+              $options: "i",
+            },
+          }
+        : {};
 
     const { phieuxuat, from, to } = req.query;
     const D2D =
@@ -41,17 +49,22 @@ exportStockRoutes.get(
           }
         : {};
 
-      if (phieuxuat === "XNB") {
-        phieuxuatFilter = { isExportCanceled: {$eq: false} }
-      } else if (phieuxuat === "XH") {
-        phieuxuatFilter = { isExportCanceled: {$eq: true} }
-      } else{
-        phieuxuatFilter = { $exists: true }; 
-      }
+    if (phieuxuat === "XNB") {
+      phieuxuatFilter = { isExportCanceled: { $eq: false } };
+    } else if (phieuxuat === "XH") {
+      phieuxuatFilter = { isExportCanceled: { $eq: true } };
+    } else {
+      phieuxuatFilter = { $exists: true };
+    }
 
     // const count = await exportStock.countDocuments({...keyword, ...D2D});
     const stockExported = await exportStock
-      .find({ ...keyword, ...D2D,...phieuxuatFilter, isDeleted: {$eq: false} })
+      .find({
+        ...keyword,
+        ...D2D,
+        ...phieuxuatFilter,
+        isDeleted: { $eq: false },
+      })
       .populate("user", "name")
       .populate("exportItems.product", "name")
       .sort({ _id: -1 });
@@ -64,7 +77,7 @@ exportStockRoutes.get(
     // }
     // res.json({ stockExported, currentPage, totalPage });
     res.json(stockExported);
-  })
+  }),
 );
 // analytics stock export for app
 exportStockRoutes.get(
@@ -77,21 +90,21 @@ exportStockRoutes.get(
     const D2D =
       from && to
         ? {
-          $and: [
-            {
-              exportedAt: {
-                $gte: new Date(from),
-                $lte: new Date(to),
+            $and: [
+              {
+                exportedAt: {
+                  $gte: new Date(from),
+                  $lte: new Date(to),
+                },
               },
-            },
-            {
-              status: true
-            }
-          ]
-        }
+              {
+                status: true,
+              },
+            ],
+          }
         : {
-          status: true
-        };
+            status: true,
+          };
     const datas = await exportStock.aggregate([
       {
         $match: D2D,
@@ -120,7 +133,7 @@ exportStockRoutes.get(
       },
     ]);
     res.json({ ...datas });
-  })
+  }),
 );
 //SEARCH DATE
 // exportStockRoutes.get("/date",
@@ -194,13 +207,13 @@ exportStockRoutes.post(
         totalPrice,
         exportedAt,
       } = req.body;
-      console.log("isExportCanceled",isExportCanceled)
+      console.log("isExportCanceled", isExportCanceled);
       const filteredExportItems = exportItems.map((item) => {
         const { lotField } = item;
         const filteredLotField = lotField.filter((lot) => lot.count > 0);
         return { ...item, lotField: filteredLotField };
       });
-      const randomUuid = crypto.randomBytes(16).toString('hex');
+      const randomUuid = crypto.randomBytes(16).toString("hex");
       const exportsStock = new exportStock({
         exportCode: `${process.env.PREFIX_CODE_XK}-${randomUuid.slice(0, 8)}`,
         note,
@@ -213,12 +226,15 @@ exportStockRoutes.post(
       });
 
       const createdExportStock = await exportsStock.save();
-      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Export Stock 👉 Post: 200`, { user: req.user.name, createdExportStock })
+      logger.info(
+        `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Export Stock 👉 Post: 200`,
+        { user: req.user.name, createdExportStock },
+      );
       res.status(201).json(createdExportStock);
     } catch (error) {
       res.status(400).json(error.message);
     }
-  })
+  }),
 );
 
 // GET EXPORT STOCK BY ID
@@ -238,7 +254,7 @@ exportStockRoutes.get(
       res.status(404);
       throw new Error("Không tìm thấy đơn hàng");
     }
-  })
+  }),
 );
 
 // UPDATE STATUS
@@ -263,10 +279,16 @@ exportStockRoutes.put(
               ],
             });
 
-            if (inventoryToUpdate.count - listLotField[j].count < 0 && !thisExport.isExportCanceled) {
+            if (
+              inventoryToUpdate.count - listLotField[j].count < 0 &&
+              !thisExport.isExportCanceled
+            ) {
               return res
                 .status(400)
-                .json({ message: "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!" });
+                .json({
+                  message:
+                    "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!",
+                });
             }
 
             inventoryToUpdate.count -= listLotField[j].count;
@@ -276,8 +298,8 @@ exportStockRoutes.put(
             });
             await inventoryToUpdate.save();
             //!  DrugStore
-            if(thisExport.isExportCanceled){
-              const drugCancelId= await DrugCancel.findOne({
+            if (thisExport.isExportCanceled) {
+              const drugCancelId = await DrugCancel.findOne({
                 product: listExport[i].product,
               });
               const newStock = {
@@ -285,46 +307,45 @@ exportStockRoutes.put(
                 expDrug: listLotField[j].expDrug,
                 count: listLotField[j].count,
               };
-              
+
               if (drugCancelId) {
                 const drugCancelToUpdate = await DrugCancel.findOne({
                   "stock.lotNumber": listLotField[j].lotNumber,
-                  'stock.expDrug': listLotField[j].expDrug
+                  "stock.expDrug": listLotField[j].expDrug,
                 });
-  
+
                 if (drugCancelToUpdate) {
-                  await DrugCancel.updateOne({
-                    "stock.lotNumber": listLotField[j].lotNumber,
-                    "stock.expDrug": listLotField[j].expDrug
-                  }, 
-                  {
-                    $inc: 
+                  await DrugCancel.updateOne(
                     {
-                      "stock.$.count": listLotField[j].count
-                    }
-                  });
-                } 
-                else if (drugCancelToUpdate === null) {
+                      "stock.lotNumber": listLotField[j].lotNumber,
+                      "stock.expDrug": listLotField[j].expDrug,
+                    },
+                    {
+                      $inc: {
+                        "stock.$.count": listLotField[j].count,
+                      },
+                    },
+                  );
+                } else if (drugCancelToUpdate === null) {
                   await DrugCancel.updateOne(
                     {
                       product: listExport[i].product,
-                    }, 
+                    },
                     {
                       $push: {
-                        stock: newStock
-                      }
-                    }
+                        stock: newStock,
+                      },
+                    },
                   );
                 }
               } else if (drugCancelId === null) {
                 await DrugCancel.create({
                   product: listExport[i].product,
-                  stock: [newStock]
+                  stock: [newStock],
                 });
               }
-            }
-            else{
-              const drugStoreId= await DrugStore.findOne({
+            } else {
+              const drugStoreId = await DrugStore.findOne({
                 product: listExport[i].product,
               });
               const newStock = {
@@ -332,41 +353,41 @@ exportStockRoutes.put(
                 expDrug: listLotField[j].expDrug,
                 count: listLotField[j].count,
               };
-              
+
               if (drugStoreId) {
                 const drugStoreToUpdate = await DrugStore.findOne({
                   "stock.lotNumber": listLotField[j].lotNumber,
-                  'stock.expDrug': listLotField[j].expDrug
+                  "stock.expDrug": listLotField[j].expDrug,
                 });
-  
+
                 if (drugStoreToUpdate) {
-                  await DrugStore.updateOne({
-                    "stock.lotNumber": listLotField[j].lotNumber,
-                    "stock.expDrug": listLotField[j].expDrug
-                  }, 
-                  {
-                    $inc: 
+                  await DrugStore.updateOne(
                     {
-                      "stock.$.count": listLotField[j].count
-                    }
-                  });
-                } 
-                else if (drugStoreToUpdate === null) {
+                      "stock.lotNumber": listLotField[j].lotNumber,
+                      "stock.expDrug": listLotField[j].expDrug,
+                    },
+                    {
+                      $inc: {
+                        "stock.$.count": listLotField[j].count,
+                      },
+                    },
+                  );
+                } else if (drugStoreToUpdate === null) {
                   await DrugStore.updateOne(
                     {
                       product: listExport[i].product,
-                    }, 
+                    },
                     {
                       $push: {
-                        stock: newStock
-                      }
-                    }
+                        stock: newStock,
+                      },
+                    },
                   );
                 }
               } else if (drugStoreId === null) {
                 await DrugStore.create({
                   product: listExport[i].product,
-                  stock: [newStock]
+                  stock: [newStock],
                 });
               }
             }
@@ -374,7 +395,7 @@ exportStockRoutes.put(
         }
         thisExport.status = true;
         const updatedImport = await thisExport.save();
-        logger.info('ExportStock updated status', { updatedImport })
+        logger.info("ExportStock updated status", { updatedImport });
         res.json(updatedImport);
       } else {
         res.status(404);
@@ -383,9 +404,8 @@ exportStockRoutes.put(
     } catch (error) {
       throw new Error(error.message);
     }
-  })
+  }),
 );
-
 
 // UPDATE STATUS USE BULKWRITE
 exportStockRoutes.put(
@@ -402,7 +422,6 @@ exportStockRoutes.put(
         for (let i = 0; i < listExport.length; i++) {
           let listLotField = listExport[i].lotField;
           for (let j = 0; j < listLotField.length; j++) {
-
             // Update Inventory
             const inventoryToUpdate = await Inventory.findOne({
               $and: [
@@ -415,100 +434,103 @@ exportStockRoutes.put(
             if (inventoryToUpdate.count - listLotField[j].count < 0) {
               return res
                 .status(400)
-                .json({ message: "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!" });
-            }
-            else{
-              const inventoryOperation = { 
+                .json({
+                  message:
+                    "Phiếu xuất tốn tại sản phẩm có số lượng âm. Vui lòng kiểm tra lại!",
+                });
+            } else {
+              const inventoryOperation = {
                 updateOne: {
-                  filter: {           
+                  filter: {
                     idDrug: listLotField[j].idDrug,
                     lotNumber: listLotField[j].lotNumber,
-                    expDrug: listLotField[j].expDrug
+                    expDrug: listLotField[j].expDrug,
                   },
                   update: {
-                    $inc : {
-                      count: -listLotField[j].count
+                    $inc: {
+                      count: -listLotField[j].count,
                     },
                     $push: {
                       exportStock: {
                         _id: thisExport._id,
-                        exportCode: thisExport.exportCode
-                      }
-                    }
-                  }
-                }
-              }
+                        exportCode: thisExport.exportCode,
+                      },
+                    },
+                  },
+                },
+              };
               updateInventoryOperations.push(inventoryOperation);
-            }  
+            }
             const drugStoreOperationsMap = new Map();
             // Update DrugStore
             const drugStoreToUpdate = await DrugStore.findOne({
               product: listLotField[j].idDrug,
             });
-            if(drugStoreToUpdate || drugStoreOperationsMap.has(listExport[i].product.toHexString())){
+            if (
+              drugStoreToUpdate ||
+              drugStoreOperationsMap.has(listExport[i].product.toHexString())
+            ) {
               const drugStoreToUpdate2 = await DrugStore.findOne({
                 product: listLotField[j].idDrug,
                 "stock.lotNumber": listLotField[j].lotNumber,
-                'stock.expDrug' : listLotField[j].expDrug
+                "stock.expDrug": listLotField[j].expDrug,
               });
-              if(drugStoreToUpdate2){
+              if (drugStoreToUpdate2) {
                 const drugStoreOperation = {
                   updateOne: {
                     filter: {
                       product: listLotField[j].idDrug,
-                      'stock.lotNumber': listLotField[j].lotNumber,
-                      'stock.expDrug' : listLotField[j].expDrug
+                      "stock.lotNumber": listLotField[j].lotNumber,
+                      "stock.expDrug": listLotField[j].expDrug,
                     },
                     update: {
                       $inc: {
-                        'stock.$.count': listLotField[j].count
-                      }
-                    }
-                  }
+                        "stock.$.count": listLotField[j].count,
+                      },
+                    },
+                  },
                 };
                 updateDrugStoreOperations.push(drugStoreOperation);
-              }
-              else{
+              } else {
                 const newStock = {
                   lotNumber: listLotField[j].lotNumber,
                   expDrug: listLotField[j].expDrug,
                   count: listLotField[j].count,
-                  priority: 0
+                  priority: 0,
                 };
                 const drugStoreOperation = {
                   updateOne: {
                     filter: {
                       product: listLotField[j].idDrug,
-                      'stock.lotNumber': listLotField[j].lotNumber,
-                      'stock.expDrug' : listLotField[j].expDrug
+                      "stock.lotNumber": listLotField[j].lotNumber,
+                      "stock.expDrug": listLotField[j].expDrug,
                     },
                     update: {
-                      $push: { stock: newStock }
-                    }
-                  }
+                      $push: { stock: newStock },
+                    },
+                  },
                 };
                 updateDrugStoreOperations.push(drugStoreOperation);
               }
-
-            }
-            else if(drugStoreToUpdate === null){
+            } else if (drugStoreToUpdate === null) {
               const newStock = {
                 lotNumber: listLotField[j].lotNumber,
                 expDrug: listLotField[j].expDrug,
                 count: listLotField[j].count,
-                priority: 0
+                priority: 0,
               };
               const drugStoreOperation = {
                 insertOne: {
                   document: {
                     product: listExport[i].product,
-                    stock: [
-                      newStock
-                    ],
-                  }
-                }
+                    stock: [newStock],
+                  },
+                },
               };
-              drugStoreOperationsMap.set( listExport[i].product.toHexString(),  listExport[i].product.toHexString());
+              drugStoreOperationsMap.set(
+                listExport[i].product.toHexString(),
+                listExport[i].product.toHexString(),
+              );
               updateDrugStoreOperations.push(drugStoreOperation);
             }
           }
@@ -531,7 +553,7 @@ exportStockRoutes.put(
     } catch (error) {
       throw new Error(error.message);
     }
-  })
+  }),
 );
 
 // UPDATE STATUS HAVE TRANSACTION(DEMO)
@@ -558,7 +580,7 @@ exportStockRoutes.put(
             {
               session,
               // new: true
-            }
+            },
           );
           if (!updateStock) {
             throw new Error("Không tìm thấy sản phẩm");
@@ -579,7 +601,7 @@ exportStockRoutes.put(
       session.endSession();
       throw new Error(error.message);
     }
-  })
+  }),
 );
 
 //UPDATE EXPORT STOCK
@@ -599,7 +621,7 @@ exportStockRoutes.put(
         totalPrice,
         exportedAt,
       } = req.body;
-      console.log("isExportCanceled",isExportCanceled)
+      console.log("isExportCanceled", isExportCanceled);
 
       const filteredExportItems = exportItems.map((item) => {
         const { lotField } = item;
@@ -609,14 +631,18 @@ exportStockRoutes.put(
       if (thisExport) {
         thisExport.note = note || thisExport.note;
         thisExport.reason = reason || thisExport.reason;
-        thisExport.isExportCanceled = isExportCanceled || thisExport.isExportCanceled;
+        thisExport.isExportCanceled =
+          isExportCanceled || thisExport.isExportCanceled;
         thisExport.exportItems = filteredExportItems || thisExport.exportItems;
         thisExport.user = user || thisExport.user;
         thisExport.totalPrice = totalPrice || thisExport.totalPrice;
         thisExport.exportedAt = exportedAt || thisExport.exportedAt;
 
         const updatedStockExport = await thisExport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Stock Export 👉 Post: 200`, { user: req.user.name, updatedStockExport })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Updated Stock Export 👉 Post: 200`,
+          { user: req.user.name, updatedStockExport },
+        );
         res.json(updatedStockExport);
       } else {
         res.status(404);
@@ -625,7 +651,7 @@ exportStockRoutes.put(
     } catch (error) {
       res.status(400).json(error.message);
     }
-  })
+  }),
 );
 
 //CANCEL EXPORT STOCK
@@ -639,16 +665,18 @@ exportStockRoutes.put(
       if (thisExport) {
         thisExport.isDeleted = true;
         const updatedExport = await thisExport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Canceled Export 👉 Post: 200`, { user: req.user.name, updatedExport })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Canceled Export 👉 Post: 200`,
+          { user: req.user.name, updatedExport },
+        );
         res.json(updatedExport);
-      } 
-      else {
+      } else {
         res.status(404);
         throw new Error("Không tìm thấy đơn xuất kho");
       }
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
-  })
+  }),
 );
 export default exportStockRoutes;
