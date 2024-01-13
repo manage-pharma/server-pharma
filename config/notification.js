@@ -1,47 +1,47 @@
-import nodemailer from "nodemailer"
-import { google } from 'googleapis';
-import dotenv from "dotenv"
-dotenv.config() 
-const {OAuth2} = google.auth;
-const OAUTH_PLAYGROUND = 'https://developers.google.com/oauthplayground'
+import nodemailer from "nodemailer";
+import { google } from "googleapis";
+import dotenv from "dotenv";
+dotenv.config();
+const { OAuth2 } = google.auth;
+const OAUTH_PLAYGROUND = "https://developers.google.com/oauthplayground";
 
 const {
-    MAILING_SERVICE_CLIENT_ID,
-    MAILING_SERVICE_CLIENT_SECRET,
-    MAILING_SERVICE_REFRESH_TOKEN,
-    SENDER_EMAIL_ADDRESS
-} = process.env
+  MAILING_SERVICE_CLIENT_ID,
+  MAILING_SERVICE_CLIENT_SECRET,
+  MAILING_SERVICE_REFRESH_TOKEN,
+  SENDER_EMAIL_ADDRESS,
+} = process.env;
 
 const oauth2Client = new OAuth2(
-    MAILING_SERVICE_CLIENT_ID,
-    MAILING_SERVICE_CLIENT_SECRET,
-    MAILING_SERVICE_REFRESH_TOKEN,
-    OAUTH_PLAYGROUND
-)
+  MAILING_SERVICE_CLIENT_ID,
+  MAILING_SERVICE_CLIENT_SECRET,
+  MAILING_SERVICE_REFRESH_TOKEN,
+  OAUTH_PLAYGROUND,
+);
 
 oauth2Client.setCredentials({
-    refresh_token: MAILING_SERVICE_REFRESH_TOKEN
-})
+  refresh_token: MAILING_SERVICE_REFRESH_TOKEN,
+});
 // send mail
-const sendEmail = async(to, url, txt) => {
-    const accessToken = await oauth2Client.getAccessToken()
-    const smtpTransport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            type: 'OAuth2',
-            user: SENDER_EMAIL_ADDRESS,
-            clientId: MAILING_SERVICE_CLIENT_ID,
-            clientSecret: MAILING_SERVICE_CLIENT_SECRET,
-            refreshToken: MAILING_SERVICE_REFRESH_TOKEN,
-            accessToken: accessToken?.token
-        }
-    })
+const sendEmail = async (to, url, txt) => {
+  const accessToken = await oauth2Client.getAccessToken();
+  const smtpTransport = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      type: "OAuth2",
+      user: SENDER_EMAIL_ADDRESS,
+      clientId: MAILING_SERVICE_CLIENT_ID,
+      clientSecret: MAILING_SERVICE_CLIENT_SECRET,
+      refreshToken: MAILING_SERVICE_REFRESH_TOKEN,
+      accessToken: accessToken?.token,
+    },
+  });
 
-    const mailOptions = {
-        from: SENDER_EMAIL_ADDRESS,
-        to: to,
-        subject: "E-commerce Shop",
-        html: `
+  const mailOptions = {
+    from: SENDER_EMAIL_ADDRESS,
+    to: to,
+    subject: "E-commerce Shop",
+    html: `
             <div style="max-width: 700px; margin:auto; border: 10px solid #ddd; padding: 50px 20px; font-size: 110%;">
             <h2 style="text-align: center; text-transform: uppercase;color: teal;">Notification from the E-commerce Shop.</h2>
             <p>You have changed your profile successfully. Just click the button below to login your email address.</p>
@@ -52,12 +52,12 @@ const sendEmail = async(to, url, txt) => {
         
             <div>${url}</div>
             </div>
-        `
-    }
-    smtpTransport.sendMail(mailOptions, (err, infor) => {
-        if(err) return err;
-        return infor
-    })
-}
+        `,
+  };
+  smtpTransport.sendMail(mailOptions, (err, infor) => {
+    if (err) return err;
+    return infor;
+  });
+};
 
-export default sendEmail
+export default sendEmail;

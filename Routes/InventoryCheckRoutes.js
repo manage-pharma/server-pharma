@@ -1,13 +1,18 @@
 import express from "express";
 import crypto from "crypto";
 import asyncHandler from "express-async-handler";
-import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
+import {
+  admin,
+  protect,
+  userRoleAdmin,
+  userRoleInventory,
+} from "../Middleware/AuthMiddleware.js";
 import mongoose from "mongoose";
 import inventoryCheck from "../Models/InventoryCheckModel.js";
 import Product from "../Models/ProductModel.js";
 import Inventory from "../Models/InventoryModels.js";
 import { logger } from "../utils/logger.js";
-import moment from 'moment';
+import moment from "moment";
 const day = moment(Date.now());
 
 const inventoryCheckRoutes = express.Router();
@@ -42,31 +47,30 @@ inventoryCheckRoutes.get(
           }
         : {};
     const stockImported = await inventoryCheck
-      .find({ ...keyword, ...D2D, isDeleted: {$eq: false} })
+      .find({ ...keyword, ...D2D, isDeleted: { $eq: false } })
       .populate("user", "name")
       .sort({ _id: -1 });
     res.json(stockImported);
-  })
+  }),
 );
 // GET BY CATEGORY ID
 inventoryCheckRoutes.get(
   "/category/:id",
   asyncHandler(async (req, res) => {
-  
     const products = await Product.find().populate("category", "_id");
     const productCategories = products.filter(
-      (item) => item?.category?._id.toHexString() === req.params.id
+      (item) => item?.category?._id.toHexString() === req.params.id,
     );
     const inCheck = [];
     for (const product of productCategories) {
       const inventoryItem = await Inventory.find(
         { idDrug: product._id },
-        { idDrug: 1, lotNumber: 1, count: 1, expDrug: 1 }
+        { idDrug: 1, lotNumber: 1, count: 1, expDrug: 1 },
       ).populate("idDrug", "name");
       inCheck.push(...inventoryItem);
     }
     res.json(inCheck);
-  })
+  }),
 );
 
 // CREATE IMPORT STOCK
@@ -77,7 +81,7 @@ inventoryCheckRoutes.post(
   asyncHandler(async (req, res) => {
     try {
       const { user, note, checkedAt, checkItems } = req.body;
-      const randomUuid = crypto.randomBytes(16).toString('hex');
+      const randomUuid = crypto.randomBytes(16).toString("hex");
       const inCheck = new inventoryCheck({
         checkCode: `${process.env.PREFIX_CODE_CBB}-${randomUuid.slice(0, 8)}`,
         user: user || req.user._id,
@@ -87,12 +91,15 @@ inventoryCheckRoutes.post(
       });
 
       const createdInventoryChek = await inCheck.save();
-      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check created 👉 Post: 200`, { user: req.user.name, createdInventoryChek })
+      logger.info(
+        `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check created 👉 Post: 200`,
+        { user: req.user.name, createdInventoryChek },
+      );
       res.status(201).json(createdInventoryChek);
     } catch (error) {
       res.status(400).json(error.message);
     }
-  })
+  }),
 );
 
 // GET IMPORT STOCK BY ID
@@ -110,7 +117,7 @@ inventoryCheckRoutes.get(
       res.status(404);
       throw new Error("Không tìm thấy đơn kiểm kê");
     }
-  })
+  }),
 );
 
 // UPDATE STATUS
@@ -159,17 +166,19 @@ inventoryCheckRoutes.put(
         // }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check updated status 👉 Post: 200`, { user: req.user.name, updatedImport })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check updated status 👉 Post: 200`,
+          { user: req.user.name, updatedImport },
+        );
         res.json(updatedImport);
-      }
-      else {
+      } else {
         res.status(404);
         throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
-  })
+  }),
 );
 
 // UPDATE STATUS HAVE TRANSACTION(DEMO)
@@ -234,7 +243,10 @@ inventoryCheckRoutes.put(
         thisImport.user = user || thisImport.user;
         thisImport.checkedAt = checkedAt || thisImport.checkedAt;
         const updatedProduct = await thisImport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Inventory check updated 👉 Post: 200`,
+          { user: req.user.name, updatedProduct },
+        );
         res.json(updatedProduct);
       } else {
         res.status(404);
@@ -243,7 +255,7 @@ inventoryCheckRoutes.put(
     } catch (error) {
       res.status(400).json(error.message);
     }
-  })
+  }),
 );
 
 inventoryCheckRoutes.put(
@@ -257,15 +269,14 @@ inventoryCheckRoutes.put(
         thisExport.isDeleted = true;
         const updatedExport = await thisExport.save();
         res.json(updatedExport);
-      } 
-      else {
+      } else {
         res.status(404);
         throw new Error("Không tìm thấy đơn kiểm kê");
       }
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
-  })
+  }),
 );
 
 export default inventoryCheckRoutes;

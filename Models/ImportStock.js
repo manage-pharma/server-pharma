@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
-import moment from 'moment';
+import moment from "moment";
 const importStockSchema = mongoose.Schema(
   {
-    importCode:{
-        type: String,
-        required: true,
-        unique: true,
+    importCode: {
+      type: String,
+      required: true,
+      unique: true,
     },
     provider: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: "Provider",
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Provider",
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -20,31 +20,32 @@ const importStockSchema = mongoose.Schema(
     importItems: [
       {
         _id: false,
-        name: { type: String},
-        lotNumber: {type: String, required: true},
-        manufactureDate: {type: Date, required: true},
-        expDrug: {type: Date, required: true},
-        expProduct:{type: Number, require: true },
+        name: { type: String },
+        lotNumber: { type: String, required: true },
+        manufactureDate: { type: Date, required: true },
+        expDrug: { type: Date, required: true },
+        expProduct: { type: Number, require: true },
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
-        VAT: {type: Number, default: 0},
-        discount: {type: Number, default: 0},
+        VAT: { type: Number, default: 0 },
+        discount: { type: Number, default: 0 },
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
           ref: "Product",
         },
-      }],
+      },
+    ],
     note: {
-      type: String
+      type: String,
     },
-    
+
     totalPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
-    
+
     totalVAT: {
       type: Number,
       required: true,
@@ -60,30 +61,29 @@ const importStockSchema = mongoose.Schema(
     invoiceNumber: {
       type: String,
     },
-    
+
     invoiceSymbol: {
       type: String,
     },
 
-    status:{
+    status: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    isDeleted:{
+    isDeleted: {
       type: Boolean,
       required: true,
-      default: false
+      default: false,
     },
     importedAt: {
       type: Date,
-      default: Date.now()
-    }
+      default: Date.now(),
+    },
   },
   {
-    timestamp: true
-  }
+    timestamp: true,
+  },
 );
 
 const importStock = mongoose.model("ImportStock", importStockSchema);
 export default importStock;
-

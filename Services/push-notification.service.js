@@ -63,7 +63,7 @@ async function sendNotificationsExpDrug() {
 async function sendNotificationsInventory() {
   const products = await Inventory.find({ count: { $lt: 30 } }).populate(
     "idDrug",
-    "name"
+    "name",
   );
   if (products.length > 0) {
     products.forEach(async (product) => {
@@ -77,9 +77,6 @@ async function sendNotificationsInventory() {
   }
 }
 
-
-
-
 async function sendNotificationsExpDrugGROUP() {
   const now = new Date();
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -87,43 +84,43 @@ async function sendNotificationsExpDrugGROUP() {
     {
       $match: {
         expDrug: { $lt: thirtyDaysFromNow },
-        count: { $gt: 0 }
-      }
-    },    
-    {
-      $lookup: {
-        from: 'products',
-        localField: 'idDrug',
-        foreignField: '_id',
-        as: 'drugDetails'
-      }
+        count: { $gt: 0 },
+      },
     },
     {
-      $unwind: '$drugDetails'
+      $lookup: {
+        from: "products",
+        localField: "idDrug",
+        foreignField: "_id",
+        as: "drugDetails",
+      },
+    },
+    {
+      $unwind: "$drugDetails",
     },
     {
       $project: {
         _id: 0,
-        _id: '$drugDetails._id',
-        name: '$drugDetails.name',
+        _id: "$drugDetails._id",
+        name: "$drugDetails.name",
         lotNumber: 1,
         status: {
           $dateToString: {
             format: "hết hạn ngày %d tháng %m năm %Y",
-            date: "$expDrug"
-          }
+            date: "$expDrug",
+          },
         },
-      }
-    }
+      },
+    },
   ];
   const products = await Inventory.aggregate(pipeline);
-  console.log('products', products)
+  console.log("products", products);
   if (products.length > 0) {
     const message = {
       headings: "Phòng Khám đa khoa",
       contents: `thuốc sắp hết hạn sử dụng`,
       signature: "EXP",
-      listItem: products
+      listItem: products,
     };
     ConfigNotify(message);
     await HistoryNotification.saveNotification(message);
@@ -132,37 +129,36 @@ async function sendNotificationsExpDrugGROUP() {
 async function sendNotificationsInventoryGROUP() {
   const pipeline = [
     {
-      $match: { count: { $lt: 30 } }
+      $match: { count: { $lt: 30 } },
     },
     {
       $lookup: {
-        from: 'products',
-        localField: 'idDrug',
-        foreignField: '_id',
-        as: 'drugDetails'
-      }
+        from: "products",
+        localField: "idDrug",
+        foreignField: "_id",
+        as: "drugDetails",
+      },
     },
     {
-      $unwind: '$drugDetails'
+      $unwind: "$drugDetails",
     },
     {
       $project: {
-        _id: '$drugDetails._id',
-        name: '$drugDetails.name',
+        _id: "$drugDetails._id",
+        name: "$drugDetails.name",
         lotNumber: 1,
-        unit: '$drugDetails.unit',
-        status: '$count'
-      }
-    }
+        unit: "$drugDetails.unit",
+        status: "$count",
+      },
+    },
   ];
   const products = await Inventory.aggregate(pipeline);
   if (products.length > 0) {
-
     const message = {
       headings: "phòng Khám đa khoa Mỹ Thạnh",
       contents: `lô thuốc dưới mức tồn kho`,
       signature: "OH",
-      listItem: products
+      listItem: products,
     };
     ConfigNotify(message);
     await HistoryNotification.saveNotification(message);

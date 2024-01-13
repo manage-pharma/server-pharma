@@ -36,20 +36,20 @@ const inventoryCheckSchema = mongoose.Schema(
         },
         unequal: { type: Number, required: true },
       },
-    ],  
+    ],
     status: {
       type: Boolean,
       default: false,
     },
-    isDeleted:{
+    isDeleted: {
       type: Boolean,
       required: true,
-      default: false
+      default: false,
     },
   },
   {
     timestamp: true,
-  }
+  },
 );
 
 const inventoryCheck = mongoose.model("InventoryCheck", inventoryCheckSchema);

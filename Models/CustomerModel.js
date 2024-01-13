@@ -18,16 +18,16 @@ const customerSchema = mongoose.Schema(
     },
     address: {
       type: String,
-      
-      default :""
+
+      default: "",
     },
     dateOfBirth: {
       type: Date,
     },
     gender: {
       type: Number,
-      
-      default :0
+
+      default: 0,
     },
     password: {
       type: String,
@@ -36,7 +36,7 @@ const customerSchema = mongoose.Schema(
     pCoin: {
       type: Number,
       required: true,
-      default: 0
+      default: 0,
     },
     isAdmin: {
       type: Boolean,
@@ -50,20 +50,20 @@ const customerSchema = mongoose.Schema(
     role: {
       type: String,
       required: true,
-      default: 'userDefault',
-    },//totalOrder
+      default: "userDefault",
+    }, //totalOrder
     totalOrder: {
       type: Number,
-      default :0
+      default: 0,
     },
     lockTo: {
       type: Date,
-      default:''
+      default: "",
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Login

@@ -20,7 +20,7 @@ const providerSchema = mongoose.Schema(
       unique: true,
     },
     phone: {
-      type: String,      
+      type: String,
       required: true,
     },
     email: {
@@ -34,7 +34,7 @@ const providerSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Provider = mongoose.model("Provider", providerSchema);

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const exportStockSchema = mongoose.Schema(
   {
-    exportCode:{
+    exportCode: {
       type: String,
       required: true,
       unique: true,
@@ -20,15 +20,15 @@ const exportStockSchema = mongoose.Schema(
     exportItems: [
       {
         _id: false,
-        name: { type: String},
+        name: { type: String },
         lotField: [
           {
-            count: {type: Number, require: true},
-            idDrug: {type: String, require: true},
-            lotNumber: {type: String, require: true},
-            expDrug: {type: Date, required: true},
-          }
-        ],      
+            count: { type: Number, require: true },
+            idDrug: { type: String, require: true },
+            lotNumber: { type: String, require: true },
+            expDrug: { type: Date, required: true },
+          },
+        ],
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
         product: {
@@ -36,29 +36,29 @@ const exportStockSchema = mongoose.Schema(
           required: true,
           ref: "Product",
         },
-      }],
-    status:{
+      },
+    ],
+    status: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isExportCanceled: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    isDeleted:{
+    isDeleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     exportedAt: {
       type: Date,
-      default: Date.now()
-    }
+      default: Date.now(),
+    },
   },
   {
-    timestamp: true
-  }
+    timestamp: true,
+  },
 );
 
 const exportStock = mongoose.model("ExportStock", exportStockSchema);
 export default exportStock;
-

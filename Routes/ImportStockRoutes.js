@@ -1,86 +1,95 @@
 import express from "express";
-import crypto from 'crypto';
+import crypto from "crypto";
 import asyncHandler from "express-async-handler";
-import { admin, protect, userRoleAdmin, userRoleInventory } from "../Middleware/AuthMiddleware.js";
-import importStock from './../Models/ImportStock.js';
-import Product from '../Models/ProductModel.js'
-import mongoose from 'mongoose';
+import {
+  admin,
+  protect,
+  userRoleAdmin,
+  userRoleInventory,
+} from "../Middleware/AuthMiddleware.js";
+import importStock from "./../Models/ImportStock.js";
+import Product from "../Models/ProductModel.js";
+import mongoose from "mongoose";
 import Inventory from "../Models/InventoryModels.js";
 import { logger } from "../utils/logger.js";
-import moment from 'moment';
+import moment from "moment";
 const day = moment(Date.now());
 
 const importStockRoutes = express.Router();
 
 // ADMIN GET ALL IMPORT STOCK
-importStockRoutes.get("/",
-    protect,
-    userRoleInventory,
-    asyncHandler(async (req, res) => {
-        // const pageSize = 9;
-        // const currentPage = Number(req.query.pageNumber) || 1;
-        const keyword = req.query.keyword && req.query.keyword != ' ' ? {
-          importCode: {
+importStockRoutes.get(
+  "/",
+  protect,
+  userRoleInventory,
+  asyncHandler(async (req, res) => {
+    // const pageSize = 9;
+    // const currentPage = Number(req.query.pageNumber) || 1;
+    const keyword =
+      req.query.keyword && req.query.keyword != " "
+        ? {
+            importCode: {
               $regex: req.query.keyword,
-              $options: "i"
-          },
-        } : {}
-        
-        const from = req.query.from;
-        const to = req.query.to;
-        const D2D = from && to ? {
-          importedAt: {
-              $gte: from,
-              $lte: to
+              $options: "i",
+            },
           }
-        } : {}
-        // const count = await importStock.countDocuments({...keyword, ...D2D});
-        const stockImported = await importStock.find({...keyword, ...D2D, isDeleted: {$eq: false}}).populate(
-          "user",
-          "name"
-        ).populate(
-          "provider",
-          "name address phone",
-        ).populate(
-          "importItems.product",
-          "name image"
-        ).sort({ _id: -1 })
-        // .limit(pageSize)
-        // .skip(pageSize * (currentPage - 1))
+        : {};
 
-        // const totalPage = [];
-        // for(let i = 1; i <= Math.ceil(count / pageSize); i++){
-        //   totalPage.push(i)
-        // }
-        // res.json({ stockImported, currentPage, totalPage });
-        res.json(stockImported);
+    const from = req.query.from;
+    const to = req.query.to;
+    const D2D =
+      from && to
+        ? {
+            importedAt: {
+              $gte: from,
+              $lte: to,
+            },
+          }
+        : {};
+    // const count = await importStock.countDocuments({...keyword, ...D2D});
+    const stockImported = await importStock
+      .find({ ...keyword, ...D2D, isDeleted: { $eq: false } })
+      .populate("user", "name")
+      .populate("provider", "name address phone")
+      .populate("importItems.product", "name image")
+      .sort({ _id: -1 });
+    // .limit(pageSize)
+    // .skip(pageSize * (currentPage - 1))
 
-    })
-)
+    // const totalPage = [];
+    // for(let i = 1; i <= Math.ceil(count / pageSize); i++){
+    //   totalPage.push(i)
+    // }
+    // res.json({ stockImported, currentPage, totalPage });
+    res.json(stockImported);
+  }),
+);
 // analytics stock import for app
 importStockRoutes.get(
-  "/analytics", protect, userRoleInventory,
+  "/analytics",
+  protect,
+  userRoleInventory,
   asyncHandler(async (req, res) => {
     const from = req.query.from;
     const to = req.query.to;
     const D2D =
       from && to
         ? {
-          $and: [
-            {
-              importedAt: {
-                $gte: new Date(from),
-                $lte: new Date(to),
+            $and: [
+              {
+                importedAt: {
+                  $gte: new Date(from),
+                  $lte: new Date(to),
+                },
               },
-            },
-            {
-              status: true
-            }
-          ]
-        }
-        :{
-          status: true
-        };
+              {
+                status: true,
+              },
+            ],
+          }
+        : {
+            status: true,
+          };
     const datas = await importStock.aggregate([
       {
         $match: D2D,
@@ -105,11 +114,11 @@ importStockRoutes.get(
         },
       },
       {
-        $sort: { _id: 1 }
-      }
+        $sort: { _id: 1 },
+      },
     ]);
     res.json({ ...datas });
-  })
+  }),
 );
 
 // //SEARCH DATE
@@ -149,7 +158,6 @@ importStockRoutes.get(
 //     })
 // )
 
-
 // importStockRoutes.get(
 //   "/",
 //   protect,
@@ -185,10 +193,10 @@ importStockRoutes.post(
         totalDiscount,
         invoiceNumber,
         invoiceSymbol,
-        importedAt
+        importedAt,
       } = req.body;
 
-      const randomUuid = crypto.randomBytes(16).toString('hex');
+      const randomUuid = crypto.randomBytes(16).toString("hex");
       const importsStock = new importStock({
         importCode: `${process.env.PREFIX_CODE_NK}-${randomUuid.slice(0, 8)}`,
         user: user || req.user._id,
@@ -199,18 +207,20 @@ importStockRoutes.post(
         totalDiscount,
         invoiceNumber,
         invoiceSymbol,
-        importedAt
+        importedAt,
       });
-  
+
       const createdImportStock = await importsStock.save();
-      logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Import Stock 👉 Post: 200`, { user: req.user.name, createdImportStock })
+      logger.info(
+        `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Import Stock 👉 Post: 200`,
+        { user: req.user.name, createdImportStock },
+      );
       res.status(201).json(createdImportStock);
     } catch (error) {
-        res.status(400).json(error.message);
-      }
+      res.status(400).json(error.message);
     }
-  )
-)
+  }),
+);
 
 // GET IMPORT STOCK BY ID
 importStockRoutes.get(
@@ -218,16 +228,11 @@ importStockRoutes.get(
   protect,
   userRoleInventory,
   asyncHandler(async (req, res) => {
-    const order = await importStock.findById(req.params.id).populate(
-      "user",
-      "name"
-    ).populate(
-      "provider",
-      "name"
-    ).populate(
-      "importItems.product",
-      "name image"
-    )
+    const order = await importStock
+      .findById(req.params.id)
+      .populate("user", "name")
+      .populate("provider", "name")
+      .populate("importItems.product", "name image");
 
     if (order) {
       res.json(order);
@@ -235,7 +240,7 @@ importStockRoutes.get(
       res.status(404);
       throw new Error("Không tìm thấy đơn nhập kho");
     }
-  })
+  }),
 );
 
 // UPDATE STATUS
@@ -249,27 +254,29 @@ importStockRoutes.put(
       if (thisImport) {
         for (let i = 0; i < thisImport.importItems.length; i++) {
           const updatedInventory = await Inventory.findOneAndUpdate(
-          { $and: [
-            {idDrug: thisImport.importItems[i].product.toHexString()},
-            {lotNumber: thisImport.importItems[i].lotNumber},
-            {manufactureDate: thisImport.importItems[i].manufactureDate},
-            {expDrug: thisImport.importItems[i].expDrug},
-            {expProduct: thisImport.importItems[i].expProduct}
-          ]},
-          {
-            $inc: { count: thisImport.importItems[i].qty },
-            $push: {
-              importStock: {
-                _id: thisImport._id,
-                importCode: thisImport.importCode
-              }
-            }
-          },{
-            new: false
-          }
-          )   
-          if(updatedInventory === null)
-          {
+            {
+              $and: [
+                { idDrug: thisImport.importItems[i].product.toHexString() },
+                { lotNumber: thisImport.importItems[i].lotNumber },
+                { manufactureDate: thisImport.importItems[i].manufactureDate },
+                { expDrug: thisImport.importItems[i].expDrug },
+                { expProduct: thisImport.importItems[i].expProduct },
+              ],
+            },
+            {
+              $inc: { count: thisImport.importItems[i].qty },
+              $push: {
+                importStock: {
+                  _id: thisImport._id,
+                  importCode: thisImport.importCode,
+                },
+              },
+            },
+            {
+              new: false,
+            },
+          );
+          if (updatedInventory === null) {
             const newUser = {
               idDrug: thisImport.importItems[i].product.toHexString(),
               lotNumber: thisImport.importItems[i].lotNumber,
@@ -277,27 +284,31 @@ importStockRoutes.put(
               expDrug: thisImport.importItems[i].expDrug,
               expProduct: thisImport.importItems[i].expProduct,
               count: +thisImport.importItems[i].qty,
-              importStock: [{
-                _id: thisImport._id,
-                importCode: thisImport.importCode
-              }]
+              importStock: [
+                {
+                  _id: thisImport._id,
+                  importCode: thisImport.importCode,
+                },
+              ],
             };
             await Inventory.create(newUser);
           }
         }
         thisImport.status = true;
         const updatedImport = await thisImport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Updated Status 👉 Post: 200`, { user: req.user.name, updatedImport })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Updated Status 👉 Post: 200`,
+          { user: req.user.name, updatedImport },
+        );
         res.json(updatedImport);
-      } 
-      else {
+      } else {
         res.status(404);
         throw new Error("Không tìm thấy đơn nhập kho");
       }
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
-  })
+  }),
 );
 
 //UPDATE IMPORTSTOCK
@@ -317,7 +328,7 @@ importStockRoutes.put(
         totalDiscount,
         invoiceNumber,
         invoiceSymbol,
-        importedAt
+        importedAt,
       } = req.body;
 
       if (thisImport) {
@@ -331,7 +342,10 @@ importStockRoutes.put(
         thisImport.invoiceSymbol = invoiceSymbol || thisImport.invoiceSymbol;
         thisImport.importedAt = importedAt || thisImport.importedAt;
         const updatedProduct = await thisImport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Updated 👉 Post: 200`, { user: req.user.name, updatedProduct })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Updated 👉 Post: 200`,
+          { user: req.user.name, updatedProduct },
+        );
         res.json(updatedProduct);
       } else {
         res.status(404);
@@ -340,9 +354,8 @@ importStockRoutes.put(
     } catch (error) {
       res.status(400).json(error.message);
     }
-  })
+  }),
 );
-
 
 //CANCEL IMPORT STOCK
 importStockRoutes.put(
@@ -355,16 +368,18 @@ importStockRoutes.put(
       if (thisImport) {
         thisImport.isDeleted = true;
         const updatedImport = await thisImport.save();
-        logger.info(`✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Cancel 👉 Post: 200`, { user: req.user.name, updatedImport })
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Import Stock Cancel 👉 Post: 200`,
+          { user: req.user.name, updatedImport },
+        );
         res.json(updatedImport);
-      } 
-      else {
+      } else {
         res.status(404);
         throw new Error("Không tìm thấy đơn nhập");
       }
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
-  })
+  }),
 );
 export default importStockRoutes;
