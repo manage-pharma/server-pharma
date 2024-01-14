@@ -62,7 +62,7 @@ const productSchema = mongoose.Schema(
       {
         _id: false,
         API: { type: String },
-        content: { type: Number },
+        content: { type: String },
       },
     ],
     brandName: {
