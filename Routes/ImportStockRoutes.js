@@ -205,13 +205,12 @@ importStockRoutes.post(
             $and: [
               { lotNumber: importItems[i].lotNumber },
               { idDrug:  mongoose.Types.ObjectId(importItems[i].product) },
-              { manufactureDate: { $ne : importItems[i].manufactureDate } },
-              { expDrug: { $ne: importItems[i].expDrug } },
-              // { expProduct: { $ne: importItems[i].expProduct } }
             ]
           }
         )
-        if(updatedInventory !== null){
+        const manufactureDateFormat = new Date(updatedInventory.manufactureDate).toISOString().split('T')[0]
+        const expDrugFormat = new Date(updatedInventory.expDrug).toISOString().split('T')[0]
+        if(updatedInventory !== null && importItems.manufactureDate !== manufactureDateFormat && importItems.expDrug !== expDrugFormat){
           flag = true
           res.status(201).json({
             error: true,
@@ -356,20 +355,18 @@ importStockRoutes.put(
       } = req.body;
 
       let flag = false
-      console.log('importItems', importItems)
       for (let i = 0; i < importItems.length; i++) {
         const updatedInventory = await Inventory.findOne(
           {
             $and: [
               { lotNumber: importItems[i].lotNumber },
               { idDrug:  typeof importItems[i].product === 'string' ? mongoose.Types.ObjectId(importItems[i].product) : mongoose.Types.ObjectId(importItems[i].product._id)},
-              { manufactureDate: { $ne : importItems[i].manufactureDate } },
-              { expDrug: { $ne: importItems[i].expDrug } },
-              // { expProduct: { $ne: importItems[i].expProduct } }
             ]
           }
         )
-        if(updatedInventory !== null){
+        const manufactureDateFormat = new Date(updatedInventory.manufactureDate).toISOString().split('T')[0]
+        const expDrugFormat = new Date(updatedInventory.expDrug).toISOString().split('T')[0]
+        if(updatedInventory !== null && importItems.manufactureDate !== manufactureDateFormat && importItems.expDrug !== expDrugFormat){
           flag = true
           res.status(201).json({
             error: true,
