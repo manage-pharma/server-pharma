@@ -196,28 +196,52 @@ importStockRoutes.post(
         importedAt,
       } = req.body;
 
-      const randomUuid = crypto.randomBytes(16).toString("hex");
-      const importsStock = new importStock({
-        importCode: `${process.env.PREFIX_CODE_NK}-${randomUuid.slice(0, 8)}`,
-        user: user || req.user._id,
-        provider,
-        importItems,
-        totalPrice,
-        totalVAT,
-        totalDiscount,
-        invoiceNumber,
-        invoiceSymbol,
-        importedAt,
-      });
+      const randomUuid = crypto.randomBytes(16).toString("hex")
+      let flag = false
 
-      const createdImportStock = await importsStock.save();
-      logger.info(
-        `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Import Stock 👉 Post: 200`,
-        { user: req.user.name, createdImportStock },
-      );
-      res.status(201).json(createdImportStock);
+      for (let i = 0; i < importItems.length; i++) {
+        const updatedInventory = await Inventory.findOne(
+          {
+            $and: [
+              { lotNumber: importItems[i].lotNumber },
+              { idDrug:  mongoose.Types.ObjectId(importItems[i].product) },
+              { manufactureDate: { $ne : importItems[i].manufactureDate } },
+              { expDrug: { $ne: importItems[i].expDrug } },
+              // { expProduct: { $ne: importItems[i].expProduct } }
+            ]
+          }
+        )
+        if(updatedInventory !== null){
+          flag = true
+          res.status(201).json({
+            error: true,
+            message: `Số lô ${updatedInventory.lotNumber} đã có trong hệ thống nhưng khác ngày sản xuất và sử dụng, vui lòng nhập đúng`
+          })
+        }
+      }
+      if(!flag){
+        const importsStock = new importStock({
+          importCode: `${process.env.PREFIX_CODE_NK}-${randomUuid.slice(0, 8)}`,
+          user: user || req.user._id,
+          provider,
+          importItems,
+          totalPrice,
+          totalVAT,
+          totalDiscount,
+          invoiceNumber,
+          invoiceSymbol,
+          importedAt,
+        });
+
+        const createdImportStock = await importsStock.save();
+        logger.info(
+          `✏️ ${day.format("MMMM Do YYYY, h:mm:ss a")} Created Import Stock 👉 Post: 200`,
+          { user: req.user.name, createdImportStock },
+        );
+        res.status(201).json(createdImportStock);
+      }
     } catch (error) {
-      res.status(400).json(error.message);
+      res.status(400).json(error.message)
     }
   }),
 );
@@ -331,7 +355,29 @@ importStockRoutes.put(
         importedAt,
       } = req.body;
 
-      if (thisImport) {
+      let flag = false
+      console.log('importItems', importItems)
+      for (let i = 0; i < importItems.length; i++) {
+        const updatedInventory = await Inventory.findOne(
+          {
+            $and: [
+              { lotNumber: importItems[i].lotNumber },
+              { idDrug:  typeof importItems[i].product === 'string' ? mongoose.Types.ObjectId(importItems[i].product) : mongoose.Types.ObjectId(importItems[i].product._id)},
+              { manufactureDate: { $ne : importItems[i].manufactureDate } },
+              { expDrug: { $ne: importItems[i].expDrug } },
+              // { expProduct: { $ne: importItems[i].expProduct } }
+            ]
+          }
+        )
+        if(updatedInventory !== null){
+          flag = true
+          res.status(201).json({
+            error: true,
+            message: `Số lô ${updatedInventory.lotNumber} đã có trong hệ thống nhưng khác ngày sản xuất và sử dụng, vui lòng nhập đúng`
+          })
+        }
+      }
+      if (thisImport && !flag) {
         thisImport.provider = provider || thisImport.provider;
         thisImport.importItems = importItems || thisImport.importItems;
         thisImport.user = user || thisImport.user;
