@@ -112,7 +112,7 @@ userRouter.post(
   "/active",
   asyncHandler(async (req, res) => {
     const token = req.body.activation_token;
-    if (!token || token === {}) {
+    if (!token || Object.keys(token).length === 0) {
       res.status(400);
       throw new Error(
         "Có vấn đề với link này, hãy liên hệ admin để được hổ trợ",
