@@ -198,7 +198,6 @@ importStockRoutes.post(
 
       const randomUuid = crypto.randomBytes(16).toString("hex")
       let flag = false
-
       for (let i = 0; i < importItems.length; i++) {
         const updatedInventory = await Inventory.findOne(
           {
@@ -208,14 +207,19 @@ importStockRoutes.post(
             ]
           }
         )
-        const manufactureDateFormat = new Date(updatedInventory.manufactureDate).toISOString().split('T')[0]
-        const expDrugFormat = new Date(updatedInventory.expDrug).toISOString().split('T')[0]
-        if(updatedInventory !== null && importItems.manufactureDate !== manufactureDateFormat && importItems.expDrug !== expDrugFormat){
-          flag = true
-          res.status(201).json({
-            error: true,
-            message: `Số lô ${updatedInventory.lotNumber} đã có trong hệ thống nhưng khác ngày sản xuất và sử dụng, vui lòng nhập đúng`
-          })
+        if(updatedInventory === null){
+          flag = false
+        }
+        else{
+          const manufactureDateFormat = new Date(updatedInventory?.manufactureDate)?.toISOString()?.split('T')[0]
+          const expDrugFormat = new Date(updatedInventory?.expDrug)?.toISOString()?.split('T')[0]
+          if(importItems[i]?.manufactureDate !== manufactureDateFormat || importItems[i]?.expDrug !== expDrugFormat){
+            flag = true
+            res.status(201).json({
+              error: true,
+              message: `Số lô ${updatedInventory?.lotNumber} đã có trong hệ thống nhưng khác ngày sản xuất và sử dụng, vui lòng nhập đúng`
+            })
+          }
         }
       }
       if(!flag){
@@ -364,14 +368,20 @@ importStockRoutes.put(
             ]
           }
         )
-        const manufactureDateFormat = new Date(updatedInventory.manufactureDate).toISOString().split('T')[0]
-        const expDrugFormat = new Date(updatedInventory.expDrug).toISOString().split('T')[0]
-        if(updatedInventory !== null && importItems.manufactureDate !== manufactureDateFormat && importItems.expDrug !== expDrugFormat){
-          flag = true
-          res.status(201).json({
-            error: true,
-            message: `Số lô ${updatedInventory.lotNumber} đã có trong hệ thống nhưng khác ngày sản xuất và sử dụng, vui lòng nhập đúng`
-          })
+        console.log('updatedInventory', updatedInventory)
+        if(updatedInventory === null){
+          flag = false
+        }
+        else{
+          const manufactureDateFormat = new Date(updatedInventory?.manufactureDate)?.toISOString()?.split('T')[0]
+          const expDrugFormat = new Date(updatedInventory?.expDrug)?.toISOString()?.split('T')[0]
+          if(importItems[i]?.manufactureDate !== manufactureDateFormat || importItems[i]?.expDrug !== expDrugFormat){
+            flag = true
+            res.status(201).json({
+              error: true,
+              message: `Số lô ${updatedInventory?.lotNumber} đã có trong hệ thống nhưng khác ngày sản xuất và sử dụng, vui lòng nhập đúng`
+            })
+          }
         }
       }
       if (thisImport && !flag) {

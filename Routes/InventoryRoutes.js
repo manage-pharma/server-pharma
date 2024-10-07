@@ -211,8 +211,7 @@ inventoryRoutes.get(
     const ObjectId = mongoose.Types.ObjectId;
     const from = req.query.from;
     const to = req.query.to;
-    const now = new Date().toISOString();
-
+    const now = `${moment().format('YYYY-MM-DD')}`;
     const tagInventoryFactory = async (fromParam, toParam) => {
       const resultsImport = await Inventory.aggregate([
         {
@@ -260,7 +259,7 @@ inventoryRoutes.get(
       const resultsExport = await Inventory.aggregate([
         {
           $match: {
-            idDrug: ObjectId(req.query.keyword),
+            idDrug: ObjectId(req.query.keyword)
           },
         },
         {
@@ -342,7 +341,7 @@ inventoryRoutes.get(
       const resultsExportCancel = await Inventory.aggregate([
         {
           $match: {
-            idDrug: ObjectId(req.query.keyword),
+            idDrug: ObjectId(req.query.keyword)
           },
         },
         {
@@ -464,7 +463,7 @@ inventoryRoutes.get(
         if (!acc[lotNumber]) {
           acc[lotNumber] = {
             importedItemTotal: 0,
-            exportedCancelItemTotal: 0,
+            exportedItemTotal: 0,
             exportedCancelItemTotal: 0,
           };
         }
@@ -474,33 +473,31 @@ inventoryRoutes.get(
       const totals = {};
       Object.keys(importTotals).forEach((lotNumber) => {
         totals[lotNumber] = {
-          importedItemTotal: importTotals[lotNumber].importedItemTotal,
+          importedItemTotal: importTotals[lotNumber].importedItemTotal || 0,
           exportedItemTotal: exportTotals[lotNumber]?.exportedItemTotal || 0,
-          exportedCancelItemTotal:
-            exportCancelTotals[lotNumber]?.exportedCancelItemTotal || 0,
+          exportedCancelItemTotal: exportCancelTotals[lotNumber]?.exportedCancelItemTotal || 0,
         };
       });
-      console.log(totals);
+      // console.log('totals', totals);
+      // console.log('------------------------------------------------------')
       return totals;
     };
 
     const from_to = await tagInventoryFactory(from, to);
     const from_now = await tagInventoryFactory(from, now);
-
+    console.log('from_to', from_to)
+    console.log('from_now', from_now)
     const output = [];
     for (const lotNumber_FromTo of Object.keys(from_to)) {
       const lotNumberFromDB = await Inventory.findOne({
         lotNumber: lotNumber_FromTo,
       });
       for (const lotNumber_FromNow of Object.keys(from_now)) {
-        if (
-          lotNumber_FromTo === lotNumber_FromNow &&
-          lotNumber_FromTo === lotNumberFromDB.lotNumber
-        ) {
+        if (lotNumber_FromTo === lotNumber_FromNow && lotNumber_FromTo === lotNumberFromDB.lotNumber) {
+          // console.log('lotNumberFromDB', lotNumberFromDB)
           const TDK =
             lotNumberFromDB.count +
-            (from_now[lotNumber_FromNow].exportedItemTotal +
-              from_now[lotNumber_FromNow].exportedCancelItemTotal) -
+            (from_now[lotNumber_FromNow].exportedItemTotal + from_now[lotNumber_FromNow].exportedCancelItemTotal) -
             from_now[lotNumber_FromNow].importedItemTotal;
           const TCK =
             TDK +
