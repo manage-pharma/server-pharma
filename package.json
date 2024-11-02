@@ -10,7 +10,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --inspect ./server.js --ignore *.json",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
-    "server": "nodemon ./server.js"
+    "server": "nodemon ./server.js",
+    "build-src": "mkdir -p build && find . -maxdepth 1 ! -path './build' ! -path './node_modules' -exec cp -r {} ./build \\;",
+    "build": "node build/server.js"
   },
   "author": "",
   "license": "ISC",
