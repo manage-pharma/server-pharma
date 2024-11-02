@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  admin:
+    build:
+      context: ./admin-pharma
+      dockerfile: Dockerfile
+    volumes:
+      - ./admin-pharma/dist:/admin-pharma/dist
+    command: npm run build
+  backend:
+    build:
+      context: ./server-pharma
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost
+      - CLIENT_URL_TEST_PRODUCT=http://192.168.99.1:3000
+      - JWT_SECRET=modernecommerce
+      - PAYPAL_CLIENT_ID=AYbBHdXR8k1rSc-B0VYT3QuHg7LJRcxCCUZi9prqMJvMPs86yQxq2DZvJoCCxY1sE2fJfonGMT114MwJ
+      - MONGO_URI=mongodb://root:123456@mongo:27017/modern_ecommerce?authSource=admin
+      - PREFIX_CODE_NK=NK-khoduoc
+      - PREFIX_CODE_XK=XK-khoduoc
+      - PREFIX_CODE_YC=YC-khoduoc
+      - PREFIX_CODE_CBB=CBB-khoduoc
+    ports:
+      - '5000:5000'
+    expose:
+      - 5000
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:4.4
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo-data:/data/db
+    expose:
+      - 27018
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./admin-pharma/dist:/usr/share/nginx/html
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - admin
+      - backend
+
+volumes:
+  mongo-data:
